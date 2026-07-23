@@ -151,9 +151,10 @@
     W = r.width; H = r.height;
     canvas.width = W * dpr; canvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    base = { x: W * (W < 720 ? 0.5 : 0.76), y: H * (W < 720 ? 0.9 : 0.85) };
+    base = { x: W * (W < 720 ? 0.5 : 0.72), y: H * 0.9 };
     const u = Math.min(H, 760);
-    lens = [u * 0.24, u * 0.2, u * 0.11];   // upper, fore, hand
+    // taller arm on mobile so it fills its dedicated band
+    lens = (W < 720) ? [u * 0.3, u * 0.26, u * 0.13] : [u * 0.24, u * 0.2, u * 0.11];
     pts = [ {x:base.x,y:base.y}, {x:base.x,y:base.y-lens[0]},
             {x:base.x,y:base.y-lens[0]-lens[1]}, {x:base.x,y:base.y-lens[0]-lens[1]-lens[2]} ];
     if (!target) target = { x: base.x, y: base.y - 300 };
@@ -192,27 +193,54 @@
     }
   }
 
+  function drawApple(x, y, r) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.shadowColor = "rgba(255,70,70,.45)"; ctx.shadowBlur = 16;
+    const g = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.15, 0, 0, r * 1.25);
+    g.addColorStop(0, "#ff7a72"); g.addColorStop(.5, "#e83b34"); g.addColorStop(1, "#9c1414");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(0, -r * 0.55);
+    ctx.bezierCurveTo(-r * 1.15, -r * 1.15, -r * 1.25, r * 0.7, 0, r * 1.05);
+    ctx.bezierCurveTo(r * 1.25, r * 0.7, r * 1.15, -r * 1.15, 0, -r * 0.55);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // stem
+    ctx.strokeStyle = "#7a4a2a"; ctx.lineWidth = Math.max(2, r * 0.14); ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(0, -r * 0.55); ctx.lineTo(r * 0.16, -r * 1.15); ctx.stroke();
+    // leaf
+    ctx.fillStyle = "#43c07a";
+    ctx.beginPath(); ctx.ellipse(r * 0.55, -r * 0.95, r * 0.45, r * 0.2, -0.6, 0, Math.PI * 2); ctx.fill();
+    // highlight
+    ctx.fillStyle = "rgba(255,255,255,.5)";
+    ctx.beginPath(); ctx.ellipse(-r * 0.38, -r * 0.28, r * 0.2, r * 0.32, -0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDetect(x, y, s) {
+    const L = x - s, R = x + s, T = y - s, B = y + s, c = s * 0.42;
+    ctx.strokeStyle = "rgba(63,224,234,.7)"; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(L, T + c); ctx.lineTo(L, T); ctx.lineTo(L + c, T);
+    ctx.moveTo(R - c, T); ctx.lineTo(R, T); ctx.lineTo(R, T + c);
+    ctx.moveTo(R, B - c); ctx.lineTo(R, B); ctx.lineTo(R - c, B);
+    ctx.moveTo(L + c, B); ctx.lineTo(L, B); ctx.lineTo(L, B - c);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(63,224,234,.85)";
+    ctx.font = "10px 'IBM Plex Mono', ui-monospace, monospace";
+    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+    ctx.fillText("apple", L, T - 5);
+  }
+
   function draw() {
     ctx.clearRect(0, 0, W, H);
-    // clamp target inside canvas, above the base
-    const t = { x: Math.max(20, Math.min(W - 20, target.x)),
-                y: Math.max(20, Math.min(base.y - 30, target.y)) };
-    // keep the target within reach so the arm always holds a bend (never locks flat)
-    const maxR = (lens[0] + lens[1] + lens[2]) * 0.92;
-    let dx = t.x - base.x, dy = t.y - base.y, d = Math.hypot(dx, dy);
-    if (d > maxR) { t.x = base.x + dx / d * maxR; t.y = base.y + dy / d * maxR; }
-    aim.x += (t.x - aim.x) * 0.09;
-    aim.y += (t.y - aim.y) * 0.09;
+    // the target floats freely (only clamped to the canvas); the arm reaches toward it
+    const t = { x: Math.max(28, Math.min(W - 28, target.x)),
+                y: Math.max(28, Math.min(base.y - 20, target.y)) };
+    aim.x += (t.x - aim.x) * 0.08;
+    aim.y += (t.y - aim.y) * 0.08;
     fabrik(aim);
-
-    // reticle at target
-    ctx.strokeStyle = "rgba(63,224,234,.55)"; ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.arc(aim.x, aim.y, 13, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(aim.x - 20, aim.y); ctx.lineTo(aim.x - 6, aim.y);
-    ctx.moveTo(aim.x + 6, aim.y); ctx.lineTo(aim.x + 20, aim.y);
-    ctx.moveTo(aim.x, aim.y - 20); ctx.lineTo(aim.x, aim.y - 6);
-    ctx.moveTo(aim.x, aim.y + 6); ctx.lineTo(aim.x, aim.y + 20); ctx.stroke();
 
     // base plate
     ctx.fillStyle = "#11161c";
@@ -246,6 +274,11 @@
     ctx.moveTo(-2, -9); ctx.lineTo(9, -9); ctx.moveTo(-2, 9); ctx.lineTo(9, 9);
     ctx.moveTo(-2, -9); ctx.lineTo(-2, 9); ctx.stroke();
     ctx.restore(); ctx.shadowBlur = 0;
+
+    // the floating apple the arm is reaching for, with a vision-style detection box
+    const ar = Math.max(13, Math.min(20, (lens[0] + lens[1] + lens[2]) * 0.05));
+    drawDetect(t.x, t.y, ar * 1.7);
+    drawApple(t.x, t.y, ar);
 
     // telemetry
     const hudTheta = $("#hudTheta"), hudEE = $("#hudEE");
@@ -292,13 +325,15 @@
     (function loop() {
       // auto-orbit when the cursor isn't driving it (touch / idle)
       if (!hoverActive) {
-        autoT += 0.009;
+        autoT += 0.008;
         const reach = lens[0] + lens[1] + lens[2];
-        const rad = reach * 0.22;
-        const ox = (W < 720 ? 0 : -reach * 0.08);
+        const radX = reach * (W < 720 ? 0.42 : 0.52);
+        const radY = reach * 0.3;
+        const cx = base.x - (W < 720 ? 0 : reach * 0.1);
+        const cy = base.y - reach * 0.76;
         target = {
-          x: base.x + ox + Math.cos(autoT) * rad,
-          y: base.y - reach * 0.64 + Math.sin(autoT * 1.5) * rad,
+          x: cx + Math.cos(autoT) * radX,
+          y: cy + Math.sin(autoT * 1.4) * radY,
         };
       }
       draw();

@@ -359,9 +359,9 @@ main{position:relative;z-index:1}
   .nav-toggle{display:flex;z-index:101}
   .hero-hud{display:none}
   /* arm gets its own in-flow band below the copy on mobile (no overlap with CTAs) */
-  .hero{justify-content:flex-start;padding-top:11vh;padding-bottom:24px;min-height:100svh}
+  .hero{justify-content:flex-start;padding-top:9vh;padding-bottom:20px;min-height:100svh}
   .hero-copy{order:1}
-  #armCanvas{position:relative;display:block;order:2;width:100%;height:34vh;min-height:230px;margin-top:18px}
+  #armCanvas{position:relative;display:block;order:2;width:100%;height:42vh;min-height:300px;margin-top:6px}
   .scroll-hint{display:none}
   .robot-stage,.stack-grid{grid-template-columns:1fr}
   .pillar-grid{grid-template-columns:1fr 1fr}
