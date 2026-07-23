@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" role="img" aria-label="Phi mark">
+  <defs>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EAEEF1"/><stop offset="1" stop-color="#CBD2D8"/>
+    </linearGradient>
+    <radialGradient id="eye" cx=".5" cy=".45" r=".55">
+      <stop offset="0" stop-color="#EFFEFF"/><stop offset=".35" stop-color="#3FE0EA"/><stop offset="1" stop-color="#178F99"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="12" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- open ring: two arcs with gaps at top & bottom -->
+  <g fill="none" stroke="url(#metal)" stroke-width="42" stroke-linecap="butt">
+    <path d="M 279.5 111.1 A 142 142 0 0 1 279.5 388.9"/>
+    <path d="M 220.5 111.1 A 142 142 0 0 0 220.5 388.9"/>
+  </g>
+  <!-- central bar (Phi stem) -->
+  <rect x="235" y="40" width="30" height="420" rx="15" fill="url(#metal)"/>
+  <!-- glowing cyan sensor-eyes with catchlights -->
+  <g filter="url(#glow)">
+    <circle cx="188" cy="254" r="30" fill="url(#eye)"/>
+    <circle cx="312" cy="254" r="30" fill="url(#eye)"/>
+  </g>
+  <circle cx="181" cy="246" r="8.5" fill="#FFFFFF"/>
+  <circle cx="305" cy="246" r="8.5" fill="#FFFFFF"/>
+</svg>

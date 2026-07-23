@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Φ · Physical Hardware Intelligence — Northeastern Silicon Valley</title>
+<meta name="description" content="Physical Hardware Intelligence (Φ) is Northeastern Silicon Valley's hands-on robotics and embodied-AI group. We build real robots and run real learning policies on them. A building club, not a talking club.">
+<meta name="theme-color" content="#06080A">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Φ · Physical Hardware Intelligence">
+<meta property="og:description" content="We build real robots and run real learning policies on them. A building club, not a talking club. Northeastern Silicon Valley.">
+<meta property="og:image" content="assets/phi-mark.svg">
+
+<link rel="icon" href="assets/phi-mark.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ░░ boot overlay ░░ -->
+<div id="boot" aria-hidden="true">
+  <div class="boot-inner">
+    <img class="boot-mark" src="assets/phi-mark.svg" width="72" height="72" alt="">
+    <pre class="boot-log" id="bootLog"></pre>
+  </div>
+</div>
+
+<!-- ░░ grid + noise backdrop ░░ -->
+<div class="backdrop" aria-hidden="true">
+  <div class="grid-layer"></div>
+  <div class="glow-layer"></div>
+  <div class="scan-layer"></div>
+</div>
+
+<!-- ░░ nav ░░ -->
+<header class="nav" id="nav">
+  <a class="brand" href="#top" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="assets/phi-mark.svg" width="32" height="32" alt="" class="brand-mark">
+    <span class="brand-sub">PHYSICAL&nbsp;HARDWARE&nbsp;INTELLIGENCE</span>
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="#robot">SO-101</a>
+    <a href="#loop">Learn</a>
+    <a href="#stack">Repo</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#join" class="nav-cta">Join</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top">
+
+  <!-- ░░ 00 · HERO ░░ -->
+  <section class="hero" id="hero">
+    <canvas id="armCanvas" aria-hidden="true"></canvas>
+    <div class="hero-hud" aria-hidden="true">
+      <div class="hud-row"><span class="hud-k">STATUS</span><span class="hud-v status-live"><i></i>SIG&nbsp;APPROVED</span></div>
+      <div class="hud-row"><span class="hud-k">ROBOT_00</span><span class="hud-v">SO-ARM101 · 6&nbsp;DOF</span></div>
+      <div class="hud-row"><span class="hud-k">θ&nbsp;JOINTS</span><span class="hud-v" id="hudTheta">-- · -- · --</span></div>
+      <div class="hud-row"><span class="hud-k">EE_POS</span><span class="hud-v" id="hudEE">x -- · y --</span></div>
+    </div>
+
+    <div class="hero-copy">
+      <div class="eyebrow"><span class="dot"></span>NORTHEASTERN UNIVERSITY · SILICON&nbsp;VALLEY</div>
+      <h1 class="hero-title">
+        We build robots<br>that <span class="grad">learn</span>.
+      </h1>
+      <p class="hero-lede">
+        You'll build a real robot arm and teach it to do things. No robotics background needed.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#join">Join&nbsp;Φ <span aria-hidden="true">→</span></a>
+        <a class="btn btn-ghost" href="https://github.com/BrutalCaeser/phi" target="_blank" rel="noopener">View&nbsp;the&nbsp;code</a>
+      </div>
+    </div>
+
+    <a href="#mission" class="scroll-hint" aria-label="Scroll to mission">
+      <span>SCROLL</span>
+      <svg viewBox="0 0 24 40" width="20" height="34" aria-hidden="true"><rect x="1" y="1" width="22" height="38" rx="11" fill="none" stroke="currentColor"/><circle class="mouse-dot" cx="12" cy="10" r="3" fill="currentColor"/></svg>
+    </a>
+  </section>
+
+  <!-- ░░ 01 · MISSION ░░ -->
+  <section class="section mission" id="mission">
+    <div class="sec-head reveal">
+      <span class="sec-idx">01</span><span class="sec-label">MISSION</span>
+    </div>
+    <h2 class="mission-statement reveal">
+      We build <em>real robots</em> and teach them to act on their own. It's the most
+      <span class="hl">hands-on</span> way into physical AI, and it's open to anyone, from any program.
+    </h2>
+    <p class="mission-quote reveal">“Every member leaves having actually made a robot&nbsp;move.”</p>
+  </section>
+
+  <!-- ░░ 02 · WHAT WE DO ░░ -->
+  <section class="section pillars" id="do">
+    <div class="sec-head reveal">
+      <span class="sec-idx">02</span><span class="sec-label">WHAT WE DO</span>
+    </div>
+    <div class="pillar-grid">
+      <article class="card reveal">
+        <div class="card-num">/01</div>
+        <h3>Build real robots</h3>
+        <p>Get your hands on real hardware and make it move.</p>
+      </article>
+      <article class="card reveal">
+        <div class="card-num">/02</div>
+        <h3>Teach, don't program</h3>
+        <p>Show it what to do, and it learns the rest.</p>
+      </article>
+      <article class="card reveal">
+        <div class="card-num">/03</div>
+        <h3>Open by default</h3>
+        <p>Every dataset and result is public.</p>
+      </article>
+      <article class="card reveal">
+        <div class="card-num">/04</div>
+        <h3>Ship to hardware</h3>
+        <p>Not done until it runs on the arm.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ░░ 03 · THE ROBOT ░░ -->
+  <section class="section robot" id="robot">
+    <div class="sec-head reveal">
+      <span class="sec-idx">03</span><span class="sec-label">THE ROBOT · SO-ARM101</span>
+    </div>
+    <div class="robot-intro reveal">
+      <h2>Robot&nbsp;<span class="grad">#00</span> — a 6-DOF arm you teach by hand.</h2>
+      <p>Move the <b>leader</b>; the <b>follower</b> mirrors it. That's how we record the demos it learns from.</p>
+    </div>
+
+    <div class="robot-stage">
+      <div class="arm-diagram reveal" id="armDiagram">
+        <!-- interactive SVG arm; joints are buttons -->
+        <svg viewBox="0 0 460 420" width="100%" role="img" aria-label="SO-ARM101 six-joint diagram">
+          <g class="arm-blueprint" fill="none" stroke="currentColor">
+            <!-- base -->
+            <rect x="150" y="360" width="160" height="28" rx="6"/>
+            <line x1="230" y1="360" x2="230" y2="300"/>
+            <!-- link 1 -->
+            <line x1="230" y1="300" x2="230" y2="210" class="link"/>
+            <!-- link 2 -->
+            <line x1="230" y1="210" x2="150" y2="140" class="link"/>
+            <!-- link 3 -->
+            <line x1="150" y1="140" x2="230" y2="90" class="link"/>
+            <!-- wrist -->
+            <line x1="230" y1="90" x2="290" y2="70" class="link"/>
+            <!-- gripper -->
+            <path d="M290 70 l24 -14 M290 70 l10 24" class="link"/>
+          </g>
+          <g class="joints">
+            <g class="joint" data-j="1" tabindex="0" role="button" aria-label="Joint 1 base rotation"><circle cx="230" cy="300" r="13"/><text x="230" y="305">1</text></g>
+            <g class="joint" data-j="2" tabindex="0" role="button" aria-label="Joint 2 shoulder"><circle cx="230" cy="210" r="13"/><text x="230" y="215">2</text></g>
+            <g class="joint" data-j="3" tabindex="0" role="button" aria-label="Joint 3 elbow"><circle cx="150" cy="140" r="13"/><text x="150" y="145">3</text></g>
+            <g class="joint" data-j="4" tabindex="0" role="button" aria-label="Joint 4 wrist flex"><circle cx="230" cy="90" r="13"/><text x="230" y="95">4</text></g>
+            <g class="joint" data-j="5" tabindex="0" role="button" aria-label="Joint 5 wrist roll"><circle cx="290" cy="70" r="12"/><text x="290" y="74">5</text></g>
+            <g class="joint" data-j="6" tabindex="0" role="button" aria-label="Joint 6 gripper"><circle cx="314" cy="56" r="11"/><text x="314" y="60">6</text></g>
+          </g>
+        </svg>
+        <div class="arm-hint">Tap a joint</div>
+      </div>
+
+      <div class="robot-panel reveal">
+        <div class="joint-readout" id="jointReadout">
+          <span class="jr-tag">SELECT · JOINT</span>
+          <h3 id="jrTitle">6 degrees of freedom</h3>
+          <p id="jrBody">Six independent joints, each driven by a Feetech STS3215 servo. Tap any joint on the diagram to see what it does.</p>
+        </div>
+        <div class="spec-grid">
+          <div class="spec"><span class="spec-k">DOF</span><span class="spec-v">6</span></div>
+          <div class="spec"><span class="spec-k">Actuators</span><span class="spec-v">Feetech STS3215</span></div>
+          <div class="spec"><span class="spec-k">Control</span><span class="spec-v">Leader → Follower</span></div>
+          <div class="spec"><span class="spec-k">Vision</span><span class="spec-v">Wrist + workspace cam</span></div>
+          <div class="spec"><span class="spec-k">Software</span><span class="spec-v">🤗 LeRobot</span></div>
+          <div class="spec"><span class="spec-k">Cost</span><span class="spec-v">≈ $370 assembled</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ 04 · HOW IT LEARNS ░░ -->
+  <section class="section loop" id="loop">
+    <div class="sec-head reveal">
+      <span class="sec-idx">04</span><span class="sec-label">HOW IT LEARNS</span>
+    </div>
+    <h2 class="loop-h2 reveal">Show it. Record it. Train it. Repeat.</h2>
+
+    <div class="loop-ring reveal" id="loopRing">
+      <svg viewBox="0 0 360 360" role="img" aria-label="The teleoperate, record, train, evaluate, deploy learning cycle">
+        <circle class="ring-track" cx="180" cy="180" r="115"/>
+        <circle class="ring-progress" cx="180" cy="180" r="115" transform="rotate(-90 180 180)"/>
+        <g class="lnodes">
+          <g class="lnode" data-i="0" tabindex="0" role="button" aria-label="Teleoperate"><circle cx="180" cy="65" r="19"/><text x="180" y="65">1</text><text class="lbl" x="180" y="34">Teleop</text></g>
+          <g class="lnode" data-i="1" tabindex="0" role="button" aria-label="Record"><circle cx="289" cy="145" r="19"/><text x="289" y="145">2</text><text class="lbl" x="318" y="135">Record</text></g>
+          <g class="lnode" data-i="2" tabindex="0" role="button" aria-label="Train"><circle cx="248" cy="273" r="19"/><text x="248" y="273">3</text><text class="lbl" x="265" y="299">Train</text></g>
+          <g class="lnode" data-i="3" tabindex="0" role="button" aria-label="Evaluate"><circle cx="112" cy="273" r="19"/><text x="112" y="273">4</text><text class="lbl" x="95" y="299">Eval</text></g>
+          <g class="lnode" data-i="4" tabindex="0" role="button" aria-label="Deploy"><circle cx="71" cy="145" r="19"/><text x="71" y="145">5</text><text class="lbl" x="42" y="135">Deploy</text></g>
+        </g>
+      </svg>
+      <div class="ring-center" aria-live="polite">
+        <span class="rc-idx" id="rcIdx">01 / 05</span>
+        <h3 id="rcTitle">Teleoperate</h3>
+        <p id="rcBody">Drive the follower by moving the leader arm by hand.</p>
+      </div>
+    </div>
+
+    <div class="zoo reveal">
+      <span class="zoo-label">POLICY ZOO</span>
+      <div class="zoo-chips">
+        <span>ACT</span><span>Diffusion Policy</span><span>SmolVLA</span><span>π₀</span><span class="muted">GR00T · soon</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ 05 · THE STACK / REPO ░░ -->
+  <section class="section stack" id="stack">
+    <div class="sec-head reveal">
+      <span class="sec-idx">05</span><span class="sec-label">THE STACK · ONE OPEN REPO</span>
+    </div>
+    <div class="stack-grid">
+      <div class="repo-card reveal">
+        <div class="repo-top">
+          <span class="repo-path">github.com/BrutalCaeser/<b>phi</b></span>
+          <span class="repo-badge">Apache-2.0</span>
+        </div>
+        <h2>Everything we build, in one place.</h2>
+        <p>A multi-robot monorepo — hardware, data, training, evaluation, deployment — documented so anyone can start <em>without starting from scratch</em>. Built on 🤗&nbsp;LeRobot.</p>
+        <div class="pipeline">
+          <span>Hardware</span><i>→</i><span>Data</span><i>→</i><span>Training</span><i>→</i><span>Evaluation</span><i>→</i><span>Deployment</span>
+        </div>
+        <a class="btn btn-primary" href="https://github.com/BrutalCaeser/phi" target="_blank" rel="noopener">Open the repo <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <div class="ladder reveal">
+        <span class="ladder-label">THE MEMBER LADDER</span>
+        <ul>
+          <li data-lvl="L0"><b>Onboard</b><span>Run a pretrained policy in replay.</span></li>
+          <li data-lvl="L1"><b>Operator</b><span>Calibrate, teleoperate, record a dataset.</span></li>
+          <li data-lvl="L2"><b>Trainer</b><span>Train ACT on your data and evaluate it.</span></li>
+          <li data-lvl="L3"><b>Contributor</b><span>Add a task or config; close a good-first-issue.</span></li>
+          <li data-lvl="L4"><b>Researcher</b><span>Run a new policy / edge / RL experiment and write it up.</span></li>
+          <li data-lvl="L5"><b>Maintainer</b><span>Own a module, review pull requests.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ 06 · ROADMAP ░░ -->
+  <section class="section roadmap" id="roadmap">
+    <div class="sec-head reveal">
+      <span class="sec-idx">06</span><span class="sec-label">ROADMAP · TO RESEARCH DAY</span>
+    </div>
+    <div class="timeline">
+      <div class="tl-item reveal done">
+        <span class="tl-dot"></span>
+        <span class="tl-when">JUL 2026</span>
+        <h4>SIG approved · arm on the bench</h4>
+        <p>Recognized, arm purchased, repo scaffolded.</p>
+      </div>
+      <div class="tl-item reveal now">
+        <span class="tl-dot"></span>
+        <span class="tl-when">AUG 2026</span>
+        <h4>First policy that moves</h4>
+        <p>The first reproducible ACT policy on the real arm.</p>
+      </div>
+      <div class="tl-item reveal">
+        <span class="tl-dot"></span>
+        <span class="tl-when">SEP 2026</span>
+        <h4>NEURAI Research Day</h4>
+        <p>Working robots and real results, on show.</p>
+      </div>
+    </div>
+    <div class="events reveal">
+      <span class="events-label">SIGNATURE EVENTS</span>
+      <div class="event-chips">
+        <span>🦾 Meet the Arm</span><span>🛠 Build Night</span><span>🎬 Robot Policy Showcase</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ░░ 07 · JOIN ░░ -->
+  <section class="section join" id="join">
+    <div class="join-inner reveal">
+      <div class="sec-head">
+        <span class="sec-idx">07</span><span class="sec-label">JOIN Φ</span>
+      </div>
+      <h2 class="join-title">Come make a robot move.</h2>
+      <p class="join-lede">Any program, any level. There's a rung for you.</p>
+      <div class="join-cta">
+        <a class="btn btn-primary btn-lg" href="https://docs.google.com/forms/d/e/1FAIpQLScQTAP918-B-LJJ-gTy3XPah5owmXIYNjUG21OIwUv8QkF5sw/viewform" target="_blank" rel="noopener">Sign up to join <span aria-hidden="true">→</span></a>
+        <a class="btn btn-ghost btn-lg" href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">Follow on LinkedIn</a>
+      </div>
+
+      <div class="founders">
+        <span class="founders-label">FOUNDING TEAM</span>
+        <div class="founder-row">
+          <div class="founder"><b>Yashvardhan Gupta</b><span>Co-founder</span></div>
+          <div class="founder"><b>Parv Patodia</b><span>Co-founder</span></div>
+          <div class="founder"><b>Sai Krishna Maligireddy</b><span>Co-founder</span></div>
+          <div class="founder"><b>Vineeth Sakhamuru</b><span>Co-founder</span></div>
+        </div>
+        <p class="advisor">Faculty sponsor · <b>Prof. Ilmi Yoon</b>, Director of Computing Programs &amp; co-founder of the NEURAI Lab.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ░░ FOOTER ░░ -->
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="assets/phi-mark.svg" width="40" height="40" alt="Phi mark">
+    <div>
+      <b>Φ · Physical Hardware Intelligence</b>
+      <span>Student Interest Group · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/BrutalCaeser/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLScQTAP918-B-LJJ-gTy3XPah5owmXIYNjUG21OIwUv8QkF5sw/viewform" target="_blank" rel="noopener">Join</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club. Not affiliated with or branded by the university.</p>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
