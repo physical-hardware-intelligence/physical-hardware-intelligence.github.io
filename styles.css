@@ -186,15 +186,19 @@ main{position:relative;z-index:1}
 .repo-badge{font-family:var(--mono);font-size:11px;color:var(--ink-3);border:1px solid var(--line-2);border-radius:20px;padding:2px 11px}
 .repo-card h2{font-size:clamp(1.5rem,2.6vw,2.1rem);font-weight:500}
 .repo-card>p{color:var(--ink-2);margin:14px 0 24px;font-size:1.05rem}
-.pipeline{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:28px}
-.pipeline span{font-family:var(--mono);font-size:12px;color:var(--ink);border:1px solid var(--line-2);border-radius:3px;padding:5px 10px;background:var(--paper)}
+.pipeline{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:6px 0 28px}
+.pipeline span{font-family:var(--mono);font-size:12px;color:var(--ink);border:1px solid var(--line-2);border-radius:4px;padding:7px 13px;background:var(--paper);transition:background .2s var(--ease),color .2s,border-color .2s}
+.pipeline span:hover{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .pipeline i{color:var(--ink-3);font-style:normal}
 .repo-card .btn{align-self:flex-start;margin-top:auto}
 .ladder{padding-top:4px}
 .ladder ul{list-style:none;margin:16px 0 0;padding:0}
-.ladder li{position:relative;padding:14px 0 14px 56px;border-top:1px solid var(--line)}
+.ladder li{position:relative;padding:14px 0 14px 56px;border-top:1px solid var(--line);transition:padding-left .22s var(--ease)}
 .ladder li:first-child{border-top:0}
-.ladder li::before{content:attr(data-lvl);position:absolute;left:0;top:14px;font-family:var(--mono);font-size:12px;color:var(--ink-2);border:1px solid var(--line-2);border-radius:3px;padding:2px 7px}
+.ladder li::before{content:attr(data-lvl);position:absolute;left:0;top:14px;font-family:var(--mono);font-size:12px;color:var(--ink-2);border:1px solid var(--line-2);border-radius:3px;padding:2px 7px;transition:background .22s,color .22s,border-color .22s}
+.ladder li:hover{padding-left:62px}
+.ladder li:hover::before{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.ladder li:hover b{color:var(--ink)}
 .ladder li b{display:block;font-family:var(--disp);font-size:1.1rem;font-weight:500}
 .ladder li span{color:var(--ink-2);font-size:.95rem}
 
@@ -254,6 +258,8 @@ main{position:relative;z-index:1}
   .nav-links a{font-size:22px;font-family:var(--disp);padding:14px 0;width:100%;border-bottom:1px solid var(--line)}
   .nav-cta{border:1px solid var(--ink);width:100%;text-align:center;margin-top:12px;padding:12px}
   .nav-toggle{display:flex;z-index:60}
+  .hero{justify-content:flex-start}
+  .hero-copy{padding-top:clamp(96px,15vh,124px)}
   #armCanvas{height:46vh;min-height:320px}
   .robot-stage,.stack-grid{grid-template-columns:1fr}
   .pillar-grid{grid-template-columns:1fr 1fr}
