@@ -7,33 +7,107 @@
   if ("scrollRestoration" in history) history.scrollRestoration = "manual";
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-  /* ---------- boot sequence ---------- */
-  (function boot() {
-    const el = $("#boot"), log = $("#bootLog");
-    if (!el) return;
-    const done = () => el.classList.add("done");
-    if (reduce) { log && (log.textContent = "Φ ready."); setTimeout(done, 250); return; }
-    const lines = [
-      "Φ // physical hardware intelligence",
-      "> init robot_00 .......... SO-ARM101",
-      "> actuators .............. 6 × STS3215  [ok]",
-      "> lerobot engine ......... linked  [ok]",
-      "> policy zoo ............. ACT · diffusion · vla",
-      "> status ................. SIG APPROVED",
-      "> ready.",
-    ];
-    let i = 0;
-    (function type() {
-      if (i >= lines.length) { setTimeout(done, 420); return; }
-      const cls = /\[ok\]|ready\.|APPROVED/.test(lines[i]) ? "" : "ok";
-      log.innerHTML += `<span class="${cls}">${lines[i]}</span>\n`;
-      i++;
-      setTimeout(type, i === 1 ? 260 : 150);
-    })();
-    // safety: never trap the user
-    setTimeout(done, 3000);
-  })();
+  /* ============================================================
+     SHARED SO-ARM101 RENDERER
+     One articulated arm, drawn as a fine ink line-drawing.
+     Used by the hero (IK, cursor-driven) and the 03 diagram.
+     6 DOF: base rotation · shoulder · elbow · wrist flex · wrist roll · gripper.
+     ============================================================ */
+  const INK = "#1B1712", PAPER = "#ECE7DC", BRACKET = "#E4DDCD", SERVO = "#C4B99F",
+        SEAM = "rgba(27,23,18,.22)", ACCENT = "#B23A2E";
+  const rr = (g, x, y, w, h, r) => { g.beginPath(); g.roundRect(x, y, w, h, r); };
+  const seg = (a, b) => Math.atan2(b.y - a.y, b.x - a.x);
+
+  function drawBase(g, p0, S, hot) {
+    g.strokeStyle = INK; g.lineWidth = 2;
+    g.fillStyle = hot ? INK : SERVO; rr(g, p0.x - S * 0.19, p0.y + S * 0.02, S * 0.38, S * 0.4, 4); g.fill(); g.stroke();
+    g.fillStyle = BRACKET; rr(g, p0.x - S * 0.62, p0.y + S * 0.36, S * 1.24, S * 0.15, 4); g.fill(); g.stroke();
+    g.fillStyle = INK;
+    [-S * 0.48, 0, S * 0.48].forEach(x => { g.beginPath(); g.arc(p0.x + x, p0.y + S * 0.435, 2, 0, 7); g.fill(); });
+  }
+
+  function drawBracket(g, a, b, w) {
+    const ang = seg(a, b), len = dist(a, b);
+    g.save(); g.translate(a.x, a.y); g.rotate(ang);
+    g.fillStyle = BRACKET; g.strokeStyle = INK; g.lineWidth = 2;
+    rr(g, -w * 0.1, -w / 2, len + w * 0.2, w, w * 0.34); g.fill(); g.stroke();
+    g.strokeStyle = SEAM; g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(w * 0.2, -w * 0.5 + 4); g.lineTo(len - w * 0.2, -w * 0.5 + 4);
+    g.moveTo(w * 0.2, w * 0.5 - 4); g.lineTo(len - w * 0.2, w * 0.5 - 4); g.stroke();
+    g.restore();
+  }
+
+  function drawServo(g, c, ang, sw, sh, hot) {
+    g.save(); g.translate(c.x, c.y); g.rotate(ang);
+    g.fillStyle = hot ? INK : SERVO; g.strokeStyle = INK; g.lineWidth = 2;
+    rr(g, -sw * 0.5, -sh * 0.5, sw, sh, sh * 0.16); g.fill(); g.stroke();
+    g.fillStyle = hot ? PAPER : INK;
+    const mx = sw * 0.5 - 4, my = sh * 0.5 - 4;
+    [[-mx, -my], [mx, -my], [-mx, my], [mx, my]].forEach(([x, y]) => { g.beginPath(); g.arc(x, y, 1.5, 0, 7); g.fill(); });
+    g.fillStyle = hot ? ACCENT : PAPER; g.strokeStyle = INK; g.lineWidth = 1.8;
+    g.beginPath(); g.arc(0, 0, sh * 0.3, 0, 7); g.fill(); g.stroke();
+    g.strokeStyle = hot ? "rgba(236,231,220,.55)" : SEAM; g.lineWidth = 1;
+    for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + 0.4; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * sh * 0.26, Math.sin(a) * sh * 0.26); g.stroke(); }
+    g.fillStyle = hot ? PAPER : INK; g.beginPath(); g.arc(0, 0, sh * 0.08, 0, 7); g.fill();
+    g.restore();
+  }
+
+  // wrist-roll collar — a short band around the last link
+  function drawRoll(g, c, ang, S, hot) {
+    g.save(); g.translate(c.x, c.y); g.rotate(ang);
+    g.fillStyle = hot ? INK : SERVO; g.strokeStyle = INK; g.lineWidth = 2;
+    rr(g, -S * 0.09, -S * 0.16, S * 0.18, S * 0.32, S * 0.04); g.fill(); g.stroke();
+    g.strokeStyle = hot ? "rgba(236,231,220,.55)" : SEAM; g.lineWidth = 1;
+    [-S * 0.03, S * 0.03].forEach(x => { g.beginPath(); g.moveTo(x, -S * 0.15); g.lineTo(x, S * 0.15); g.stroke(); });
+    g.restore();
+  }
+
+  function drawGripper(g, pos, ang, open, hot) {
+    const S = window.__armS || 120;
+    g.save(); g.translate(pos.x, pos.y); g.rotate(ang);
+    g.fillStyle = hot ? INK : BRACKET; g.strokeStyle = INK; g.lineWidth = 2;
+    rr(g, -S * 0.14, -S * 0.2, S * 0.22, S * 0.4, S * 0.05); g.fill(); g.stroke();
+    const jl = S * 0.42, jw = S * 0.11, gap = S * (0.05 + open * 0.12);
+    [-1, 1].forEach(s => {
+      const cy = s * (gap + jw / 2);
+      rr(g, S * 0.06, cy - jw / 2, jl, jw, jw * 0.35); g.fill(); g.stroke();
+      g.save(); g.fillStyle = hot ? ACCENT : INK; g.globalAlpha = hot ? .6 : .3;
+      rr(g, S * 0.06 + jl * 0.58, s < 0 ? cy + jw * 0.15 : cy - jw * 0.5, jl * 0.3, jw * 0.35, 1); g.fill();
+      g.restore();
+    });
+    g.restore();
+  }
+
+  // draw the whole arm; returns the 6 DOF joint positions [J1..J6]
+  function drawSO101(g, P, S, opt) {
+    const [p0, p1, p2, ee] = P, hot = opt.hot || 0;
+    window.__armS = S;
+    g.lineJoin = "round"; g.lineCap = "round";
+    drawBase(g, p0, S, hot === 1);
+    drawBracket(g, p0, p1, S * 0.30);
+    drawBracket(g, p1, p2, S * 0.25);
+    drawBracket(g, p2, ee, S * 0.19);
+    const roll = { x: p2.x + (ee.x - p2.x) * 0.55, y: p2.y + (ee.y - p2.y) * 0.55 };
+    drawServo(g, p0, seg(p0, p1), S * 0.48, S * 0.38, hot === 2);
+    drawServo(g, p1, seg(p1, p2), S * 0.40, S * 0.32, hot === 3);
+    drawServo(g, p2, seg(p2, ee), S * 0.30, S * 0.25, hot === 4);
+    drawRoll(g, roll, seg(p2, ee), S, hot === 5);
+    drawGripper(g, ee, seg(p2, ee), opt.open, hot === 6);
+    return [{ x: p0.x, y: p0.y + S * 0.22 }, p0, p1, p2, roll, ee];
+  }
+
+  /* joint reference (shared) */
+  const JOINTS = {
+    1: ["J1 · Base rotation", "Rotates the whole arm left and right about the vertical axis — how it aims across the table."],
+    2: ["J2 · Shoulder", "Lifts the arm up and down. It carries the most load, so it uses the strongest gearing."],
+    3: ["J3 · Elbow", "Bends the forearm to reach in and out — the difference between a near and a far grab."],
+    4: ["J4 · Wrist flex", "Tilts the gripper up and down to line it up with an object's face."],
+    5: ["J5 · Wrist roll", "Spins the gripper around its own axis to orient the grasp."],
+    6: ["J6 · Gripper", "The one actuated finger pair — opens and closes to actually pick things up."],
+  };
 
   /* ---------- nav ---------- */
   const nav = $("#nav"), toggle = $("#navToggle"), links = $("#navLinks");
@@ -45,8 +119,7 @@
     toggle.setAttribute("aria-expanded", String(open));
   });
   $$("#navLinks a").forEach(a => a.addEventListener("click", () => {
-    links.classList.remove("open");
-    toggle.setAttribute("aria-expanded", "false");
+    links.classList.remove("open"); toggle.setAttribute("aria-expanded", "false");
   }));
 
   /* ---------- scroll reveal ---------- */
@@ -55,31 +128,7 @@
       entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
     }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
     $$(".reveal").forEach(el => io.observe(el));
-  } else {
-    $$(".reveal").forEach(el => el.classList.add("in"));
-  }
-
-  /* ---------- joint readouts ---------- */
-  const JOINTS = {
-    1: ["J1 · Base rotation", "Rotates the whole arm left and right about the vertical axis — how it aims at a target on the table."],
-    2: ["J2 · Shoulder", "Lifts the arm up and down. It carries the most load, so it uses the strongest gearing."],
-    3: ["J3 · Elbow", "Bends the forearm to reach in and out — the difference between near and far grabs."],
-    4: ["J4 · Wrist flex", "Tilts the gripper up and down to line it up with an object's face."],
-    5: ["J5 · Wrist roll", "Spins the gripper around its own axis to orient the grasp."],
-    6: ["J6 · Gripper", "The one actuated finger pair — opens and closes to actually pick things up."],
-  };
-  const jrT = $("#jrTitle"), jrB = $("#jrBody");
-  $$(".joint").forEach(j => {
-    const set = () => {
-      const n = j.dataset.j;
-      $$(".joint").forEach(x => x.classList.remove("active"));
-      j.classList.add("active");
-      if (JOINTS[n]) { jrT.textContent = JOINTS[n][0]; jrB.textContent = JOINTS[n][1]; }
-    };
-    j.addEventListener("click", set);
-    j.addEventListener("mouseenter", set);
-    j.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); set(); } });
-  });
+  } else { $$(".reveal").forEach(el => el.classList.add("in")); }
 
   /* ---------- learning-loop ring ---------- */
   (function ring() {
@@ -100,8 +149,7 @@
       nodes.forEach(n => n.classList.toggle("active", +n.dataset.i === i));
       prog.style.strokeDashoffset = C * (1 - i / 5);
       rcIdx.textContent = String(i + 1).padStart(2, "0") + " / 05";
-      rcTitle.textContent = STEPS[i][0];
-      rcBody.textContent = STEPS[i][1];
+      rcTitle.textContent = STEPS[i][0]; rcBody.textContent = STEPS[i][1];
     };
     const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
     const play = () => { if (reduce) return; stop(); timer = setInterval(() => set((cur + 1) % 5), 2600); };
@@ -113,231 +161,151 @@
     });
     wrap.addEventListener("mouseleave", play);
     set(0);
-    if ("IntersectionObserver" in window && !reduce) {
-      new IntersectionObserver((es) => es.forEach(e => e.isIntersecting ? play() : stop()),
-        { threshold: 0.35 }).observe(wrap);
-    }
+    if ("IntersectionObserver" in window && !reduce)
+      new IntersectionObserver((es) => es.forEach(e => e.isIntersecting ? play() : stop()), { threshold: 0.35 }).observe(wrap);
   })();
 
   /* ---------- scroll-spy nav ---------- */
   (function spy() {
     const map = new Map();
     $$("#navLinks a").forEach(a => { const id = a.getAttribute("href"); if (id && id.startsWith("#")) map.set(id.slice(1), a); });
-    const ids = [...map.keys()];
-    if (!ids.length || !("IntersectionObserver" in window)) return;
+    if (!map.size || !("IntersectionObserver" in window)) return;
     const io = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        if (e.isIntersecting) {
-          map.forEach(a => a.classList.remove("active"));
-          const a = map.get(e.target.id); if (a) a.classList.add("active");
-        }
+        if (e.isIntersecting) { map.forEach(a => a.classList.remove("active")); const a = map.get(e.target.id); if (a) a.classList.add("active"); }
       });
     }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
-    ids.forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
+    [...map.keys()].forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
   })();
 
   /* ============================================================
-     INVERSE-KINEMATICS ARM (hero canvas)
-     A 3-link chain solved with FABRIK, reaching for the cursor.
+     HERO ARM — FABRIK IK, gripper follows the cursor / finger
      ============================================================ */
-  const canvas = $("#armCanvas");
-  if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
-  let base, lens, pts, target, aim, hoverActive = false, autoT = 0;
+  (function heroArm() {
+    const canvas = $("#armCanvas"); if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let W = 0, H = 0, base, lens, pts, target, aim, hoverActive = false, autoT = 0;
 
-  function layout() {
-    const r = canvas.getBoundingClientRect();
-    W = r.width; H = r.height;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    base = { x: W * (W < 720 ? 0.5 : 0.72), y: H * 0.9 };
-    const u = Math.min(H, 760);
-    // taller arm on mobile so it fills its dedicated band
-    lens = (W < 720) ? [u * 0.3, u * 0.26, u * 0.13] : [u * 0.24, u * 0.2, u * 0.11];
-    pts = [ {x:base.x,y:base.y}, {x:base.x,y:base.y-lens[0]},
-            {x:base.x,y:base.y-lens[0]-lens[1]}, {x:base.x,y:base.y-lens[0]-lens[1]-lens[2]} ];
-    if (!target) target = { x: base.x, y: base.y - 300 };
-    if (!aim) aim = { x: target.x, y: target.y };
-  }
-
-  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
-
-  function fabrik(t) {
-    const total = lens[0] + lens[1] + lens[2];
-    const reach = dist(base, t);
-    if (reach > total - 2) {
-      // out of reach → stretch straight toward target
-      const dx = (t.x - base.x) / reach, dy = (t.y - base.y) / reach;
-      let acc = 0;
-      pts[0] = { x: base.x, y: base.y };
-      for (let i = 1; i < 4; i++) { acc += lens[i - 1]; pts[i] = { x: base.x + dx * acc, y: base.y + dy * acc }; }
-      return;
+    function layout() {
+      const r = canvas.getBoundingClientRect();
+      W = r.width; H = r.height;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      base = { x: W * 0.5, y: H * 0.82 };
+      const u = Math.min(H, 780);
+      lens = [u * 0.36, u * 0.31, u * 0.17];
+      pts = [{ x: base.x, y: base.y }, { x: base.x, y: base.y - lens[0] },
+             { x: base.x, y: base.y - lens[0] - lens[1] }, { x: base.x, y: base.y - lens[0] - lens[1] - lens[2] }];
+      if (!target) target = { x: base.x, y: base.y - 300 };
+      if (!aim) aim = { x: target.x, y: target.y };
     }
-    for (let it = 0; it < 10; it++) {
-      // backward
-      pts[3] = { x: t.x, y: t.y };
-      for (let i = 2; i >= 0; i--) {
-        const d = dist(pts[i + 1], pts[i]) || 1e-6, r = lens[i] / d;
-        pts[i] = { x: pts[i + 1].x + (pts[i].x - pts[i + 1].x) * r,
-                   y: pts[i + 1].y + (pts[i].y - pts[i + 1].y) * r };
+
+    function fabrik(t) {
+      const total = lens[0] + lens[1] + lens[2], reach = dist(base, t);
+      if (reach > total - 2) {
+        const dx = (t.x - base.x) / reach, dy = (t.y - base.y) / reach; let acc = 0;
+        pts[0] = { x: base.x, y: base.y };
+        for (let i = 1; i < 4; i++) { acc += lens[i - 1]; pts[i] = { x: base.x + dx * acc, y: base.y + dy * acc }; }
+        return;
       }
-      // forward
-      pts[0] = { x: base.x, y: base.y };
-      for (let i = 1; i < 4; i++) {
-        const d = dist(pts[i], pts[i - 1]) || 1e-6, r = lens[i - 1] / d;
-        pts[i] = { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * r,
-                   y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * r };
+      for (let it = 0; it < 10; it++) {
+        pts[3] = { x: t.x, y: t.y };
+        for (let i = 2; i >= 0; i--) { const d = dist(pts[i + 1], pts[i]) || 1e-6, r = lens[i] / d; pts[i] = { x: pts[i + 1].x + (pts[i].x - pts[i + 1].x) * r, y: pts[i + 1].y + (pts[i].y - pts[i + 1].y) * r }; }
+        pts[0] = { x: base.x, y: base.y };
+        for (let i = 1; i < 4; i++) { const d = dist(pts[i], pts[i - 1]) || 1e-6, r = lens[i - 1] / d; pts[i] = { x: pts[i - 1].x + (pts[i].x - pts[i - 1].x) * r, y: pts[i - 1].y + (pts[i].y - pts[i - 1].y) * r }; }
+        if (dist(pts[3], t) < 0.5) break;
       }
-      if (dist(pts[3], t) < 0.5) break;
     }
-  }
 
-  function drawApple(x, y, r) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.shadowColor = "rgba(255,70,70,.45)"; ctx.shadowBlur = 16;
-    const g = ctx.createRadialGradient(-r * 0.3, -r * 0.35, r * 0.15, 0, 0, r * 1.25);
-    g.addColorStop(0, "#ff7a72"); g.addColorStop(.5, "#e83b34"); g.addColorStop(1, "#9c1414");
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.moveTo(0, -r * 0.55);
-    ctx.bezierCurveTo(-r * 1.15, -r * 1.15, -r * 1.25, r * 0.7, 0, r * 1.05);
-    ctx.bezierCurveTo(r * 1.25, r * 0.7, r * 1.15, -r * 1.15, 0, -r * 0.55);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    // stem
-    ctx.strokeStyle = "#7a4a2a"; ctx.lineWidth = Math.max(2, r * 0.14); ctx.lineCap = "round";
-    ctx.beginPath(); ctx.moveTo(0, -r * 0.55); ctx.lineTo(r * 0.16, -r * 1.15); ctx.stroke();
-    // leaf
-    ctx.fillStyle = "#43c07a";
-    ctx.beginPath(); ctx.ellipse(r * 0.55, -r * 0.95, r * 0.45, r * 0.2, -0.6, 0, Math.PI * 2); ctx.fill();
-    // highlight
-    ctx.fillStyle = "rgba(255,255,255,.5)";
-    ctx.beginPath(); ctx.ellipse(-r * 0.38, -r * 0.28, r * 0.2, r * 0.32, -0.4, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-  }
-
-  function drawDetect(x, y, s) {
-    const L = x - s, R = x + s, T = y - s, B = y + s, c = s * 0.42;
-    ctx.strokeStyle = "rgba(63,224,234,.7)"; ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(L, T + c); ctx.lineTo(L, T); ctx.lineTo(L + c, T);
-    ctx.moveTo(R - c, T); ctx.lineTo(R, T); ctx.lineTo(R, T + c);
-    ctx.moveTo(R, B - c); ctx.lineTo(R, B); ctx.lineTo(R - c, B);
-    ctx.moveTo(L + c, B); ctx.lineTo(L, B); ctx.lineTo(L, B - c);
-    ctx.stroke();
-    ctx.fillStyle = "rgba(63,224,234,.85)";
-    ctx.font = "10px 'IBM Plex Mono', ui-monospace, monospace";
-    ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
-    ctx.fillText("apple", L, T - 5);
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, W, H);
-    // the target floats freely (only clamped to the canvas); the arm reaches toward it
-    const t = { x: Math.max(28, Math.min(W - 28, target.x)),
-                y: Math.max(28, Math.min(base.y - 20, target.y)) };
-    aim.x += (t.x - aim.x) * 0.08;
-    aim.y += (t.y - aim.y) * 0.08;
-    fabrik(aim);
-
-    // base plate
-    ctx.fillStyle = "#11161c";
-    ctx.strokeStyle = "#28313B"; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.roundRect(base.x - 46, base.y - 4, 92, 20, 5); ctx.fill(); ctx.stroke();
-
-    // links (metal, glow)
-    ctx.lineCap = "round"; ctx.lineJoin = "round";
-    ctx.shadowColor = "rgba(63,224,234,.25)"; ctx.shadowBlur = 14;
-    const grad = ctx.createLinearGradient(0, base.y - 500, 0, base.y);
-    grad.addColorStop(0, "#FFFFFF"); grad.addColorStop(.55, "#D5DCE2"); grad.addColorStop(1, "#9AA4AD");
-    ctx.strokeStyle = grad;
-    const widths = [13, 11, 8];
-    for (let i = 0; i < 3; i++) {
-      ctx.lineWidth = widths[i];
-      ctx.beginPath(); ctx.moveTo(pts[i].x, pts[i].y); ctx.lineTo(pts[i + 1].x, pts[i + 1].y); ctx.stroke();
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      const t = { x: Math.max(28, Math.min(W - 28, target.x)), y: Math.max(28, Math.min(base.y - 20, target.y)) };
+      aim.x += (t.x - aim.x) * 0.1; aim.y += (t.y - aim.y) * 0.1;
+      fabrik(aim);
+      drawSO101(ctx, pts, lens[0], { open: 0.5, hot: 0 });
     }
-    ctx.shadowBlur = 0;
 
-    // joints
-    for (let i = 0; i < 3; i++) {
-      ctx.fillStyle = "#0C0F13"; ctx.strokeStyle = "#C6CED5"; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.arc(pts[i].x, pts[i].y, i === 0 ? 9 : 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    }
-    // end-effector gripper
-    const e = pts[3], p = pts[2];
-    let ang = Math.atan2(e.y - p.y, e.x - p.x);
-    ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(ang);
-    ctx.strokeStyle = "#3FE0EA"; ctx.lineWidth = 3.4; ctx.shadowColor = "#3FE0EA"; ctx.shadowBlur = 12;
-    ctx.beginPath();
-    ctx.moveTo(-2, -9); ctx.lineTo(9, -9); ctx.moveTo(-2, 9); ctx.lineTo(9, 9);
-    ctx.moveTo(-2, -9); ctx.lineTo(-2, 9); ctx.stroke();
-    ctx.restore(); ctx.shadowBlur = 0;
+    window.addEventListener("mousemove", (ev) => {
+      const r = canvas.getBoundingClientRect();
+      if (ev.clientY <= r.bottom && ev.clientY >= r.top) { target = { x: ev.clientX - r.left, y: ev.clientY - r.top }; hoverActive = true; }
+    }, { passive: true });
+    window.addEventListener("mouseleave", () => hoverActive = false);
+    let touching = false;
+    const fromTouch = (ev) => { const t = ev.touches[0]; if (!t) return; const r = canvas.getBoundingClientRect(); target = { x: t.clientX - r.left, y: t.clientY - r.top }; hoverActive = true; };
+    canvas.addEventListener("touchstart", (ev) => { touching = true; fromTouch(ev); }, { passive: true });
+    canvas.addEventListener("touchmove", (ev) => { if (touching) fromTouch(ev); }, { passive: true });
+    window.addEventListener("touchend", () => { if (touching) { touching = false; setTimeout(() => hoverActive = false, 1200); } }, { passive: true });
+    window.addEventListener("resize", layout);
+    layout();
 
-    // the floating apple the arm is reaching for, with a vision-style detection box
-    const ar = Math.max(13, Math.min(20, (lens[0] + lens[1] + lens[2]) * 0.05));
-    drawDetect(t.x, t.y, ar * 1.7);
-    drawApple(t.x, t.y, ar);
-
-    // telemetry
-    const hudTheta = $("#hudTheta"), hudEE = $("#hudEE");
-    if (hudTheta) {
-      const norm = a => { a = ((a + 180) % 360 + 360) % 360 - 180; return a; };
-      const a1 = norm(Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x) * 180 / Math.PI + 90);
-      const a2 = norm(Math.atan2(pts[2].y - pts[1].y, pts[2].x - pts[1].x) * 180 / Math.PI + 90);
-      const a3 = norm(Math.atan2(pts[3].y - pts[2].y, pts[3].x - pts[2].x) * 180 / Math.PI + 90);
-      const f = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(0).padStart(2, "0");
-      hudTheta.textContent = `${f(a1)}° ${f(a2)}° ${f(a3)}°`;
-    }
-    if (hudEE) hudEE.textContent = `x ${(e.x - base.x).toFixed(0)} · y ${(base.y - e.y).toFixed(0)}`;
-  }
-
-  // interaction
-  const hero = $("#hero");
-  window.addEventListener("mousemove", (ev) => {
-    const r = canvas.getBoundingClientRect();
-    if (ev.clientY <= r.bottom && ev.clientY >= r.top) {
-      target = { x: ev.clientX - r.left, y: ev.clientY - r.top };
-      hoverActive = true;
-    }
-  }, { passive: true });
-  window.addEventListener("mouseleave", () => hoverActive = false);
-  // touch: drive the arm only when the touch begins on the canvas (never traps page scroll)
-  let touching = false;
-  const fromTouch = (ev) => {
-    const t = ev.touches[0]; if (!t) return;
-    const r = canvas.getBoundingClientRect();
-    target = { x: t.clientX - r.left, y: t.clientY - r.top };
-    hoverActive = true;
-  };
-  canvas.addEventListener("touchstart", (ev) => { touching = true; fromTouch(ev); }, { passive: true });
-  canvas.addEventListener("touchmove", (ev) => { if (touching) fromTouch(ev); }, { passive: true });
-  window.addEventListener("touchend", () => { if (touching) { touching = false; setTimeout(() => hoverActive = false, 1200); } }, { passive: true });
-  window.addEventListener("resize", layout);
-
-  layout();
-
-  if (reduce) {
-    target = { x: base.x - 120, y: base.y - 320 };
-    draw();
-  } else {
-    (function loop() {
-      // auto-orbit when the cursor isn't driving it (touch / idle)
+    if (reduce) { target = { x: base.x - 120, y: base.y - 320 }; draw(); }
+    else (function loop() {
       if (!hoverActive) {
         autoT += 0.008;
         const reach = lens[0] + lens[1] + lens[2];
-        const radX = reach * (W < 720 ? 0.42 : 0.52);
-        const radY = reach * 0.3;
-        const cx = base.x - (W < 720 ? 0 : reach * 0.1);
-        const cy = base.y - reach * 0.76;
-        target = {
-          x: cx + Math.cos(autoT) * radX,
-          y: cy + Math.sin(autoT * 1.4) * radY,
-        };
+        target = { x: base.x - reach * 0.06 + Math.cos(autoT) * reach * 0.42, y: base.y - reach * 0.6 + Math.sin(autoT * 1.4) * reach * 0.24 };
       }
-      draw();
-      requestAnimationFrame(loop);
+      draw(); requestAnimationFrame(loop);
     })();
-  }
+  })();
+
+  /* ============================================================
+     03 · SO-101 ANATOMY DIAGRAM — same arm, static pose, 6 clickable joints
+     ============================================================ */
+  (function diagram() {
+    const canvas = $("#diagramCanvas"); if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const jrT = $("#jrTitle"), jrB = $("#jrBody"), btns = $$(".dof-list button");
+    let W = 0, H = 0, S = 1, markers = [], selected = 0, hover = 0;
+
+    const pose = () => [
+      { x: W * 0.30, y: H * 0.74 }, { x: W * 0.43, y: H * 0.47 },
+      { x: W * 0.63, y: H * 0.37 }, { x: W * 0.84, y: H * 0.31 },
+    ];
+
+    function render() {
+      const r = canvas.getBoundingClientRect();
+      W = r.width; H = r.height;
+      canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      const P = pose(); S = dist(P[0], P[1]);
+      const hot = hover || selected;
+      markers = drawSO101(ctx, P, S, { open: 0.5, hot });
+      markers.forEach((m, i) => {
+        const n = i + 1, active = hot === n;
+        ctx.beginPath(); ctx.arc(m.x, m.y, active ? 13 : 11, 0, 7);
+        ctx.fillStyle = active ? ACCENT : PAPER; ctx.fill();
+        ctx.lineWidth = 1.6; ctx.strokeStyle = INK; ctx.stroke();
+        ctx.fillStyle = active ? PAPER : INK;
+        ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(String(n), m.x, m.y + 0.5);
+      });
+    }
+    function select(n) {
+      selected = n; const j = JOINTS[n];
+      if (j) { jrT.textContent = j[0]; jrB.textContent = j[1]; }
+      btns.forEach(b => b.classList.toggle("active", +b.dataset.j === n));
+      render();
+    }
+    const hit = (cx, cy) => {
+      const r = canvas.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
+      let best = 0, bd = 1e9;
+      markers.forEach((m, i) => { const d = Math.hypot(m.x - x, m.y - y); if (d < bd) { bd = d; best = i + 1; } });
+      return bd < 30 ? best : 0;
+    };
+    canvas.addEventListener("mousemove", ev => { const h = hit(ev.clientX, ev.clientY); if (h !== hover) { hover = h; canvas.style.cursor = h ? "pointer" : "default"; render(); } });
+    canvas.addEventListener("mouseleave", () => { if (hover) { hover = 0; render(); } });
+    canvas.addEventListener("click", ev => { const h = hit(ev.clientX, ev.clientY); if (h) select(h); });
+    canvas.addEventListener("touchstart", ev => { const t = ev.touches[0]; const h = hit(t.clientX, t.clientY); if (h) select(h); }, { passive: true });
+    btns.forEach(b => {
+      const n = +b.dataset.j;
+      b.addEventListener("click", () => select(n));
+      b.addEventListener("mouseenter", () => { hover = n; render(); });
+      b.addEventListener("mouseleave", () => { hover = 0; render(); });
+    });
+    window.addEventListener("resize", render);
+    render();
+  })();
 })();

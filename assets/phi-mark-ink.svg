@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500" role="img" aria-label="Phi mark">
+  <!-- open ring: two arcs with gaps at top & bottom -->
+  <g fill="none" stroke="#1B1712" stroke-width="34" stroke-linecap="butt">
+    <path d="M 279.5 116 A 138 138 0 0 1 279.5 384"/>
+    <path d="M 220.5 116 A 138 138 0 0 0 220.5 384"/>
+  </g>
+  <!-- central bar (Phi stem) -->
+  <rect x="237" y="48" width="26" height="404" rx="13" fill="#1B1712"/>
+  <!-- sensor eyes -->
+  <circle cx="190" cy="254" r="24" fill="#1B1712"/>
+  <circle cx="310" cy="254" r="24" fill="#1B1712"/>
+</svg>
