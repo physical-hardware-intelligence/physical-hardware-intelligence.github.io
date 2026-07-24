@@ -1,28 +1,28 @@
-# Φ · phi-web
+# physical-hardware-intelligence.github.io
 
-Public website for **Φ (Physical Hardware Intelligence)** — Northeastern Silicon Valley's hands-on robotics & embodied-AI Student Interest Group.
+Public website for **Φ (Physical Hardware Intelligence)** — a hands-on robotics & embodied-AI Student Interest Group at Northeastern University, Silicon Valley.
 
-**Live:** https://brutalcaeser.github.io/phi-web/
+**Live:** https://physical-hardware-intelligence.github.io/
 
-A single-page, dependency-free static site (HTML + CSS + vanilla JS) deployed on GitHub Pages. The hero features a live inverse-kinematics arm (FABRIK solver on `<canvas>`) that reaches for the cursor; the rest of the page covers the mission, an interactive SO-ARM101 breakdown, the teleop→train→deploy learning loop, the open `phi` monorepo + member ladder, and the roadmap to the September NEURAI Research Day.
+A single-page, dependency-free static site (HTML + CSS + vanilla JS) served from GitHub Pages as the organization site, in a warm-paper / ink / serif editorial style. The hero is an interactive **SO-ARM101**: drag to pose it (FABRIK inverse kinematics on `<canvas>`) and tap any of its six joints to learn what it does. Below: how a policy is learned (teleop → record → train → evaluate → deploy), the open [`phi`](https://github.com/physical-hardware-intelligence/phi) code monorepo + member ladder, and how to join.
 
 ## Structure
 ```
-index.html      # all markup / content
-styles.css      # design system (near-black + brushed metal + sensor cyan)
-main.js         # boot sequence, scroll reveals, joint readouts, IK arm
-assets/         # Φ logo mark (SVG)
-.nojekyll       # serve files as-is (no Jekyll build)
+index.html   # markup + content
+styles.css   # design system (warm paper · ink · Fraunces / Newsreader serif)
+main.js      # shared SO-101 renderer, hero IK + joint interaction, loop ring, nav
+assets/      # Φ ink logo mark + OG image
+.nojekyll    # serve files as-is (no Jekyll build)
 ```
 
 ## Develop locally
 ```bash
 python3 -m http.server 8000   # then open http://localhost:8000
 ```
-No build step. Edit the three source files and refresh.
+No build step — edit the source files and refresh.
 
 ## Deploy
-Pushed to `main`; GitHub Pages serves the branch root. All asset paths are relative so it works from the `/phi-web/` project sub-path.
+Push to `main`; GitHub Pages serves the repo root at https://physical-hardware-intelligence.github.io/. All asset paths are relative.
 
 ---
 Open source · built by the club. Not affiliated with or branded by the university.
