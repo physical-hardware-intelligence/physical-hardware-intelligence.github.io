@@ -10,9 +10,7 @@
   const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
   /* ============================================================
-     SHARED SO-ARM101 RENDERER
-     One articulated arm, drawn as a fine ink line-drawing.
-     Used by the hero (IK, cursor-driven) and the 03 diagram.
+     SHARED SO-ARM101 RENDERER — a fine ink line-drawing.
      6 DOF: base rotation · shoulder · elbow · wrist flex · wrist roll · gripper.
      ============================================================ */
   const INK = "#1B1712", PAPER = "#ECE7DC", BRACKET = "#E4DDCD", SERVO = "#C4B99F",
@@ -55,7 +53,6 @@
     g.restore();
   }
 
-  // wrist-roll collar — a short band around the last link
   function drawRoll(g, c, ang, S, hot) {
     g.save(); g.translate(c.x, c.y); g.rotate(ang);
     g.fillStyle = hot ? INK : SERVO; g.strokeStyle = INK; g.lineWidth = 2;
@@ -81,7 +78,7 @@
     g.restore();
   }
 
-  // draw the whole arm; returns the 6 DOF joint positions [J1..J6]
+  // draws the arm; returns the six DOF joint positions [J1..J6]
   function drawSO101(g, P, S, opt) {
     const [p0, p1, p2, ee] = P, hot = opt.hot || 0;
     window.__armS = S;
@@ -99,7 +96,6 @@
     return [{ x: p0.x, y: p0.y + S * 0.22 }, p0, p1, p2, roll, ee];
   }
 
-  /* joint reference (shared) */
   const JOINTS = {
     1: ["J1 · Base rotation", "Rotates the whole arm left and right about the vertical axis — how it aims across the table."],
     2: ["J2 · Shoulder", "Lifts the arm up and down. It carries the most load, so it uses the strongest gearing."],
@@ -114,13 +110,8 @@
   const onScroll = () => nav.classList.toggle("scrolled", window.scrollY > 40);
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
-  toggle.addEventListener("click", () => {
-    const open = links.classList.toggle("open");
-    toggle.setAttribute("aria-expanded", String(open));
-  });
-  $$("#navLinks a").forEach(a => a.addEventListener("click", () => {
-    links.classList.remove("open"); toggle.setAttribute("aria-expanded", "false");
-  }));
+  toggle.addEventListener("click", () => { const open = links.classList.toggle("open"); toggle.setAttribute("aria-expanded", String(open)); });
+  $$("#navLinks a").forEach(a => a.addEventListener("click", () => { links.classList.remove("open"); toggle.setAttribute("aria-expanded", "false"); }));
 
   /* ---------- scroll reveal ---------- */
   if ("IntersectionObserver" in window && !reduce) {
@@ -171,33 +162,36 @@
     $$("#navLinks a").forEach(a => { const id = a.getAttribute("href"); if (id && id.startsWith("#")) map.set(id.slice(1), a); });
     if (!map.size || !("IntersectionObserver" in window)) return;
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { map.forEach(a => a.classList.remove("active")); const a = map.get(e.target.id); if (a) a.classList.add("active"); }
-      });
+      entries.forEach(e => { if (e.isIntersecting) { map.forEach(a => a.classList.remove("active")); const a = map.get(e.target.id); if (a) a.classList.add("active"); } });
     }, { rootMargin: "-45% 0px -50% 0px", threshold: 0 });
     [...map.keys()].forEach(id => { const el = document.getElementById(id); if (el) io.observe(el); });
   })();
 
   /* ============================================================
-     HERO ARM — FABRIK IK, gripper follows the cursor / finger
+     HERO · the interactive SO-101
+     Drag to pose the arm; tap a joint to learn what it does.
+     Rooted low with a shorter reach + margins so it never crops,
+     even fully extended straight up.
      ============================================================ */
   (function heroArm() {
     const canvas = $("#armCanvas"); if (!canvas) return;
     const ctx = canvas.getContext("2d");
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let W = 0, H = 0, base, lens, pts, target, aim, hoverActive = false, autoT = 0;
+    const readout = $("#armReadout");
+    let W = 0, H = 0, base, lens, pts, target, aim, autoT = 0;
+    let markers = [], selected = 0, hover = 0, dragging = false, inside = false, downXY = null, moved = false;
 
     function layout() {
       const r = canvas.getBoundingClientRect();
       W = r.width; H = r.height;
-      canvas.width = W * dpr; canvas.height = H * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      base = { x: W * 0.5, y: H * 0.82 };
-      const u = Math.min(H, 780);
-      lens = [u * 0.36, u * 0.31, u * 0.17];
+      canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      base = { x: W * 0.5, y: H * 0.84 };
+      const u = Math.min(H, 760);
+      lens = [u * 0.29, u * 0.25, u * 0.13];
+      const total = lens[0] + lens[1] + lens[2];
       pts = [{ x: base.x, y: base.y }, { x: base.x, y: base.y - lens[0] },
-             { x: base.x, y: base.y - lens[0] - lens[1] }, { x: base.x, y: base.y - lens[0] - lens[1] - lens[2] }];
-      if (!target) target = { x: base.x, y: base.y - 300 };
+             { x: base.x, y: base.y - lens[0] - lens[1] }, { x: base.x, y: base.y - total }];
+      if (!target) target = { x: base.x + u * 0.14, y: base.y - total * 0.86 };
       if (!aim) aim = { x: target.x, y: target.y };
     }
 
@@ -218,94 +212,70 @@
       }
     }
 
+    function setReadout(n) {
+      if (!readout) return;
+      if (n && JOINTS[n]) readout.innerHTML = "<b>" + JOINTS[n][0] + "</b> &mdash; " + JOINTS[n][1];
+      else readout.innerHTML = '<span class="ar-hint">Drag to move the arm &middot; tap a joint to learn what it does</span>';
+    }
+    const select = (n) => { selected = n; setReadout(n); };
+
     function draw() {
       ctx.clearRect(0, 0, W, H);
-      const t = { x: Math.max(28, Math.min(W - 28, target.x)), y: Math.max(28, Math.min(base.y - 20, target.y)) };
-      aim.x += (t.x - aim.x) * 0.1; aim.y += (t.y - aim.y) * 0.1;
+      const m = lens[0] * 0.75;   // keep the arm's graphics inside the canvas
+      const t = { x: Math.max(m, Math.min(W - m, target.x)), y: Math.max(H * 0.16, Math.min(base.y - 20, target.y)) };
+      aim.x += (t.x - aim.x) * 0.12; aim.y += (t.y - aim.y) * 0.12;
       fabrik(aim);
-      drawSO101(ctx, pts, lens[0], { open: 0.5, hot: 0 });
-    }
-
-    window.addEventListener("mousemove", (ev) => {
-      const r = canvas.getBoundingClientRect();
-      if (ev.clientY <= r.bottom && ev.clientY >= r.top) { target = { x: ev.clientX - r.left, y: ev.clientY - r.top }; hoverActive = true; }
-    }, { passive: true });
-    window.addEventListener("mouseleave", () => hoverActive = false);
-    let touching = false;
-    const fromTouch = (ev) => { const t = ev.touches[0]; if (!t) return; const r = canvas.getBoundingClientRect(); target = { x: t.clientX - r.left, y: t.clientY - r.top }; hoverActive = true; };
-    canvas.addEventListener("touchstart", (ev) => { touching = true; fromTouch(ev); }, { passive: true });
-    canvas.addEventListener("touchmove", (ev) => { if (touching) fromTouch(ev); }, { passive: true });
-    window.addEventListener("touchend", () => { if (touching) { touching = false; setTimeout(() => hoverActive = false, 1200); } }, { passive: true });
-    window.addEventListener("resize", layout);
-    layout();
-
-    if (reduce) { target = { x: base.x - 120, y: base.y - 320 }; draw(); }
-    else (function loop() {
-      if (!hoverActive) {
-        autoT += 0.008;
-        const reach = lens[0] + lens[1] + lens[2];
-        target = { x: base.x - reach * 0.06 + Math.cos(autoT) * reach * 0.42, y: base.y - reach * 0.6 + Math.sin(autoT * 1.4) * reach * 0.24 };
-      }
-      draw(); requestAnimationFrame(loop);
-    })();
-  })();
-
-  /* ============================================================
-     03 · SO-101 ANATOMY DIAGRAM — same arm, static pose, 6 clickable joints
-     ============================================================ */
-  (function diagram() {
-    const canvas = $("#diagramCanvas"); if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const jrT = $("#jrTitle"), jrB = $("#jrBody"), btns = $$(".dof-list button");
-    let W = 0, H = 0, S = 1, markers = [], selected = 0, hover = 0;
-
-    const pose = () => [
-      { x: W * 0.30, y: H * 0.74 }, { x: W * 0.43, y: H * 0.47 },
-      { x: W * 0.63, y: H * 0.37 }, { x: W * 0.84, y: H * 0.31 },
-    ];
-
-    function render() {
-      const r = canvas.getBoundingClientRect();
-      W = r.width; H = r.height;
-      canvas.width = W * dpr; canvas.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      const P = pose(); S = dist(P[0], P[1]);
       const hot = hover || selected;
-      markers = drawSO101(ctx, P, S, { open: 0.5, hot });
-      markers.forEach((m, i) => {
+      markers = drawSO101(ctx, pts, lens[0], { open: 0.5, hot });
+      markers.forEach((mk, i) => {
         const n = i + 1, active = hot === n;
-        ctx.beginPath(); ctx.arc(m.x, m.y, active ? 13 : 11, 0, 7);
+        ctx.beginPath(); ctx.arc(mk.x, mk.y, active ? 13 : 10, 0, 7);
         ctx.fillStyle = active ? ACCENT : PAPER; ctx.fill();
-        ctx.lineWidth = 1.6; ctx.strokeStyle = INK; ctx.stroke();
-        ctx.fillStyle = active ? PAPER : INK;
-        ctx.font = "600 12px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-        ctx.fillText(String(n), m.x, m.y + 0.5);
+        ctx.lineWidth = 1.5; ctx.strokeStyle = INK; ctx.stroke();
+        ctx.fillStyle = active ? PAPER : INK; ctx.font = "600 11px 'IBM Plex Mono', monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(String(n), mk.x, mk.y + 0.5);
       });
     }
-    function select(n) {
-      selected = n; const j = JOINTS[n];
-      if (j) { jrT.textContent = j[0]; jrB.textContent = j[1]; }
-      btns.forEach(b => b.classList.toggle("active", +b.dataset.j === n));
-      render();
-    }
+
     const hit = (cx, cy) => {
       const r = canvas.getBoundingClientRect(), x = cx - r.left, y = cy - r.top;
       let best = 0, bd = 1e9;
-      markers.forEach((m, i) => { const d = Math.hypot(m.x - x, m.y - y); if (d < bd) { bd = d; best = i + 1; } });
+      markers.forEach((mk, i) => { const d = Math.hypot(mk.x - x, mk.y - y); if (d < bd) { bd = d; best = i + 1; } });
       return bd < 30 ? best : 0;
     };
-    canvas.addEventListener("mousemove", ev => { const h = hit(ev.clientX, ev.clientY); if (h !== hover) { hover = h; canvas.style.cursor = h ? "pointer" : "default"; render(); } });
-    canvas.addEventListener("mouseleave", () => { if (hover) { hover = 0; render(); } });
-    canvas.addEventListener("click", ev => { const h = hit(ev.clientX, ev.clientY); if (h) select(h); });
-    canvas.addEventListener("touchstart", ev => { const t = ev.touches[0]; const h = hit(t.clientX, t.clientY); if (h) select(h); }, { passive: true });
-    btns.forEach(b => {
-      const n = +b.dataset.j;
-      b.addEventListener("click", () => select(n));
-      b.addEventListener("mouseenter", () => { hover = n; render(); });
-      b.addEventListener("mouseleave", () => { hover = 0; render(); });
+
+    canvas.style.cursor = "grab";
+    canvas.addEventListener("pointerdown", (e) => {
+      inside = true; downXY = { x: e.clientX, y: e.clientY }; moved = false;
+      if (e.pointerType === "mouse") { dragging = true; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} canvas.style.cursor = "grabbing"; }
     });
-    window.addEventListener("resize", render);
-    render();
+    canvas.addEventListener("pointermove", (e) => {
+      inside = true;
+      if (dragging && e.pointerType === "mouse") {
+        if (downXY && Math.hypot(e.clientX - downXY.x, e.clientY - downXY.y) > 4) moved = true;
+        const r = canvas.getBoundingClientRect(); target = { x: e.clientX - r.left, y: e.clientY - r.top };
+      } else if (e.pointerType === "mouse") {
+        const h = hit(e.clientX, e.clientY); if (h !== hover) { hover = h; canvas.style.cursor = h ? "pointer" : "grab"; }
+      }
+    });
+    const end = (e) => {
+      if (!moved) { const h = hit(e.clientX, e.clientY); if (h) select(h); }
+      dragging = false; inside = false; canvas.style.cursor = hover ? "pointer" : "grab";
+    };
+    canvas.addEventListener("pointerup", end);
+    canvas.addEventListener("pointercancel", () => { dragging = false; inside = false; });
+    canvas.addEventListener("pointerleave", () => { inside = false; hover = 0; if (!dragging) canvas.style.cursor = "grab"; });
+    window.addEventListener("resize", layout);
+    layout(); setReadout(0);
+
+    if (reduce) { draw(); }
+    else (function loop() {
+      if (!dragging && !inside) {
+        autoT += 0.006;
+        const total = lens[0] + lens[1] + lens[2];
+        target = { x: base.x + Math.cos(autoT) * total * 0.34, y: base.y - total * 0.82 + Math.sin(autoT * 1.4) * total * 0.1 };
+      }
+      draw(); requestAnimationFrame(loop);
+    })();
   })();
 })();

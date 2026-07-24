@@ -43,7 +43,6 @@
   <!-- ░░ 00 · HERO ░░ -->
   <section class="hero" id="hero">
     <div class="hero-copy">
-      <div class="eyebrow">Northeastern University · Silicon&nbsp;Valley</div>
       <h1 class="hero-title">
         We build robots<br>that <span class="grad">learn</span>.
       </h1>
@@ -56,96 +55,16 @@
       </div>
     </div>
 
-    <canvas id="armCanvas" aria-hidden="true"></canvas>
+    <canvas id="armCanvas" role="img" aria-label="Interactive SO-ARM101 robot arm — drag to move it, tap a joint to learn what it does"></canvas>
+    <p class="arm-readout" id="armReadout" aria-live="polite"><span class="ar-hint">Drag to move the arm &middot; tap a joint to learn what it does</span></p>
 
-    <a href="#mission" class="scroll-hint" aria-label="Scroll to mission"><span class="arrow" aria-hidden="true">↓</span> Scroll for more</a>
+    <a href="#loop" class="scroll-hint" aria-label="Scroll down"><span class="arrow" aria-hidden="true">↓</span> Scroll for more</a>
   </section>
 
-  <!-- ░░ 01 · MISSION ░░ -->
-  <section class="section mission" id="mission">
-    <div class="sec-head reveal">
-      <span class="sec-idx">01</span><span class="sec-label">MISSION</span>
-    </div>
-    <h2 class="mission-statement reveal">
-      We build <em>real robots</em> and teach them to act on their own. It's the most
-      <span class="hl">hands-on</span> way into physical AI, and it's open to anyone, from any program.
-    </h2>
-    <p class="mission-quote reveal">“Every member leaves having actually made a robot&nbsp;move.”</p>
-  </section>
-
-  <!-- ░░ 02 · WHAT WE DO ░░ -->
-  <section class="section pillars" id="do">
-    <div class="sec-head reveal">
-      <span class="sec-idx">02</span><span class="sec-label">WHAT WE DO</span>
-    </div>
-    <div class="pillar-grid">
-      <article class="card reveal">
-        <div class="card-num">/01</div>
-        <h3>Build real robots</h3>
-        <p>Get your hands on real hardware and make it move.</p>
-      </article>
-      <article class="card reveal">
-        <div class="card-num">/02</div>
-        <h3>Teach, don't program</h3>
-        <p>Show it what to do, and it learns the rest.</p>
-      </article>
-      <article class="card reveal">
-        <div class="card-num">/03</div>
-        <h3>Open by default</h3>
-        <p>Every dataset and result is public.</p>
-      </article>
-      <article class="card reveal">
-        <div class="card-num">/04</div>
-        <h3>Ship to hardware</h3>
-        <p>Not done until it runs on the arm.</p>
-      </article>
-    </div>
-  </section>
-
-  <!-- ░░ 03 · THE ROBOT ░░ -->
-  <section class="section robot" id="robot">
-    <div class="sec-head reveal">
-      <span class="sec-idx">03</span><span class="sec-label">THE ROBOT · SO-ARM101</span>
-    </div>
-    <div class="robot-intro reveal">
-      <h2>Robot&nbsp;<span class="grad">#00</span> — a 6-DOF arm you teach by hand.</h2>
-      <p>Move the <b>leader</b>; the <b>follower</b> mirrors it. That's how we record the demos it learns from.</p>
-    </div>
-
-    <div class="robot-stage">
-      <div class="arm-diagram reveal" id="armDiagram">
-        <canvas id="diagramCanvas" role="img" aria-label="SO-ARM101 arm with six degrees of freedom; select a joint to learn about it"></canvas>
-        <div class="arm-hint">Tap a joint</div>
-      </div>
-
-      <div class="robot-panel reveal">
-        <div class="joint-readout" id="jointReadout">
-          <span class="jr-tag">Six degrees of freedom</span>
-          <h3 id="jrTitle">One servo per axis</h3>
-          <p id="jrBody">Six Feetech STS3215 servos give the arm six axes of motion. Tap a joint on the arm — or a row below — to see what each one does.</p>
-        </div>
-        <ol class="dof-list" id="dofList">
-          <li><button data-j="1"><b>J1</b> Base rotation</button></li>
-          <li><button data-j="2"><b>J2</b> Shoulder</button></li>
-          <li><button data-j="3"><b>J3</b> Elbow</button></li>
-          <li><button data-j="4"><b>J4</b> Wrist flex</button></li>
-          <li><button data-j="5"><b>J5</b> Wrist roll</button></li>
-          <li><button data-j="6"><b>J6</b> Gripper</button></li>
-        </ol>
-        <div class="spec-grid">
-          <div class="spec"><span class="spec-k">Actuators</span><span class="spec-v">6 × STS3215</span></div>
-          <div class="spec"><span class="spec-k">Control</span><span class="spec-v">Leader → Follower</span></div>
-          <div class="spec"><span class="spec-k">Vision</span><span class="spec-v">Wrist + workspace cam</span></div>
-          <div class="spec"><span class="spec-k">Cost</span><span class="spec-v">≈ $370 assembled</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ░░ 04 · HOW IT LEARNS ░░ -->
+  <!-- ░░ 01 · HOW IT LEARNS ░░ -->
   <section class="section loop" id="loop">
     <div class="sec-head reveal">
-      <span class="sec-idx">04</span><span class="sec-label">HOW IT LEARNS</span>
+      <span class="sec-idx">01</span><span class="sec-label">HOW IT LEARNS</span>
     </div>
     <h2 class="loop-h2 reveal">Show it. Record it. Train it. Repeat.</h2>
 
@@ -176,10 +95,10 @@
     </div>
   </section>
 
-  <!-- ░░ 05 · THE STACK / REPO ░░ -->
+  <!-- ░░ 02 · THE STACK / REPO ░░ -->
   <section class="section stack" id="stack">
     <div class="sec-head reveal">
-      <span class="sec-idx">05</span><span class="sec-label">THE STACK · ONE OPEN REPO</span>
+      <span class="sec-idx">02</span><span class="sec-label">THE STACK · ONE OPEN REPO</span>
     </div>
     <div class="stack-grid">
       <div class="repo-card reveal">
@@ -209,11 +128,11 @@
     </div>
   </section>
 
-  <!-- ░░ 06 · JOIN ░░ -->
+  <!-- ░░ 03 · JOIN ░░ -->
   <section class="section join" id="join">
     <div class="join-inner reveal">
       <div class="sec-head">
-        <span class="sec-idx">06</span><span class="sec-label">JOIN Φ</span>
+        <span class="sec-idx">03</span><span class="sec-label">JOIN Φ</span>
       </div>
       <h2 class="join-title">Come make a robot move.</h2>
       <p class="join-lede">Any program, any level. There's a rung for you.</p>
