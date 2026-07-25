@@ -1,6 +1,25 @@
 /* ============================================================
    Φ · Physical Hardware Intelligence — interactions
    ============================================================ */
+
+/* ---- intro: eyes-opening splash, then reveal the page ---- */
+(() => {
+  "use strict";
+  const intro = document.getElementById("intro");
+  if (!intro) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    intro.remove();
+    return;
+  }
+  document.documentElement.classList.add("intro-lock");
+  const release = () => {
+    document.documentElement.classList.remove("intro-lock");
+    intro.remove();
+  };
+  intro.addEventListener("animationend", (e) => { if (e.target === intro) release(); });
+  setTimeout(release, 2600); // safety net in case animationend doesn't fire
+})();
+
 (() => {
   "use strict";
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

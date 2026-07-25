@@ -29,6 +29,19 @@
 </head>
 <body>
 
+<!-- ░░ intro · eyes opening ░░ -->
+<div class="intro" id="intro" aria-hidden="true">
+  <svg class="intro-mark" viewBox="0 0 500 500" focusable="false">
+    <g class="intro-ring" fill="none" stroke="#1B1712" stroke-width="30" stroke-linecap="butt">
+      <path d="M 279.5 118 A 136 136 0 0 1 279.5 382"/>
+      <path d="M 220.5 118 A 136 136 0 0 0 220.5 382"/>
+    </g>
+    <rect class="intro-bar" x="239" y="56" width="22" height="388" rx="11" fill="#1B1712"/>
+    <circle class="intro-eye intro-eye-l" cx="193" cy="254" r="21" fill="#1B1712"/>
+    <circle class="intro-eye intro-eye-r" cx="307" cy="254" r="21" fill="#1B1712"/>
+  </svg>
+</div>
+
 <!-- ░░ nav ░░ -->
 <header class="nav" id="nav">
   <a class="brand" href="#top" aria-label="Phi — Physical Hardware Intelligence, home">
@@ -78,11 +91,11 @@
         <circle class="ring-track" cx="180" cy="180" r="115"/>
         <circle class="ring-progress" cx="180" cy="180" r="115" transform="rotate(-90 180 180)"/>
         <g class="lnodes">
-          <g class="lnode" data-i="0" tabindex="0" role="button" aria-label="Teleoperate"><circle cx="180" cy="65" r="19"/><text x="180" y="65">1</text><text class="lbl" x="180" y="34">Teleop</text></g>
-          <g class="lnode" data-i="1" tabindex="0" role="button" aria-label="Record"><circle cx="289" cy="145" r="19"/><text x="289" y="145">2</text><text class="lbl" x="318" y="135">Record</text></g>
-          <g class="lnode" data-i="2" tabindex="0" role="button" aria-label="Train"><circle cx="248" cy="273" r="19"/><text x="248" y="273">3</text><text class="lbl" x="265" y="299">Train</text></g>
-          <g class="lnode" data-i="3" tabindex="0" role="button" aria-label="Evaluate"><circle cx="112" cy="273" r="19"/><text x="112" y="273">4</text><text class="lbl" x="95" y="299">Eval</text></g>
-          <g class="lnode" data-i="4" tabindex="0" role="button" aria-label="Deploy"><circle cx="71" cy="145" r="19"/><text x="71" y="145">5</text><text class="lbl" x="42" y="135">Deploy</text></g>
+          <g class="lnode" data-i="0" tabindex="0" role="button" aria-label="Teleoperate"><circle cx="180" cy="65" r="19"/><text x="180" y="65">1</text><text class="lbl" x="180" y="30">Teleop</text></g>
+          <g class="lnode" data-i="1" tabindex="0" role="button" aria-label="Record"><circle cx="289" cy="145" r="19"/><text x="289" y="145">2</text><text class="lbl lbl-start" x="323" y="134">Record</text></g>
+          <g class="lnode" data-i="2" tabindex="0" role="button" aria-label="Train"><circle cx="248" cy="273" r="19"/><text x="248" y="273">3</text><text class="lbl lbl-start" x="268" y="301">Train</text></g>
+          <g class="lnode" data-i="3" tabindex="0" role="button" aria-label="Evaluate"><circle cx="112" cy="273" r="19"/><text x="112" y="273">4</text><text class="lbl lbl-end" x="92" y="301">Eval</text></g>
+          <g class="lnode" data-i="4" tabindex="0" role="button" aria-label="Deploy"><circle cx="71" cy="145" r="19"/><text x="71" y="145">5</text><text class="lbl lbl-end" x="37" y="134">Deploy</text></g>
         </g>
       </svg>
       <div class="ring-center" aria-live="polite">
