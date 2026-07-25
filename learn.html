@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn · Physical Hardware Intelligence</title>
+<meta name="description" content="A curated reading room for robot learning and embodied AI — the papers, tutorials, talks, podcasts, and courses the Φ club learns from. Start anywhere.">
+<meta name="theme-color" content="#ECE7DC">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Learn — Physical Hardware Intelligence">
+<meta property="og:description" content="A curated reading room for robot learning: papers, tutorials, talks, podcasts, and courses. Start anywhere.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/learn.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+
+<link rel="icon" href="assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .learn-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(120px,17vh,180px) clamp(20px,5vw,44px) clamp(8px,2vw,24px)}
+  .learn-hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:20px}
+  .learn-hero h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:500;line-height:1.02;letter-spacing:-.02em;max-width:15ch}
+  .learn-hero h1 em{font-style:italic}
+  .learn-hero p{font-size:clamp(1.05rem,1.8vw,1.28rem);color:var(--ink-2);max-width:56ch;margin:24px 0 0}
+  .learn-section{padding-top:clamp(56px,8vw,96px)}
+  .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:clamp(22px,2.6vw,36px) clamp(26px,3.2vw,48px)}
+  .res{border-top:1px solid var(--ink);padding:16px 0 0;display:flex;flex-direction:column}
+  .res-meta{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  .res-tag{color:var(--apple)}
+  .res-src{color:var(--ink-3)}
+  .res h3{font-size:1.16rem;font-weight:500;line-height:1.2;margin:0 0 9px}
+  .res h3 a{background-image:linear-gradient(var(--ink),var(--ink));background-size:0 1px;background-repeat:no-repeat;background-position:0 1.05em;transition:background-size .32s var(--ease)}
+  .res h3 a .ext{font-family:var(--mono);font-size:.72em;color:var(--ink-3);margin-left:3px;transition:color .2s}
+  .res:hover h3 a{background-size:100% 1px}
+  .res:hover h3 a .ext{color:var(--apple)}
+  .res p{margin:0;color:var(--ink-2);font-size:.98rem;line-height:1.5}
+  .learn-close{max-width:var(--maxw);margin:0 auto;padding:clamp(64px,9vw,110px) clamp(20px,5vw,44px) 0}
+  .learn-close-inner{border-top:1px solid var(--ink);padding-top:clamp(30px,4vw,46px);display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:20px}
+  .learn-close h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:500;max-width:20ch}
+  .learn-close p{color:var(--ink-2);margin:12px 0 0;max-width:46ch}
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  .reveal.vis{opacity:1;transform:none}
+  @media (max-width:640px){ .res-grid{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+    <span class="brand-sub">Physical&nbsp;Hardware&nbsp;Intelligence</span>
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="index.html#hero">SO-101</a>
+    <a href="index.html#loop">How it works</a>
+    <a href="index.html#stack">Repo</a>
+    <a href="learn.html" class="active">Learn</a>
+    <a href="index.html#join" class="nav-cta">Join</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top">
+
+  <section class="learn-hero">
+    <p class="eyebrow">The reading room</p>
+    <h1>How to teach a robot to <em>learn</em>.</h1>
+    <p>The papers, tutorials, talks, podcasts, and courses we learn from, curated and kept short. No prerequisites. Start anywhere, follow what pulls you.</p>
+  </section>
+
+  <!-- 01 · START HERE -->
+  <section class="section learn-section" id="start">
+    <div class="sec-head reveal"><span class="sec-idx">01</span><span class="sec-label">Start here</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Hugging Face</span></div>
+        <h3><a href="https://huggingface.co/learn/robotics-course/unit0/1" target="_blank" rel="noopener">The Hugging Face Robotics Course<span class="ext">↗</span></a></h3>
+        <p>Free, hands-on, built by the LeRobot team. The gentlest on-ramp — begin at Unit 0.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Tutorial</span><span class="res-src">LeRobot</span></div>
+        <h3><a href="https://huggingface.co/spaces/lerobot/robot-learning-tutorial" target="_blank" rel="noopener">Robot Learning: A Tutorial<span class="ext">↗</span></a></h3>
+        <p>One page that maps the whole field — data, imitation, policies — in an afternoon.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Docs</span><span class="res-src">LeRobot</span></div>
+        <h3><a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">LeRobot — the library<span class="ext">↗</span></a></h3>
+        <p>The open engine our entire stack runs on. Motors, cameras, datasets, training, inference.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Build with us</span><span class="res-src">Φ</span></div>
+        <h3><a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">Our repo curriculum<span class="ext">↗</span></a></h3>
+        <p>When you want to <em>do</em> it: our documented path from an arm on the table to a trained policy.</p></div>
+    </div>
+  </section>
+
+  <!-- 02 · THE POLICY FAMILY -->
+  <section class="section learn-section" id="policies">
+    <div class="sec-head reveal"><span class="sec-idx">02</span><span class="sec-label">Core papers · the policy family</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Zhao · 2023</span></div>
+        <h3><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT / ALOHA<span class="ext">↗</span></a></h3>
+        <p>Action chunking: predict a burst of moves at once. The baseline every task gets first.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Chi · 2023</span></div>
+        <h3><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy<span class="ext">↗</span></a></h3>
+        <p>Generate action trajectories by denoising. Handles the "many right ways" of a task.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Lee · 2024</span></div>
+        <h3><a href="https://arxiv.org/abs/2403.03181" target="_blank" rel="noopener">VQ-BeT<span class="ext">↗</span></a></h3>
+        <p>Tokenize actions with a residual VQ-VAE. As expressive as diffusion, ~5× faster.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Shafiullah · 2022</span></div>
+        <h3><a href="https://arxiv.org/abs/2206.11251" target="_blank" rel="noopener">Behavior Transformer (BeT)<span class="ext">↗</span></a></h3>
+        <p>Cluster behaviors into modes, let a transformer pick one. VQ-BeT's ancestor.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Florence · 2021</span></div>
+        <h3><a href="https://arxiv.org/abs/2109.00137" target="_blank" rel="noopener">Implicit BC (IBC)<span class="ext">↗</span></a></h3>
+        <p>Score actions with an energy function instead of predicting them. The idea diffusion tamed.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Pari · 2021</span></div>
+        <h3><a href="https://arxiv.org/abs/2112.01511" target="_blank" rel="noopener">VINN<span class="ext">↗</span></a></h3>
+        <p>No action network at all: good visual features plus a nearest-neighbor lookup over demos.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">2026 · we're testing it</span></div>
+        <h3><a href="https://arxiv.org/abs/2607.18236" target="_blank" rel="noopener">Patch Policy<span class="ext">↗</span></a></h3>
+        <p>Keep dense vision-transformer patches instead of pooling them — beat a 7.6B model at 0.7% the size.</p></div>
+    </div>
+  </section>
+
+  <!-- 03 · VLAs & WORLD MODELS -->
+  <section class="section learn-section" id="frontier">
+    <div class="sec-head reveal"><span class="sec-idx">03</span><span class="sec-label">Vision-language-action &amp; world models</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Google · 2022</span></div>
+        <h3><a href="https://arxiv.org/abs/2212.06817" target="_blank" rel="noopener">RT-1<span class="ext">↗</span></a></h3>
+        <p>The transformer that turned robot actions into tokens and trained on them at scale.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Stanford · Berkeley</span></div>
+        <h3><a href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA<span class="ext">↗</span></a></h3>
+        <p>An open 7B vision-language-action model. The reference point for "big VLA" baselines.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Physical Intelligence</span></div>
+        <h3><a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">π₀ — a generalist policy<span class="ext">↗</span></a></h3>
+        <p>A flow-matching VLA foundation model, explained in plain language. Read the blog, then the paper.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Hugging Face</span></div>
+        <h3><a href="https://huggingface.co/papers/2506.01844" target="_blank" rel="noopener">SmolVLA<span class="ext">↗</span></a></h3>
+        <p>A 450M vision-language-action model that runs on consumer hardware. In our policy zoo.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">NVIDIA · 2025</span></div>
+        <h3><a href="https://arxiv.org/abs/2503.14734" target="_blank" rel="noopener">GR00T N1<span class="ext">↗</span></a></h3>
+        <p>An open humanoid foundation model split into fast "acting" and slow "reasoning" systems.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">Meta</span></div>
+        <h3><a href="https://github.com/facebookresearch/dinov2" target="_blank" rel="noopener">DINOv2<span class="ext">↗</span></a></h3>
+        <p>The frozen vision backbone Patch Policy — and half the field — builds on.</p></div>
+    </div>
+  </section>
+
+  <!-- 04 · HANDS-ON -->
+  <section class="section learn-section" id="handson">
+    <div class="sec-head reveal"><span class="sec-idx">04</span><span class="sec-label">Hands-on</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Docs</span><span class="res-src">LeRobot</span></div>
+        <h3><a href="https://huggingface.co/docs/lerobot/so101" target="_blank" rel="noopener">SO-101 — setup &amp; bring-up<span class="ext">↗</span></a></h3>
+        <p>Calibrate, teleoperate, and record on the exact arm we build with.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Zhao</span></div>
+        <h3><a href="https://tonyzhaozh.github.io/aloha/" target="_blank" rel="noopener">ALOHA<span class="ext">↗</span></a></h3>
+        <p>The low-cost bimanual teleop rig behind ACT — hardware, data, and code.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Fu · Zhao</span></div>
+        <h3><a href="https://mobile-aloha.github.io/" target="_blank" rel="noopener">Mobile ALOHA<span class="ext">↗</span></a></h3>
+        <p>Whole-body teleoperation and the demos that went viral. Watch, then read the code.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">GitHub</span></div>
+        <h3><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot source + examples<span class="ext">↗</span></a></h3>
+        <p>The best way to understand it is to read it. Notebooks and examples included.</p></div>
+    </div>
+  </section>
+
+  <!-- 05 · TALKS & VIDEOS -->
+  <section class="section learn-section" id="talks">
+    <div class="sec-head reveal"><span class="sec-idx">05</span><span class="sec-label">Talks &amp; videos</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Cheng Chi</span></div>
+        <h3><a href="https://www.youtube.com/watch?v=M03sZFfW-qU" target="_blank" rel="noopener">Diffusion Policy, explained by its author<span class="ext">↗</span></a></h3>
+        <p>The method, the intuition, and the honest open questions — straight from the source.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Pieter Abbeel</span></div>
+        <h3><a href="https://www.youtube.com/playlist?list=PLwRJQ4m4UJjNymuBM9RdmB3Z9N5-0IlY0" target="_blank" rel="noopener">Foundations of Deep RL (6 lectures)<span class="ext">↗</span></a></h3>
+        <p>The fastest solid grounding in the reinforcement learning that fine-tunes these policies.</p></div>
+    </div>
+  </section>
+
+  <!-- 06 · PODCASTS -->
+  <section class="section learn-section" id="podcasts">
+    <div class="sec-head reveal"><span class="sec-idx">06</span><span class="sec-label">Podcasts</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Pieter Abbeel</span></div>
+        <h3><a href="https://www.therobotbrains.ai/" target="_blank" rel="noopener">The Robot Brains<span class="ext">↗</span></a></h3>
+        <p>Long, generous interviews with the people actually building robot brains.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Apple Podcasts</span></div>
+        <h3><a href="https://podcasts.apple.com/us/podcast/embodied-ai-101/id1831534364" target="_blank" rel="noopener">Embodied AI 101<span class="ext">↗</span></a></h3>
+        <p>Short, current deep-dives on manipulation, teleop, and open-source embodied models.</p></div>
+    </div>
+  </section>
+
+  <!-- 07 · COURSES -->
+  <section class="section learn-section" id="courses">
+    <div class="sec-head reveal"><span class="sec-idx">07</span><span class="sec-label">Courses</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UC Berkeley</span></div>
+        <h3><a href="http://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank" rel="noopener">CS 285 — Deep RL (Levine)<span class="ext">↗</span></a></h3>
+        <p>The canonical graduate deep reinforcement learning course. Lectures free online.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Stanford</span></div>
+        <h3><a href="https://cs224r.stanford.edu/" target="_blank" rel="noopener">CS 224R — Deep RL (Finn)<span class="ext">↗</span></a></h3>
+        <p>Deep RL with a robot-learning bent, from one of the field's leading researchers.</p></div>
+    </div>
+  </section>
+
+  <section class="learn-close">
+    <div class="learn-close-inner reveal">
+      <div>
+        <h2>Read something great we missed?</h2>
+        <p>This list is curated, not complete. Members keep it sharp — send a link and a one-line why.</p>
+      </div>
+      <a class="btn btn-primary" href="index.html#join">Join the club</a>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="index.html#join">Join</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club. Not affiliated with or branded by the university.</p>
+</footer>
+
+<script>
+  (function(){
+    var nav = document.getElementById('nav');
+    var onScroll = function(){ nav.classList.toggle('scrolled', window.scrollY > 10); };
+    window.addEventListener('scroll', onScroll, { passive:true }); onScroll();
+
+    var toggle = document.getElementById('navToggle'), links = document.getElementById('navLinks');
+    toggle.addEventListener('click', function(){
+      var open = links.classList.toggle('open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    links.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){ links.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); });
+    });
+
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); } });
+    }, { threshold:0.12, rootMargin:'0px 0px -8% 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  })();
+</script>
+</body>
+</html>
