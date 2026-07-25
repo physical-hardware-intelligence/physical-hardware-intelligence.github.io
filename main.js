@@ -264,25 +264,56 @@
     };
 
     canvas.style.cursor = "grab";
+    let pendingTouch = false;   // touch: wait for the first move to tell drag from scroll
+    const posInCanvas = (e) => { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+
     canvas.addEventListener("pointerdown", (e) => {
       inside = true; downXY = { x: e.clientX, y: e.clientY }; moved = false;
-      if (e.pointerType === "mouse") { dragging = true; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} canvas.style.cursor = "grabbing"; }
-    });
+      if (e.pointerType === "mouse") {
+        dragging = true; try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+        canvas.style.cursor = "grabbing";
+      } else {
+        pendingTouch = true;   // finger down: could be a tap, a sideways drag, or a scroll
+      }
+    }, { passive: false });
+
     canvas.addEventListener("pointermove", (e) => {
       inside = true;
-      if (dragging && e.pointerType === "mouse") {
+      // touch: lock the gesture the moment the finger commits to a direction
+      if (pendingTouch && !dragging && downXY) {
+        const dx = e.clientX - downXY.x, dy = e.clientY - downXY.y;
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+          if (Math.abs(dx) >= Math.abs(dy)) {          // sideways -> move the arm
+            dragging = true; moved = true; pendingTouch = false;
+            try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+          } else {                                      // up/down -> let the page scroll
+            pendingTouch = false;
+          }
+        }
+      }
+      if (dragging) {
         if (downXY && Math.hypot(e.clientX - downXY.x, e.clientY - downXY.y) > 4) moved = true;
-        const r = canvas.getBoundingClientRect(); target = { x: e.clientX - r.left, y: e.clientY - r.top };
+        if (e.pointerType !== "mouse" && e.cancelable) e.preventDefault();
+        target = posInCanvas(e);
+        if (reduce) draw();
       } else if (e.pointerType === "mouse") {
         const h = hit(e.clientX, e.clientY); if (h !== hover) { hover = h; canvas.style.cursor = h ? "pointer" : "grab"; }
       }
-    });
+    }, { passive: false });
+
     const end = (e) => {
-      if (!moved) { const h = hit(e.clientX, e.clientY); if (h) select(h); }
-      dragging = false; inside = false; canvas.style.cursor = hover ? "pointer" : "grab";
+      // a tap (no drag) selects the nearest joint; tapping empty space or the same
+      // joint again clears the selection so nothing stays stuck highlighted
+      if (!moved) {
+        const h = hit(e.clientX, e.clientY);
+        select(h && h === selected ? 0 : h);
+        if (reduce) draw();
+      }
+      dragging = false; inside = false; pendingTouch = false;
+      canvas.style.cursor = hover ? "pointer" : "grab";
     };
     canvas.addEventListener("pointerup", end);
-    canvas.addEventListener("pointercancel", () => { dragging = false; inside = false; });
+    canvas.addEventListener("pointercancel", () => { dragging = false; inside = false; pendingTouch = false; });
     canvas.addEventListener("pointerleave", () => { inside = false; hover = 0; if (!dragging) canvas.style.cursor = "grab"; });
     window.addEventListener("resize", layout);
     layout(); setReadout(0);
