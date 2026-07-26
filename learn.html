@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Learn · Physical Hardware Intelligence</title>
-<meta name="description" content="A curated reading room for robot learning and embodied AI — the papers, tutorials, talks, podcasts, and courses the Φ club learns from, in chronological order. Start anywhere.">
+<meta name="description" content="A curated reading room for robot learning and embodied AI — the papers (as a timeline), videos, podcasts, and courses the Φ club learns from. Start anywhere.">
 <meta name="theme-color" content="#ECE7DC">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Learn — Physical Hardware Intelligence">
-<meta property="og:description" content="A curated reading room for robot learning: papers, tutorials, talks, podcasts, and courses. Start anywhere.">
+<meta property="og:description" content="A curated reading room for robot learning: the papers as a timeline, plus videos, podcasts, and courses. Start anywhere.">
 <meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
 <meta property="og:url" content="https://physical-hardware-intelligence.github.io/learn.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -21,23 +21,44 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-  .learn-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(120px,17vh,180px) clamp(20px,5vw,44px) clamp(8px,2vw,24px)}
+  .learn-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(118px,16vh,172px) clamp(20px,5vw,44px) clamp(6px,2vw,18px)}
   .learn-hero .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);margin-bottom:20px}
   .learn-hero h1{font-size:clamp(2.4rem,6vw,4rem);font-weight:500;line-height:1.02;letter-spacing:-.02em;max-width:15ch}
   .learn-hero h1 em{font-style:italic}
   .learn-hero p{font-size:clamp(1.05rem,1.8vw,1.28rem);color:var(--ink-2);max-width:56ch;margin:24px 0 0}
-  .learn-section{padding-top:clamp(56px,8vw,96px)}
+  /* jump nav */
+  .learn-jump{max-width:var(--maxw);margin:0 auto;padding:clamp(22px,3vw,34px) clamp(20px,5vw,44px) 0;display:flex;flex-wrap:wrap;gap:9px 24px}
+  .learn-jump a{font-family:var(--mono);font-size:12.5px;letter-spacing:.03em;color:var(--ink-2);position:relative;padding-bottom:2px}
+  .learn-jump a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:1px;background:var(--ink);transition:right .25s var(--ease)}
+  .learn-jump a:hover{color:var(--ink)}
+  .learn-jump a:hover::after{right:0}
+  .learn-section{padding-top:clamp(54px,7.5vw,90px)}
+  /* card grid */
   .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:clamp(22px,2.6vw,36px) clamp(26px,3.2vw,48px)}
   .res{border-top:1px solid var(--ink);padding:16px 0 0;display:flex;flex-direction:column}
   .res-meta{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
   .res-tag{color:var(--apple)}
   .res-src{color:var(--ink-3)}
   .res h3{font-size:1.16rem;font-weight:500;line-height:1.2;margin:0 0 9px}
-  .res h3 a{background-image:linear-gradient(var(--ink),var(--ink));background-size:0 1px;background-repeat:no-repeat;background-position:0 1.05em;transition:background-size .32s var(--ease)}
-  .res h3 a .ext{font-family:var(--mono);font-size:.72em;color:var(--ink-3);margin-left:3px;transition:color .2s}
-  .res:hover h3 a{background-size:100% 1px}
-  .res:hover h3 a .ext{color:var(--apple)}
   .res p{margin:0;color:var(--ink-2);font-size:.98rem;line-height:1.5}
+  /* timeline */
+  .pt-list{position:relative;list-style:none;margin:2px 0 0;padding:0}
+  .pt-list::before{content:"";position:absolute;left:60px;top:9px;bottom:9px;width:1px;background:var(--line-2)}
+  .pt-item{position:relative;padding:0 0 clamp(22px,3.2vw,34px) 84px}
+  .pt-item:last-child{padding-bottom:0}
+  .pt-year{position:absolute;left:0;top:0;width:48px;text-align:right;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);line-height:1.55}
+  .pt-dot{position:absolute;left:60px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--paper);border:1.5px solid var(--ink);transform:translateX(-4px)}
+  .pt-dot.now{background:var(--apple);border-color:var(--apple)}
+  .pt-item h3{font-size:1.12rem;font-weight:500;line-height:1.2;margin:0 0 5px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .pt-thread{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);flex:none}
+  .pt-thread.vla{color:var(--apple)}
+  .pt-item p{margin:0;color:var(--ink-2);font-size:.96rem;line-height:1.48;max-width:62ch}
+  /* shared link underline (cards + timeline) */
+  .res h3 a,.pt-item h3 a{background-image:linear-gradient(var(--ink),var(--ink));background-size:0 1px;background-repeat:no-repeat;background-position:0 1.05em;transition:background-size .32s var(--ease)}
+  .res h3 a .ext,.pt-item h3 a .ext{font-family:var(--mono);font-size:.72em;color:var(--ink-3);margin-left:3px;transition:color .2s}
+  .res:hover h3 a,.pt-item:hover h3 a{background-size:100% 1px}
+  .res:hover h3 a .ext,.pt-item:hover h3 a .ext{color:var(--apple)}
+  /* close */
   .learn-close{max-width:var(--maxw);margin:0 auto;padding:clamp(64px,9vw,110px) clamp(20px,5vw,44px) 0}
   .learn-close-inner{border-top:1px solid var(--ink);padding-top:clamp(30px,4vw,46px);display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:20px}
   .learn-close h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:500;max-width:20ch}
@@ -45,6 +66,12 @@
   .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
   .reveal.vis{opacity:1;transform:none}
   @media (max-width:640px){ .res-grid{grid-template-columns:1fr} }
+  @media (max-width:480px){
+    .timeline::before{left:46px}
+    .pt-item{padding-left:66px}
+    .pt-year{width:37px;font-size:11.5px}
+    .pt-dot{left:46px}
+  }
 </style>
 </head>
 <body>
@@ -71,13 +98,26 @@
   <section class="learn-hero">
     <p class="eyebrow">The reading room</p>
     <h1>How to teach a robot to <em>learn</em>.</h1>
-    <p>The papers, tutorials, talks, podcasts, and courses we learn from, curated and kept short — and ordered so you can watch the field evolve. No prerequisites. Start anywhere.</p>
+    <p>Everything we learn from, curated and kept short. The papers are a timeline, so you can watch the field evolve. No prerequisites — start anywhere.</p>
   </section>
+
+  <nav class="learn-jump" aria-label="Jump to section">
+    <a href="#start">Start here</a>
+    <a href="#papers">Papers</a>
+    <a href="#watch">Watch</a>
+    <a href="#build">Build</a>
+    <a href="#listen">Listen</a>
+    <a href="#courses">Courses</a>
+  </nav>
 
   <!-- 01 · START HERE -->
   <section class="section learn-section" id="start">
     <div class="sec-head reveal"><span class="sec-idx">01</span><span class="sec-label">Start here</span></div>
     <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Welch Labs · 2026</span></div>
+        <h3><a href="https://www.youtube.com/watch?v=2mrGMMmrVNE" target="_blank" rel="noopener">Inside the World's Smartest Robot Brain<span class="ext">↗</span></a></h3>
+        <p>A beautifully made primer on how vision-language-action models work. Watch this first.</p></div>
+
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Hugging Face</span></div>
         <h3><a href="https://huggingface.co/learn/robotics-course/unit0/1" target="_blank" rel="noopener">The Hugging Face Robotics Course<span class="ext">↗</span></a></h3>
         <p>Free, hands-on, built by the LeRobot team. The gentlest on-ramp — begin at Unit 0.</p></div>
@@ -86,113 +126,73 @@
         <h3><a href="https://huggingface.co/spaces/lerobot/robot-learning-tutorial" target="_blank" rel="noopener">Robot Learning: A Tutorial<span class="ext">↗</span></a></h3>
         <p>One page that maps the whole field — data, imitation, policies — in an afternoon.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Welch Labs · 2026</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=2mrGMMmrVNE" target="_blank" rel="noopener">Inside the World's Smartest Robot Brain<span class="ext">↗</span></a></h3>
-        <p>A beautifully made primer on how vision-language-action models actually work. Watch this first.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Build with us</span><span class="res-src">Φ</span></div>
-        <h3><a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">Our repo curriculum<span class="ext">↗</span></a></h3>
-        <p>When you want to <em>do</em> it: our documented path from an arm on the table to a trained policy.</p></div>
-    </div>
-  </section>
-
-  <!-- 02 · THE POLICY FAMILY (chronological) -->
-  <section class="section learn-section" id="policies">
-    <div class="sec-head reveal"><span class="sec-idx">02</span><span class="sec-label">Core papers · the policy family</span></div>
-    <div class="res-grid">
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Florence · 2021</span></div>
-        <h3><a href="https://arxiv.org/abs/2109.00137" target="_blank" rel="noopener">Implicit BC (IBC)<span class="ext">↗</span></a></h3>
-        <p>Score actions with an energy function instead of predicting them. The idea diffusion later stabilized.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Pari · 2021</span></div>
-        <h3><a href="https://arxiv.org/abs/2112.01511" target="_blank" rel="noopener">VINN<span class="ext">↗</span></a></h3>
-        <p>No action network at all: good visual features plus a nearest-neighbor lookup over demos.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Shafiullah · 2022</span></div>
-        <h3><a href="https://arxiv.org/abs/2206.11251" target="_blank" rel="noopener">Behavior Transformer (BeT)<span class="ext">↗</span></a></h3>
-        <p>Cluster behaviors into modes, let a transformer pick one. VQ-BeT's ancestor.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Chi · 2023</span></div>
-        <h3><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy<span class="ext">↗</span></a></h3>
-        <p>Generate action trajectories by denoising. Handles the "many right ways" of a task.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Zhao · 2023</span></div>
-        <h3><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT / ALOHA<span class="ext">↗</span></a></h3>
-        <p>Action chunking: predict a burst of moves at once. The baseline every task gets first.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Lee · 2024</span></div>
-        <h3><a href="https://arxiv.org/abs/2403.03181" target="_blank" rel="noopener">VQ-BeT<span class="ext">↗</span></a></h3>
-        <p>Tokenize actions with a residual VQ-VAE. As expressive as diffusion, ~5× faster.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">2026 · we're testing it</span></div>
-        <h3><a href="https://arxiv.org/abs/2607.18236" target="_blank" rel="noopener">Patch Policy<span class="ext">↗</span></a></h3>
-        <p>Keep dense vision-transformer patches instead of pooling them — beat a 7.6B model at 0.7% the size.</p></div>
-    </div>
-  </section>
-
-  <!-- 03 · VLAs & WORLD MODELS (chronological) -->
-  <section class="section learn-section" id="frontier">
-    <div class="sec-head reveal"><span class="sec-idx">03</span><span class="sec-label">Vision-language-action &amp; world models</span></div>
-    <div class="res-grid">
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Google · 2022</span></div>
-        <h3><a href="https://arxiv.org/abs/2212.06817" target="_blank" rel="noopener">RT-1<span class="ext">↗</span></a></h3>
-        <p>The transformer that turned robot actions into tokens and trained on them at scale.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">Meta · 2023</span></div>
-        <h3><a href="https://github.com/facebookresearch/dinov2" target="_blank" rel="noopener">DINOv2<span class="ext">↗</span></a></h3>
-        <p>The frozen vision backbone Patch Policy — and half the field — builds on.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Stanford · Berkeley · 2024</span></div>
-        <h3><a href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA<span class="ext">↗</span></a></h3>
-        <p>An open 7B vision-language-action model. The reference point for "big VLA" baselines.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Physical Intelligence · 2024</span></div>
-        <h3><a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">π₀ — a generalist policy<span class="ext">↗</span></a></h3>
-        <p>A flow-matching VLA foundation model, explained in plain language. Read the blog, then the paper.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">NVIDIA · 2025</span></div>
-        <h3><a href="https://arxiv.org/abs/2503.14734" target="_blank" rel="noopener">GR00T N1<span class="ext">↗</span></a></h3>
-        <p>An open humanoid foundation model split into fast "acting" and slow "reasoning" systems.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Paper</span><span class="res-src">Hugging Face · 2025</span></div>
-        <h3><a href="https://huggingface.co/papers/2506.01844" target="_blank" rel="noopener">SmolVLA<span class="ext">↗</span></a></h3>
-        <p>A 450M vision-language-action model that runs on consumer hardware. In our policy zoo.</p></div>
-    </div>
-  </section>
-
-  <!-- 04 · HANDS-ON -->
-  <section class="section learn-section" id="handson">
-    <div class="sec-head reveal"><span class="sec-idx">04</span><span class="sec-label">Hands-on</span></div>
-    <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Docs</span><span class="res-src">LeRobot</span></div>
-        <h3><a href="https://huggingface.co/docs/lerobot/so101" target="_blank" rel="noopener">SO-101 — setup &amp; bring-up<span class="ext">↗</span></a></h3>
-        <p>Calibrate, teleoperate, and record on the exact arm we build with.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Zhao</span></div>
-        <h3><a href="https://tonyzhaozh.github.io/aloha/" target="_blank" rel="noopener">ALOHA<span class="ext">↗</span></a></h3>
-        <p>The low-cost bimanual teleop rig behind ACT — hardware, data, and code.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Fu · Zhao</span></div>
-        <h3><a href="https://mobile-aloha.github.io/" target="_blank" rel="noopener">Mobile ALOHA<span class="ext">↗</span></a></h3>
-        <p>Whole-body teleoperation and the demos that went viral. Watch, then read the code.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">GitHub</span></div>
-        <h3><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot source + examples<span class="ext">↗</span></a></h3>
-        <p>The best way to understand it is to read it. Notebooks and examples included.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Ilia Larchenko</span></div>
-        <h3><a href="https://www.youtube.com/@ilialarchenko" target="_blank" rel="noopener">Ilia Larchenko<span class="ext">↗</span></a></h3>
-        <p>Deep, practical robotics — SO-101 teleop, training, and reinforcement learning on the arm.</p></div>
-
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Dan Makes Things</span></div>
-        <h3><a href="https://www.youtube.com/@DanMakesThings" target="_blank" rel="noopener">Dan Makes Things<span class="ext">↗</span></a></h3>
-        <p>An engineer who actually builds things, SO-101 included. Watch a whole build come together.</p></div>
+        <h3><a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">LeRobot — the library<span class="ext">↗</span></a></h3>
+        <p>The open engine our whole stack runs on. Motors, cameras, datasets, training, inference.</p></div>
     </div>
   </section>
 
-  <!-- 05 · TALKS & VIDEOS (chronological by subject) -->
-  <section class="section learn-section" id="talks">
-    <div class="sec-head reveal"><span class="sec-idx">05</span><span class="sec-label">Talks &amp; videos</span></div>
+  <!-- 02 · THE PAPERS, IN ORDER (timeline) -->
+  <section class="section learn-section" id="papers">
+    <div class="sec-head reveal"><span class="sec-idx">02</span><span class="sec-label">The papers, in order</span></div>
+    <ol class="pt-list">
+      <li class="pt-item reveal"><span class="pt-year">2021</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2109.00137" target="_blank" rel="noopener">Implicit BC (IBC)<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <p>Score actions with an energy function instead of predicting them. The idea diffusion later stabilized.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2021</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2112.01511" target="_blank" rel="noopener">VINN<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <p>No action network at all: good visual features plus a nearest-neighbor lookup over demos.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2022</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2206.11251" target="_blank" rel="noopener">Behavior Transformer (BeT)<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <p>Cluster behaviors into modes, let a transformer pick one. VQ-BeT's ancestor.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2022</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2212.06817" target="_blank" rel="noopener">RT-1<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <p>The transformer that turned robot actions into tokens and trained on them at scale.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <p>Generate action trajectories by denoising. Handles the "many right ways" of a task.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
+        <h3><a href="https://github.com/facebookresearch/dinov2" target="_blank" rel="noopener">DINOv2<span class="ext">↗</span></a><span class="pt-thread">vision</span></h3>
+        <p>The frozen vision backbone Patch Policy — and half the field — builds on.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT / ALOHA<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <p>Action chunking: predict a burst of moves at once. The baseline every task gets first.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2403.03181" target="_blank" rel="noopener">VQ-BeT<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <p>Tokenize actions with a residual VQ-VAE. As expressive as diffusion, ~5× faster.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
+        <h3><a href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <p>An open 7B vision-language-action model. The reference point for "big VLA" baselines.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
+        <h3><a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">π₀ — a generalist policy<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <p>A flow-matching VLA foundation model, in plain language. Read the blog, then the paper.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2025</span><span class="pt-dot"></span><div>
+        <h3><a href="https://arxiv.org/abs/2503.14734" target="_blank" rel="noopener">GR00T N1<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <p>An open humanoid foundation model split into fast "acting" and slow "reasoning" systems.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2025</span><span class="pt-dot"></span><div>
+        <h3><a href="https://huggingface.co/papers/2506.01844" target="_blank" rel="noopener">SmolVLA<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <p>A 450M vision-language-action model that runs on consumer hardware. In our policy zoo.</p></div></li>
+
+      <li class="pt-item reveal"><span class="pt-year">2026</span><span class="pt-dot now"></span><div>
+        <h3><a href="https://arxiv.org/abs/2607.18236" target="_blank" rel="noopener">Patch Policy<span class="ext">↗</span></a><span class="pt-thread">policy · we're testing it</span></h3>
+        <p>Keep dense vision-transformer patches instead of pooling them — beat a 7.6B model at 0.7% the size.</p></div></li>
+    </ol>
+  </section>
+
+  <!-- 03 · WATCH -->
+  <section class="section learn-section" id="watch">
+    <div class="sec-head reveal"><span class="sec-idx">03</span><span class="sec-label">Watch</span></div>
     <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Cheng Chi</span></div>
         <h3><a href="https://www.youtube.com/watch?v=M03sZFfW-qU" target="_blank" rel="noopener">Diffusion Policy, explained by its author<span class="ext">↗</span></a></h3>
@@ -206,15 +206,49 @@
         <h3><a href="https://www.youtube.com/watch?v=-0s0v3q7mBk" target="_blank" rel="noopener">OpenVLA — a walkthrough<span class="ext">↗</span></a></h3>
         <p>Moo Jin Kim, OpenVLA's author, on building an open vision-language-action model.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Welch Labs · 2026</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=2mrGMMmrVNE" target="_blank" rel="noopener">Inside the World's Smartest Robot Brain<span class="ext">↗</span></a></h3>
-        <p>The best short primer on vision-language-action models. Also linked in Start here.</p></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">LeRobot tutorial</span></div>
+        <h3><a href="https://www.youtube.com/watch?v=-tkEMLOLEwo" target="_blank" rel="noopener">Train an ACT policy on the SO-101<span class="ext">↗</span></a></h3>
+        <p>A practical, start-to-finish walkthrough of training ACT on the SO-101 with LeRobot.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Ilia Larchenko</span></div>
+        <h3><a href="https://www.youtube.com/@ilialarchenko" target="_blank" rel="noopener">Ilia Larchenko<span class="ext">↗</span></a></h3>
+        <p>Deep, practical robotics — SO-101 teleop, training, and reinforcement learning on the arm.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Dan Makes Things</span></div>
+        <h3><a href="https://www.youtube.com/@DanMakesThings" target="_blank" rel="noopener">Dan Makes Things<span class="ext">↗</span></a></h3>
+        <p>An engineer who actually builds things, SO-101 included. Watch a whole build come together.</p></div>
     </div>
   </section>
 
-  <!-- 06 · PODCASTS -->
-  <section class="section learn-section" id="podcasts">
-    <div class="sec-head reveal"><span class="sec-idx">06</span><span class="sec-label">Podcasts</span></div>
+  <!-- 04 · BUILD -->
+  <section class="section learn-section" id="build">
+    <div class="sec-head reveal"><span class="sec-idx">04</span><span class="sec-label">Build</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Build with us</span><span class="res-src">Φ</span></div>
+        <h3><a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">Our repo curriculum<span class="ext">↗</span></a></h3>
+        <p>Our documented path from an arm on the table to a trained policy. Start here to build.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Docs</span><span class="res-src">LeRobot</span></div>
+        <h3><a href="https://huggingface.co/docs/lerobot/so101" target="_blank" rel="noopener">SO-101 — setup &amp; bring-up<span class="ext">↗</span></a></h3>
+        <p>Calibrate, teleoperate, and record on the exact arm we build with.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">GitHub</span></div>
+        <h3><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot — source &amp; examples<span class="ext">↗</span></a></h3>
+        <p>The engine's code and notebooks. The best way to understand it is to read it.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Zhao</span></div>
+        <h3><a href="https://tonyzhaozh.github.io/aloha/" target="_blank" rel="noopener">ALOHA<span class="ext">↗</span></a></h3>
+        <p>The low-cost bimanual teleop rig behind ACT — hardware, data, and code to replicate.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Project</span><span class="res-src">Fu · Zhao</span></div>
+        <h3><a href="https://mobile-aloha.github.io/" target="_blank" rel="noopener">Mobile ALOHA<span class="ext">↗</span></a></h3>
+        <p>Whole-body teleoperation and the demos that went viral. Full hardware + code.</p></div>
+    </div>
+  </section>
+
+  <!-- 05 · LISTEN -->
+  <section class="section learn-section" id="listen">
+    <div class="sec-head reveal"><span class="sec-idx">05</span><span class="sec-label">Listen</span></div>
     <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Pieter Abbeel</span></div>
         <h3><a href="https://www.therobotbrains.ai/" target="_blank" rel="noopener">The Robot Brains<span class="ext">↗</span></a></h3>
@@ -234,10 +268,18 @@
     </div>
   </section>
 
-  <!-- 07 · COURSES (fundamentals -> deep RL) -->
+  <!-- 06 · COURSES (foundations -> applied) -->
   <section class="section learn-section" id="courses">
-    <div class="sec-head reveal"><span class="sec-idx">07</span><span class="sec-label">Courses</span></div>
+    <div class="sec-head reveal"><span class="sec-idx">06</span><span class="sec-label">Courses</span></div>
     <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">3Blue1Brown</span></div>
+        <h3><a href="https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab" target="_blank" rel="noopener">Essence of Linear Algebra<span class="ext">↗</span></a></h3>
+        <p>The visual foundation — vectors, matrices, and what they actually mean. Before any ML.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Playlist</span></div>
+        <h3><a href="https://youtube.com/playlist?list=PLfXxLxwuCKLRh_dorpqwbO311rncZAwfZ" target="_blank" rel="noopener">Generative &amp; diffusion models<span class="ext">↗</span></a></h3>
+        <p>How diffusion models generate — the math under Diffusion Policy and the VLAs.</p></div>
+
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Northwestern · Lynch</span></div>
         <h3><a href="https://www.youtube.com/playlist?list=PLggLP4f-rq02vX0OQQ5vrCxbJrzamYDfx" target="_blank" rel="noopener">Modern Robotics<span class="ext">↗</span></a></h3>
         <p>Mechanics, planning, and control — the classical robotics foundation, taught clearly.</p></div>
