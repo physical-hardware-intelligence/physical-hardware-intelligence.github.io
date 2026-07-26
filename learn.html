@@ -79,6 +79,12 @@
   .reveal.vis{animation:reveal-up .55s var(--ease) both}
   @keyframes reveal-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion:reduce){ .reveal,.reveal.vis{opacity:1!important;animation:none!important} }
+  /* keyboard focus */
+  .res h3 a:focus-visible,.pt-item h3 a:focus-visible,.learn-jump a:focus-visible,.brand:focus-visible,.nav-links a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+  @supports selector(:has(*)){
+    .res h3 a:focus-visible,.pt-item h3 a:focus-visible{outline:none}
+    .res:has(a:focus-visible),.pt-item:has(a:focus-visible){outline:2px solid var(--ink);outline-offset:6px;border-radius:3px}
+  }
   @media (max-width:640px){ .res-grid{grid-template-columns:1fr} }
   @media (max-width:480px){
     .timeline::before{left:46px}
@@ -125,27 +131,27 @@
     <div class="sec-head reveal"><span class="sec-idx">01</span><span class="sec-label">Get started</span></div>
     <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Jim Fan · NVIDIA</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=3Y8aq_ofEVs" target="_blank" rel="noopener">Robotics' End Game<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/watch?v=3Y8aq_ofEVs" target="_blank" rel="noopener">Robotics' End Game<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The big picture — where robotics and embodied AI are headed — from NVIDIA's GEAR lead. Start here.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Welch Labs · 2026</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=2mrGMMmrVNE" target="_blank" rel="noopener">Inside the World's Smartest Robot Brain<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/watch?v=2mrGMMmrVNE" target="_blank" rel="noopener">Inside the World's Smartest Robot Brain<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A beautifully made primer on how vision-language-action models actually work.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Site</span><span class="res-src">Humanity's Last Machine</span></div>
-        <h3><a href="https://www.humanityslastmachine.com" target="_blank" rel="noopener">Humanity's Last Machine<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.humanityslastmachine.com" target="_blank" rel="noopener">Humanity's Last Machine<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A gorgeous, component-level tour of what actually goes into a humanoid robot.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Hugging Face</span></div>
-        <h3><a href="https://huggingface.co/learn/robotics-course/unit0/1" target="_blank" rel="noopener">The Hugging Face Robotics Course<span class="ext">↗</span></a></h3>
+        <h3><a href="https://huggingface.co/learn/robotics-course/unit0/1" target="_blank" rel="noopener">The Hugging Face Robotics Course<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Free, hands-on, built by the LeRobot team. The gentlest on-ramp — begin at Unit 0.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Tutorial</span><span class="res-src">LeRobot</span></div>
-        <h3><a href="https://huggingface.co/spaces/lerobot/robot-learning-tutorial" target="_blank" rel="noopener">Robot Learning: A Tutorial<span class="ext">↗</span></a></h3>
+        <h3><a href="https://huggingface.co/spaces/lerobot/robot-learning-tutorial" target="_blank" rel="noopener">Robot Learning: A Tutorial<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>One page that maps the whole field — data, imitation, policies — in an afternoon.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Docs</span><span class="res-src">LeRobot</span></div>
-        <h3><a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">LeRobot — the library<span class="ext">↗</span></a></h3>
+        <h3><a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">LeRobot — the library<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The open engine our whole stack runs on. Motors, cameras, datasets, training, inference.</p></div>
     </div>
   </section>
@@ -155,70 +161,70 @@
     <div class="sec-head reveal"><span class="sec-idx">02</span><span class="sec-label">Read</span></div>
     <ol class="pt-list">
       <li class="pt-item reveal"><span class="pt-year">2021</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2109.00137" target="_blank" rel="noopener">Implicit BC (IBC)<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <h3><a href="https://arxiv.org/abs/2109.00137" target="_blank" rel="noopener">Implicit BC (IBC)<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
         <p>Score actions with an energy function instead of predicting them. The idea diffusion later stabilized.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2021</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2112.01511" target="_blank" rel="noopener">VINN<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <h3><a href="https://arxiv.org/abs/2112.01511" target="_blank" rel="noopener">VINN<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
         <p>No action network at all: good visual features plus a nearest-neighbor lookup over demos.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2022</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2206.11251" target="_blank" rel="noopener">Behavior Transformer (BeT)<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <h3><a href="https://arxiv.org/abs/2206.11251" target="_blank" rel="noopener">Behavior Transformer (BeT)<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
         <p>Cluster behaviors into modes, let a transformer pick one. VQ-BeT's ancestor.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2022</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2212.06817" target="_blank" rel="noopener">RT-1<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <h3><a href="https://arxiv.org/abs/2212.06817" target="_blank" rel="noopener">RT-1<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
         <p>The transformer that turned robot actions into tokens and trained on them at scale.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <h3><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
         <p>Generate action trajectories by denoising. Handles the "many right ways" of a task.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
-        <h3><a href="https://github.com/facebookresearch/dinov2" target="_blank" rel="noopener">DINOv2<span class="ext">↗</span></a><span class="pt-thread">vision</span></h3>
+        <h3><a href="https://github.com/facebookresearch/dinov2" target="_blank" rel="noopener">DINOv2<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">vision</span></h3>
         <p>The frozen vision backbone Patch Policy — and half the field — builds on.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT / ALOHA<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <h3><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT / ALOHA<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
         <p>Action chunking: predict a burst of moves at once. The baseline every task gets first.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2403.03181" target="_blank" rel="noopener">VQ-BeT<span class="ext">↗</span></a><span class="pt-thread">policy</span></h3>
+        <h3><a href="https://arxiv.org/abs/2403.03181" target="_blank" rel="noopener">VQ-BeT<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
         <p>Tokenize actions with a residual VQ-VAE. As expressive as diffusion, ~5× faster.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
-        <h3><a href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <h3><a href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
         <p>An open 7B vision-language-action model. The reference point for "big VLA" baselines.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
-        <h3><a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">π₀ — a generalist policy<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <h3><a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">π₀ — a generalist policy<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
         <p>A flow-matching VLA foundation model, in plain language. Read the blog, then the paper.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2025</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2503.14734" target="_blank" rel="noopener">GR00T N1<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <h3><a href="https://arxiv.org/abs/2503.14734" target="_blank" rel="noopener">GR00T N1<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
         <p>An open humanoid foundation model split into fast "acting" and slow "reasoning" systems.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2025</span><span class="pt-dot"></span><div>
-        <h3><a href="https://huggingface.co/papers/2506.01844" target="_blank" rel="noopener">SmolVLA<span class="ext">↗</span></a><span class="pt-thread vla">vla</span></h3>
+        <h3><a href="https://huggingface.co/papers/2506.01844" target="_blank" rel="noopener">SmolVLA<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
         <p>A 450M vision-language-action model that runs on consumer hardware. In our policy zoo.</p></div></li>
 
       <li class="pt-item reveal"><span class="pt-year">2026</span><span class="pt-dot now"></span><div>
-        <h3><a href="https://arxiv.org/abs/2607.18236" target="_blank" rel="noopener">Patch Policy<span class="ext">↗</span></a><span class="pt-thread">policy · we're testing it</span></h3>
+        <h3><a href="https://arxiv.org/abs/2607.18236" target="_blank" rel="noopener">Patch Policy<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy · we're testing it</span></h3>
         <p>Keep dense vision-transformer patches instead of pooling them — beat a 7.6B model at 0.7% the size.</p></div></li>
     </ol>
 
     <div class="read-sub reveal">Writers &amp; blogs to follow</div>
     <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Lilian Weng</span></div>
-        <h3><a href="https://lilianweng.github.io" target="_blank" rel="noopener">Lil'Log<span class="ext">↗</span></a></h3>
+        <h3><a href="https://lilianweng.github.io" target="_blank" rel="noopener">Lil'Log<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The clearest long-form deep-dives in ML — diffusion, RL, agents, and more.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Yang Song</span></div>
-        <h3><a href="https://yang-song.net" target="_blank" rel="noopener">Yang Song<span class="ext">↗</span></a></h3>
+        <h3><a href="https://yang-song.net" target="_blank" rel="noopener">Yang Song<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Score-based diffusion models, from one of the people who introduced them.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Sander Dieleman</span></div>
-        <h3><a href="https://sander.ai/posts/" target="_blank" rel="noopener">Sander Dieleman<span class="ext">↗</span></a></h3>
+        <h3><a href="https://sander.ai/posts/" target="_blank" rel="noopener">Sander Dieleman<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Deep, beautifully written essays on diffusion and generative models (DeepMind).</p></div>
     </div>
   </section>
@@ -228,27 +234,27 @@
     <div class="sec-head reveal"><span class="sec-idx">03</span><span class="sec-label">Watch</span></div>
     <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Cheng Chi</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=M03sZFfW-qU" target="_blank" rel="noopener">Diffusion Policy, explained by its author<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/watch?v=M03sZFfW-qU" target="_blank" rel="noopener">Diffusion Policy, explained by its author<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The method, the intuition, and the honest open questions — straight from the source.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">LeRobot Research #1</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=ft73x0LfGpM" target="_blank" rel="noopener">ALOHA &amp; ACT — a walkthrough<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/watch?v=ft73x0LfGpM" target="_blank" rel="noopener">ALOHA &amp; ACT — a walkthrough<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Alexander Soare breaks down action chunking and the ALOHA setup, end to end.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">LeRobot Research #5</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=-0s0v3q7mBk" target="_blank" rel="noopener">OpenVLA — a walkthrough<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/watch?v=-0s0v3q7mBk" target="_blank" rel="noopener">OpenVLA — a walkthrough<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Moo Jin Kim, OpenVLA's author, on building an open vision-language-action model.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Trelis Research</span></div>
-        <h3><a href="https://www.youtube.com/watch?v=-tkEMLOLEwo" target="_blank" rel="noopener">Train an ACT policy on the SO-101<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/watch?v=-tkEMLOLEwo" target="_blank" rel="noopener">Train an ACT policy on the SO-101<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A practical, start-to-finish walkthrough of training ACT on the SO-101 with LeRobot.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Ilia Larchenko</span></div>
-        <h3><a href="https://www.youtube.com/@ilialarchenko" target="_blank" rel="noopener">Ilia Larchenko<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/@ilialarchenko" target="_blank" rel="noopener">Ilia Larchenko<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Deep, practical robotics — SO-101 teleop, training, and reinforcement learning on the arm.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Dan Makes Things</span></div>
-        <h3><a href="https://www.youtube.com/@DanMakesThings" target="_blank" rel="noopener">Dan Makes Things<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/@DanMakesThings" target="_blank" rel="noopener">Dan Makes Things<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>An engineer who actually builds things, SO-101 included. Watch a whole build come together.</p></div>
     </div>
   </section>
@@ -258,19 +264,19 @@
     <div class="sec-head reveal"><span class="sec-idx">04</span><span class="sec-label">Listen</span></div>
     <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Pieter Abbeel</span></div>
-        <h3><a href="https://www.therobotbrains.ai/" target="_blank" rel="noopener">The Robot Brains<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.therobotbrains.ai/" target="_blank" rel="noopener">The Robot Brains<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Long, generous interviews with the people building robot brains.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Brian Heater · A3</span></div>
-        <h3><a href="https://www.youtube.com/@automatedpodcast" target="_blank" rel="noopener">Automated<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/@automatedpodcast" target="_blank" rel="noopener">Automated<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Weekly conversations with robotics and humanoid leaders and founders.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Over the Horizon</span></div>
-        <h3><a href="https://www.youtube.com/@overthehorizon" target="_blank" rel="noopener">Over the Horizon<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/@overthehorizon" target="_blank" rel="noopener">Over the Horizon<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Technical, opinionated deep-dives on where the humanoid-robotics industry is going.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Apple Podcasts</span></div>
-        <h3><a href="https://podcasts.apple.com/us/podcast/embodied-ai-101/id1831534364" target="_blank" rel="noopener">Embodied AI 101<span class="ext">↗</span></a></h3>
+        <h3><a href="https://podcasts.apple.com/us/podcast/embodied-ai-101/id1831534364" target="_blank" rel="noopener">Embodied AI 101<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Short, current deep-dives on manipulation, teleop, and open-source embodied models.</p></div>
     </div>
   </section>
@@ -280,27 +286,27 @@
     <div class="sec-head reveal"><span class="sec-idx">05</span><span class="sec-label">Courses</span></div>
     <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">3Blue1Brown</span></div>
-        <h3><a href="https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab" target="_blank" rel="noopener">Essence of Linear Algebra<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab" target="_blank" rel="noopener">Essence of Linear Algebra<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The visual foundation — vectors, matrices, and what they actually mean. Before any ML.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Playlist</span></div>
-        <h3><a href="https://youtube.com/playlist?list=PLfXxLxwuCKLRh_dorpqwbO311rncZAwfZ" target="_blank" rel="noopener">Generative Diffusion Models<span class="ext">↗</span></a></h3>
+        <h3><a href="https://youtube.com/playlist?list=PLfXxLxwuCKLRh_dorpqwbO311rncZAwfZ" target="_blank" rel="noopener">Generative Diffusion Models<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>How diffusion models generate — the math under Diffusion Policy and the VLAs.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Northwestern · Lynch</span></div>
-        <h3><a href="https://www.youtube.com/playlist?list=PLggLP4f-rq02vX0OQQ5vrCxbJrzamYDfx" target="_blank" rel="noopener">Modern Robotics<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/playlist?list=PLggLP4f-rq02vX0OQQ5vrCxbJrzamYDfx" target="_blank" rel="noopener">Modern Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Mechanics, planning, and control — the classical robotics foundation, taught clearly.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">MIT · Tedrake</span></div>
-        <h3><a href="https://www.youtube.com/playlist?list=PLkx8KyIQkMfU5szP43GlE_S1QGSPQfL9s" target="_blank" rel="noopener">Underactuated Robotics<span class="ext">↗</span></a></h3>
+        <h3><a href="https://www.youtube.com/playlist?list=PLkx8KyIQkMfU5szP43GlE_S1QGSPQfL9s" target="_blank" rel="noopener">Underactuated Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Dynamics and control for real, underactuated robots. Deep, rigorous, and worth it.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UC Berkeley · Levine</span></div>
-        <h3><a href="http://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank" rel="noopener">CS 285 — Deep RL<span class="ext">↗</span></a></h3>
+        <h3><a href="http://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank" rel="noopener">CS 285 — Deep RL<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The canonical graduate deep reinforcement learning course. Lectures free online.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Stanford · Finn</span></div>
-        <h3><a href="https://cs224r.stanford.edu/" target="_blank" rel="noopener">CS 224R — Deep RL<span class="ext">↗</span></a></h3>
+        <h3><a href="https://cs224r.stanford.edu/" target="_blank" rel="noopener">CS 224R — Deep RL<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Deep RL with a robot-learning bent, from one of the field's leading researchers.</p></div>
     </div>
   </section>
