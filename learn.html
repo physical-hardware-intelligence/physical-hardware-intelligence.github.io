@@ -122,6 +122,11 @@
     .fork:has(.node:hover)::before{background:var(--apple)}
   }
   .node h4 a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+  .fork-era{font-family:var(--mono);font-size:10px;letter-spacing:.09em;color:var(--ink-3);font-style:normal;margin-left:11px;white-space:nowrap}
+  .spine-legend{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-3);margin:18px 0 0}
+  .node.todo .node-dot{border-color:var(--line-2)}
+  .node.todo h4 a{color:var(--ink-2)}
+  @media (hover:hover){ .node.todo:hover .node-dot{border-color:var(--apple)} }
   .flow-err{font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
   @media (max-width:640px){
     .fork{padding-left:22px}.fork::before{width:28px}
@@ -270,19 +275,42 @@
    "id": "repr",
    "n": "03",
    "q": "Why do learned representations keep collapsing?",
-   "framing": "Predict one view of the world from another and the encoder learns whatever is easiest to predict, not what is useful. Everything below is an attempt to stop that, and the attempts keep failing in instructive ways.",
+   "framing": "Train an encoder so two views of the same thing agree, and the trivial winner is to output a constant. Everything below is a way to make that constant unattractive. Watch the eras: the field has swung twice between two different kinds of fix, constraining the shape of the representation, or constraining how its capacity gets divided. The 2026 papers at the bottom are where the first kind ran out of road.",
    "branches": [
     {
-     "id": "features",
-     "label": "Learn visual features without labels"
+     "id": "negatives",
+     "label": "Push apart what shouldn't match",
+     "era": "2020"
     },
     {
-     "id": "stopcollapse",
-     "label": "Stop the representation from collapsing"
+     "id": "asymmetry",
+     "label": "Drop the negatives, break the symmetry instead",
+     "era": "2020"
+    },
+    {
+     "id": "statistics",
+     "label": "Constrain the statistics of the embedding",
+     "era": "2021"
+    },
+    {
+     "id": "allocation",
+     "label": "Constrain how the capacity gets divided",
+     "era": "2020 – 23"
+    },
+    {
+     "id": "distribution",
+     "label": "Match one target distribution",
+     "era": "2024 – 26"
+    },
+    {
+     "id": "theory",
+     "label": "Work out why any of it works",
+     "era": "2025 – 26"
     },
     {
      "id": "notenough",
-     "label": "The anti-collapse fix is not enough"
+     "label": "And it still isn't enough",
+     "era": "2026"
     }
    ],
    "short": "Representations"
@@ -471,7 +499,7 @@
    "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "features"
+   "branch": "allocation"
   },
   {
    "y": "2025",
@@ -482,7 +510,7 @@
    "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "stopcollapse"
+   "branch": "theory"
   },
   {
    "y": "2024",
@@ -493,7 +521,7 @@
    "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "stopcollapse"
+   "branch": "distribution"
   },
   {
    "y": "2025",
@@ -504,7 +532,7 @@
    "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "stopcollapse"
+   "branch": "theory"
   },
   {
    "y": "2026",
@@ -526,7 +554,7 @@
    "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "notenough"
+   "branch": "distribution"
   },
   {
    "y": "2026",
@@ -571,6 +599,102 @@
    "now": false,
    "spine": "repr",
    "branch": "notenough"
+  },
+  {
+   "y": "2020",
+   "t": "SimCLR",
+   "u": "https://arxiv.org/abs/2002.05709",
+   "d": "The clean statement of contrastive learning: pull two views of an image together, push every other image away. Needs enormous batches, and it wrongly separates two photos of the same kind of thing.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "negatives",
+   "read": false
+  },
+  {
+   "y": "2020",
+   "t": "BYOL",
+   "u": "https://arxiv.org/abs/2006.07733",
+   "d": "Drops negatives entirely. A predictor head, a slow-moving target network and a stop-gradient are somehow enough. Nobody could explain why for years.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "asymmetry",
+   "read": false
+  },
+  {
+   "y": "2020",
+   "t": "SimSiam",
+   "u": "https://arxiv.org/abs/2011.10566",
+   "d": "Strips BYOL to the bone and shows the stop-gradient is the load-bearing part. No negatives, no big batches, no momentum encoder.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "asymmetry",
+   "read": false
+  },
+  {
+   "y": "2021",
+   "t": "Barlow Twins",
+   "u": "https://arxiv.org/abs/2103.03230",
+   "d": "Stop relying on architectural tricks. Push the cross-correlation matrix of the two views toward the identity: agree on the diagonal, decorrelate off it.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "statistics",
+   "read": false
+  },
+  {
+   "y": "2021",
+   "t": "VICReg",
+   "u": "https://arxiv.org/abs/2105.04906",
+   "d": "The most explicit anti-collapse term in the literature: hinge each dimension's variance above a floor, then decorrelate. Collapse becomes impossible by construction rather than by luck.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "statistics",
+   "read": false
+  },
+  {
+   "y": "2020",
+   "t": "SwAV",
+   "u": "https://arxiv.org/abs/2006.09882",
+   "d": "A different idea: cluster online and force the assignments to be equally spread across prototypes. This constrains how information is divided, not what shape the distribution takes.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "allocation",
+   "read": false
+  },
+  {
+   "y": "2021",
+   "t": "DINO",
+   "u": "https://arxiv.org/abs/2104.14294",
+   "d": "Self-distillation with centering and sharpening. Centering stops one dimension dominating, sharpening stops the output going uniform. The two hold each other in balance.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "allocation",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "LeJEPA (SIGReg)",
+   "u": "https://arxiv.org/abs/2511.08544",
+   "d": "Proves the isotropic Gaussian is the optimal embedding distribution, then enforces it with a sketched statistical test over random projections. One hyperparameter, no stop-gradient, no teacher.",
+   "tag": "ssl · keystone",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "distribution",
+   "read": false
   }
  ]
 }
@@ -772,7 +896,7 @@
       function byYear(a,b){ return String(a.y).localeCompare(String(b.y)) || a.t.localeCompare(b.t); }
 
       function node(p){
-        return '<li class="node"><span class="node-dot'+(p.now?" now":"")+'"></span>'+
+        return '<li class="node'+(p.read===false?" todo":"")+'"><span class="node-dot'+(p.now?" now":"")+'"></span>'+
           '<h4>'+link(p)+'<span class="node-y">'+esc(p.y)+'</span>'+
           (p.tag ? '<span class="node-tag'+hot(p)+'">'+esc(p.tag)+'</span>' : '')+'</h4>'+
           (p.d ? '<p>'+esc(p.d)+'</p>' : '')+'</li>';
@@ -781,11 +905,15 @@
         var forks = s.branches.map(function(b){
           var ps = data.papers.filter(function(p){ return p.spine===s.id && p.branch===b.id; }).sort(byYear);
           if (!ps.length) return "";
-          return '<div class="fork"><p class="fork-label">'+esc(b.label)+'</p>'+
+          return '<div class="fork"><p class="fork-label">'+esc(b.label)+
+                 (b.era?'<span class="fork-era">'+esc(b.era)+'</span>':'')+'</p>'+
                  '<ol class="fork-nodes">'+ps.map(node).join("")+'</ol></div>';
         }).join("");
         return '<p class="spine-n">'+esc(s.n)+'</p><h3 class="spine-q">'+esc(s.q)+'</h3>'+
-               '<p class="spine-framing">'+esc(s.framing)+'</p><div class="spine-body">'+forks+'</div>';
+               '<p class="spine-framing">'+esc(s.framing)+'</p>'+
+               (data.papers.some(function(p){ return p.spine===s.id && p.read===false; })
+                 ? '<p class="spine-legend">Ink dots are papers we have read. Pale dots are mapped but still on the list.</p>' : '')+
+               '<div class="spine-body">'+forks+'</div>';
       }
       function yearView(){
         return '<ol class="pt-list">'+data.papers.slice().sort(byYear).map(function(p){
