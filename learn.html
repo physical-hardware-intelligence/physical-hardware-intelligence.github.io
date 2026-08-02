@@ -123,7 +123,6 @@
   }
   .node h4 a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
   .fork-era{font-family:var(--mono);font-size:10px;letter-spacing:.09em;color:var(--ink-3);font-style:normal;margin-left:11px;white-space:nowrap}
-  .spine-legend{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink-3);margin:18px 0 0}
   .node.todo .node-dot{border-color:var(--line-2)}
   .node.todo h4 a{color:var(--ink-2)}
   @media (hover:hover){ .node.todo:hover .node-dot{border-color:var(--apple)} }
@@ -229,27 +228,47 @@
    "id": "policy",
    "n": "01",
    "q": "How do you get a robot to do a task from demonstrations?",
-   "framing": "You have a handful of demonstrations and want the robot to repeat the task. Every paper below is a different answer to the same awkward fact: for any given observation there is more than one reasonable action, and naive regression averages them into something useless.",
+   "framing": "Show a robot what to do and fit a policy to the recording. Two things then go wrong, and almost every paper here answers one of them. First, the robot's own small errors carry it into states the demonstrator never visited, where it is worse still, so error compounds. Second, when a demonstrator sometimes goes left and sometimes right, fitting the average steers straight into the obstacle. The last branch argues the field misdiagnosed the second one.",
    "branches": [
     {
-     "id": "energy",
-     "label": "Score actions instead of predicting them"
+     "id": "copy",
+     "label": "Just copy the demonstrator",
+     "era": "1988 – 2016"
     },
     {
-     "id": "lookup",
-     "label": "Skip the policy network entirely"
+     "id": "compound",
+     "label": "Small errors compound, so train on your own mistakes",
+     "era": "2010"
+    },
+    {
+     "id": "retrieve",
+     "label": "Retrieve a real action instead of predicting an average",
+     "era": "2021"
+    },
+    {
+     "id": "energy",
+     "label": "Score actions instead of regressing them",
+     "era": "2021"
     },
     {
      "id": "quantise",
-     "label": "Actions are multimodal, so quantise them into modes"
+     "label": "Model the modes explicitly",
+     "era": "2022 – 24"
     },
     {
      "id": "denoise",
-     "label": "Actions are multimodal, so denoise them instead"
+     "label": "Or generate the action by denoising",
+     "era": "2022 – 23"
     },
     {
      "id": "chunk",
-     "label": "Predict a chunk of the future, not one step"
+     "label": "Commit to a chunk, so error has fewer chances to compound",
+     "era": "2023 – 26"
+    },
+    {
+     "id": "rethink",
+     "label": "Maybe multimodality was never the point",
+     "era": "2025"
     }
    ],
    "short": "Learning from demos"
@@ -258,15 +277,37 @@
    "id": "vla",
    "n": "02",
    "q": "How do you avoid collecting fresh data for every new task?",
-   "framing": "Spine 01 trains a specialist per task, which does not scale. The alternative is to train one large model on as much robot data as exists and adapt it. This is the generalist bet, and it is still unsettled.",
+   "framing": "Spine 01 trains a specialist per task, which means fresh demonstrations for every new thing you want. The alternative is to train one large model on all the robot data that exists, then adapt it. That bet has driven the field since 2022. Read the last branch before believing it: the newest work finds a small, well-matched dataset can beat pooling everything, and that pooling badly is worse than not pooling at all.",
    "branches": [
     {
-     "id": "scale",
-     "label": "Train one model on everything"
+     "id": "pool",
+     "label": "First, pool everyone's data",
+     "era": "2023"
+    },
+    {
+     "id": "oneModel",
+     "label": "Train one model across all of it",
+     "era": "2022 – 25"
+    },
+    {
+     "id": "tokens",
+     "label": "Make actions cheap to tokenise",
+     "era": "2025"
+    },
+    {
+     "id": "adapt",
+     "label": "Adapt it without retraining everything",
+     "era": "2025"
     },
     {
      "id": "shrink",
-     "label": "Then make it small enough to actually run"
+     "label": "Shrink it until it runs on real hardware",
+     "era": "2025"
+    },
+    {
+     "id": "doubt",
+     "label": "But maybe scale was never the thing",
+     "era": "2024 – 25"
     }
    ],
    "short": "Generalists"
@@ -367,7 +408,7 @@
    "tagClass": "",
    "now": false,
    "spine": "policy",
-   "branch": "lookup"
+   "branch": "retrieve"
   },
   {
    "y": "2022",
@@ -411,7 +452,7 @@
    "tagClass": "",
    "now": false,
    "spine": "policy",
-   "branch": "denoise"
+   "branch": "rethink"
   },
   {
    "y": "2023",
@@ -444,7 +485,7 @@
    "tagClass": "vla",
    "now": false,
    "spine": "vla",
-   "branch": "scale"
+   "branch": "oneModel"
   },
   {
    "y": "2024",
@@ -455,7 +496,7 @@
    "tagClass": "vla",
    "now": false,
    "spine": "vla",
-   "branch": "scale"
+   "branch": "oneModel"
   },
   {
    "y": "2024",
@@ -466,7 +507,7 @@
    "tagClass": "vla",
    "now": false,
    "spine": "vla",
-   "branch": "scale"
+   "branch": "oneModel"
   },
   {
    "y": "2025",
@@ -477,7 +518,7 @@
    "tagClass": "vla",
    "now": false,
    "spine": "vla",
-   "branch": "scale"
+   "branch": "oneModel"
   },
   {
    "y": "2025",
@@ -695,6 +736,126 @@
    "spine": "repr",
    "branch": "distribution",
    "read": false
+  },
+  {
+   "y": "1988",
+   "t": "ALVINN",
+   "u": "https://proceedings.neurips.cc/paper/1988/file/812b4ba287f5ee0bc9d43bbf5bbe87fb-Paper.pdf",
+   "d": "The origin. A small neural network maps camera pixels straight to a steering angle and drives a van. Every policy on this page is a descendant.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "copy",
+   "read": false
+  },
+  {
+   "y": "2016",
+   "t": "End to End Learning for Self-Driving Cars",
+   "u": "https://arxiv.org/abs/1604.07316",
+   "d": "Proof that naive copying scales. A CNN maps raw pixels to steering with no lane detection and no planner, and drives real roads. The paper's own word for it is surprisingly powerful.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "copy",
+   "read": false
+  },
+  {
+   "y": "2010",
+   "t": "DAgger",
+   "u": "https://arxiv.org/abs/1011.0686",
+   "d": "Names the disease. Because the robot's own actions decide what it sees next, the i.i.d. assumption behind supervised learning breaks. The fix is to keep querying the demonstrator on the states the learner actually reaches.",
+   "tag": "policy · theory",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "compound",
+   "read": false
+  },
+  {
+   "y": "2022",
+   "t": "Diffuser",
+   "u": "https://arxiv.org/abs/2205.09991",
+   "d": "Plan by iteratively denoising a whole trajectory rather than acting one step at a time. The direct ancestor of Diffusion Policy.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "denoise",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "Open X-Embodiment",
+   "u": "https://arxiv.org/abs/2310.08864",
+   "d": "The dataset that made generalists possible: 22 robots, 21 institutions, 527 skills. RT-X trained on it shows positive transfer across platforms.",
+   "tag": "dataset",
+   "tagClass": "",
+   "now": false,
+   "spine": "vla",
+   "branch": "pool",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "FAST",
+   "u": "https://arxiv.org/abs/2501.09747",
+   "d": "Autoregressive VLAs need actions as discrete tokens, and naive per-timestep binning collapses on high-frequency data. Compressing action sequences with a cosine transform fixes it and cuts training time up to 5x.",
+   "tag": "vla",
+   "tagClass": "",
+   "now": false,
+   "spine": "vla",
+   "branch": "tokens",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "OpenVLA-OFT",
+   "u": "https://arxiv.org/abs/2502.19645",
+   "d": "How to actually adapt a generalist. Parallel decoding, action chunking, continuous actions and an L1 objective take OpenVLA from 76.5% to 97.1% on LIBERO with 26x the action throughput.",
+   "tag": "vla",
+   "tagClass": "",
+   "now": false,
+   "spine": "vla",
+   "branch": "adapt",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "Re-Mix",
+   "u": "https://arxiv.org/abs/2408.14037",
+   "d": "Learn how much to weight each dataset instead of pooling uniformly. Optimised mixtures beat uniform weighting by 38% and expert-chosen weights by 32%.",
+   "tag": "vla · sceptic",
+   "tagClass": "",
+   "now": false,
+   "spine": "vla",
+   "branch": "doubt",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "What Matters in Large-Scale Datasets",
+   "u": "https://arxiv.org/abs/2506.13536",
+   "d": "Co-training on all of DROID failed to learn the tasks at all. Retrieval aligned on camera pose gained 25% on one task; retrieving the right object without aligning the camera lost 15%. Alignment, not volume.",
+   "tag": "vla · sceptic",
+   "tagClass": "",
+   "now": false,
+   "spine": "vla",
+   "branch": "doubt",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "Is Diversity All You Need?",
+   "u": "https://arxiv.org/abs/2507.06219",
+   "d": "Pretraining on a single embodiment matched or beat pretraining on Open X-Embodiment across three unseen platforms. The paper calls multi-embodiment pretraining non-essential.",
+   "tag": "vla · sceptic",
+   "tagClass": "",
+   "now": false,
+   "spine": "vla",
+   "branch": "doubt",
+   "read": false
   }
  ]
 }
@@ -911,8 +1072,6 @@
         }).join("");
         return '<p class="spine-n">'+esc(s.n)+'</p><h3 class="spine-q">'+esc(s.q)+'</h3>'+
                '<p class="spine-framing">'+esc(s.framing)+'</p>'+
-               (data.papers.some(function(p){ return p.spine===s.id && p.read===false; })
-                 ? '<p class="spine-legend">Ink dots are papers we have read. Pale dots are mapped but still on the list.</p>' : '')+
                '<div class="spine-body">'+forks+'</div>';
       }
       function yearView(){
