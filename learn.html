@@ -71,6 +71,63 @@
     .res:hover{border-top-color:var(--apple)}
     .pt-item:hover .pt-dot{border-color:var(--apple)}
   }
+
+  /* ---------- field flow (Read) ---------- */
+  .flow-bar{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 30px;
+    border-bottom:1px solid var(--line-2);padding-bottom:11px;margin:clamp(16px,2.2vw,24px) 0 clamp(30px,4vw,48px)}
+  .flow-tabs{display:flex;flex-wrap:wrap;gap:7px 22px}
+  .flow-tab{background:none;border:0;padding:0 0 4px;cursor:pointer;position:relative;text-align:left;
+    font-family:var(--mono);font-size:12.5px;letter-spacing:.03em;color:var(--ink-3);transition:color .22s var(--ease)}
+  .flow-tab::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:1px;background:var(--ink);transition:right .28s var(--ease)}
+  .flow-tab .fx{margin-right:7px;color:var(--ink-3);transition:color .22s}
+  .flow-tab[aria-selected="true"]{color:var(--ink)}
+  .flow-tab[aria-selected="true"]::after{right:0}
+  .flow-tab[aria-selected="true"] .fx{color:var(--apple)}
+  .flow-views{display:flex;gap:16px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase}
+  .flow-view{background:none;border:0;cursor:pointer;color:var(--ink-3);padding:0 0 4px;transition:color .2s}
+  .flow-view[aria-selected="true"]{color:var(--apple)}
+  @media (hover:hover){.flow-tab:hover{color:var(--ink)}.flow-tab:hover::after{right:0}.flow-view:hover{color:var(--ink)}}
+  .spine-n{font-family:var(--mono);font-size:13px;color:var(--ink-3);margin:0 0 11px}
+  .spine-q{font-family:var(--disp);font-size:clamp(1.42rem,3.1vw,2.05rem);font-weight:500;line-height:1.1;
+    letter-spacing:-.015em;max-width:30ch;margin:0}
+  .spine-framing{font-style:italic;color:var(--ink-2);max-width:62ch;margin:17px 0 0;font-size:1.02rem;line-height:1.56}
+  .spine-body{position:relative;margin-top:clamp(30px,4vw,46px);padding-left:15px}
+  .spine-body::before{content:"";position:absolute;left:0;top:7px;bottom:16px;width:1px;background:var(--ink);opacity:.5}
+  .fork{position:relative;padding:0 0 clamp(26px,3.4vw,40px) 32px}
+  .fork:last-child{padding-bottom:0}
+  .fork::before{content:"";position:absolute;left:-15px;top:11px;width:38px;height:1px;background:var(--line-2);transition:background .25s var(--ease)}
+  .fork-label{margin:0 0 clamp(14px,1.8vw,20px);font-style:italic;font-size:1.05rem;line-height:1.36;
+    color:var(--ink);max-width:48ch;transition:color .25s var(--ease)}
+  .fork-nodes{position:relative;list-style:none;margin:0;padding:0 0 0 28px}
+  .fork-nodes::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:1px;background:var(--line)}
+  .node{position:relative;padding:0 0 clamp(16px,2.2vw,24px) 28px}
+  .node:last-child{padding-bottom:0}
+  .node::before{content:"";position:absolute;left:-28px;top:11px;width:24px;height:1px;background:var(--line)}
+  .node-dot{position:absolute;left:-4px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--paper);
+    border:1.5px solid var(--ink);transition:border-color .25s var(--ease),background .25s var(--ease)}
+  .node-dot.now{background:var(--apple);border-color:var(--apple)}
+  .node h4{font-size:1.09rem;font-weight:500;line-height:1.22;margin:0 0 5px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
+  .node-y{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);flex:none}
+  .node-tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);flex:none}
+  .node-tag.hot{color:var(--apple)}
+  .node p{margin:0;color:var(--ink-2);font-size:.95rem;line-height:1.48;max-width:60ch}
+  .node h4 a{background-image:linear-gradient(var(--ink),var(--ink));background-size:0 1px;background-repeat:no-repeat;
+    background-position:0 1.05em;transition:background-size .32s var(--ease)}
+  .node h4 a .ext{font-family:var(--mono);font-size:.72em;color:var(--ink-3);margin-left:3px;transition:color .2s}
+  @media (hover:hover){
+    .node:hover .node-dot{border-color:var(--apple)}
+    .node:hover h4 a{background-size:100% 1px}
+    .node:hover h4 a .ext{color:var(--apple)}
+    .fork:has(.node:hover) > .fork-label{color:var(--apple)}
+    .fork:has(.node:hover)::before{background:var(--apple)}
+  }
+  .node h4 a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+  .flow-err{font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
+  @media (max-width:640px){
+    .fork{padding-left:22px}.fork::before{width:28px}
+    .fork-nodes{padding-left:18px}
+    .node{padding-left:22px}.node::before{left:-18px;width:14px}
+  }
   /* close */
   .learn-close{max-width:var(--maxw);margin:0 auto;padding:clamp(64px,9vw,110px) clamp(20px,5vw,44px) 0}
   .learn-close-inner{border-top:1px solid var(--ink);padding-top:clamp(30px,4vw,46px);display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:20px}
@@ -160,63 +217,356 @@
   <!-- 02 · THE PAPERS, IN ORDER (timeline) -->
   <section class="section learn-section" id="papers">
     <div class="sec-head reveal"><span class="sec-idx">02</span><span class="sec-label">Read</span></div>
-    <ol class="pt-list">
-      <li class="pt-item reveal"><span class="pt-year">2021</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2109.00137" target="_blank" rel="noopener">Implicit BC (IBC)<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
-        <p>Score actions with an energy function instead of predicting them. The idea diffusion later stabilized.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2021</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2112.01511" target="_blank" rel="noopener">VINN<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
-        <p>No action network at all: good visual features plus a nearest-neighbor lookup over demos.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2022</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2206.11251" target="_blank" rel="noopener">Behavior Transformer (BeT)<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
-        <p>Cluster behaviors into modes, let a transformer pick one. VQ-BeT's ancestor.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2022</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2212.06817" target="_blank" rel="noopener">RT-1<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
-        <p>The transformer that turned robot actions into tokens and trained on them at scale.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
-        <p>Generate action trajectories by denoising. Handles the "many right ways" of a task.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
-        <h3><a href="https://github.com/facebookresearch/dinov2" target="_blank" rel="noopener">DINOv2<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">vision</span></h3>
-        <p>The frozen vision backbone Patch Policy — and half the field — builds on.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2023</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT / ALOHA<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
-        <p>Action chunking: predict a burst of moves at once. The baseline every task gets first.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2403.03181" target="_blank" rel="noopener">VQ-BeT<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy</span></h3>
-        <p>Tokenize actions with a residual VQ-VAE. As expressive as diffusion, ~5× faster.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
-        <h3><a href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
-        <p>An open 7B vision-language-action model. The reference point for "big VLA" baselines.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2024</span><span class="pt-dot"></span><div>
-        <h3><a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">π₀ — a generalist policy<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
-        <p>A flow-matching VLA foundation model, in plain language. Read the blog, then the paper.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2025</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2503.14734" target="_blank" rel="noopener">GR00T N1<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
-        <p>An open humanoid foundation model split into fast "acting" and slow "reasoning" systems.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2025</span><span class="pt-dot"></span><div>
-        <h3><a href="https://huggingface.co/papers/2506.01844" target="_blank" rel="noopener">SmolVLA<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread vla">vla</span></h3>
-        <p>A 450M vision-language-action model that runs on consumer hardware. In our policy zoo.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2025</span><span class="pt-dot"></span><div>
-        <h3><a href="https://arxiv.org/abs/2512.01809" target="_blank" rel="noopener">Much Ado About Noising<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy · myth-busting</span></h3>
-        <p>Why do diffusion policies really work? Not multimodality: it's iterative, supervised computation. A 2-step regressor (MIP) keeps up.</p></div></li>
-
-      <li class="pt-item reveal"><span class="pt-year">2026</span><span class="pt-dot now"></span><div>
-        <h3><a href="https://arxiv.org/abs/2607.18236" target="_blank" rel="noopener">Patch Policy<span class="ext" aria-hidden="true">↗</span></a><span class="pt-thread">policy · we're testing it</span></h3>
-        <p>Keep dense vision-transformer patches instead of pooling them — beat a 7.6B model at 0.7% the size.</p></div></li>
-    </ol>
+    <script type="application/json" id="papers-data">
+{
+ "spines": [
+  {
+   "id": "policy",
+   "n": "01",
+   "q": "How do you get a robot to do a task from demonstrations?",
+   "framing": "You have a handful of demonstrations and want the robot to repeat the task. Every paper below is a different answer to the same awkward fact: for any given observation there is more than one reasonable action, and naive regression averages them into something useless.",
+   "branches": [
+    {
+     "id": "energy",
+     "label": "Score actions instead of predicting them"
+    },
+    {
+     "id": "lookup",
+     "label": "Skip the policy network entirely"
+    },
+    {
+     "id": "quantise",
+     "label": "Actions are multimodal, so quantise them into modes"
+    },
+    {
+     "id": "denoise",
+     "label": "Actions are multimodal, so denoise them instead"
+    },
+    {
+     "id": "chunk",
+     "label": "Predict a chunk of the future, not one step"
+    }
+   ],
+   "short": "Learning from demos"
+  },
+  {
+   "id": "vla",
+   "n": "02",
+   "q": "How do you avoid collecting fresh data for every new task?",
+   "framing": "Spine 01 trains a specialist per task, which does not scale. The alternative is to train one large model on as much robot data as exists and adapt it. This is the generalist bet, and it is still unsettled.",
+   "branches": [
+    {
+     "id": "scale",
+     "label": "Train one model on everything"
+    },
+    {
+     "id": "shrink",
+     "label": "Then make it small enough to actually run"
+    }
+   ],
+   "short": "Generalists"
+  },
+  {
+   "id": "repr",
+   "n": "03",
+   "q": "Why do learned representations keep collapsing?",
+   "framing": "Predict one view of the world from another and the encoder learns whatever is easiest to predict, not what is useful. Everything below is an attempt to stop that, and the attempts keep failing in instructive ways.",
+   "branches": [
+    {
+     "id": "features",
+     "label": "Learn visual features without labels"
+    },
+    {
+     "id": "stopcollapse",
+     "label": "Stop the representation from collapsing"
+    },
+    {
+     "id": "notenough",
+     "label": "The anti-collapse fix is not enough"
+    }
+   ],
+   "short": "Representations"
+  },
+  {
+   "id": "world",
+   "n": "04",
+   "q": "Can a robot predict the future well enough to plan with it?",
+   "framing": "If a model can imagine what happens next, it can plan instead of react. The open question is what to predict: pixels are expensive and mostly appearance, but anything cheaper throws information away.",
+   "branches": [
+    {
+     "id": "pixels",
+     "label": "Predict the next frame"
+    },
+    {
+     "id": "cheaper",
+     "label": "Predict something cheaper than pixels"
+    }
+   ],
+   "short": "World models"
+  },
+  {
+   "id": "deploy",
+   "n": "05",
+   "q": "Why doesn't any of this work on a real factory floor?",
+   "framing": "Benchmarks are not floors. This spine is thin because we have only just started reading it, which is honest: it grows as we do.",
+   "branches": [
+    {
+     "id": "layer",
+     "label": "The missing piece is deployment, not intelligence"
+    }
+   ],
+   "short": "Deployment"
+  }
+ ],
+ "papers": [
+  {
+   "y": "2021",
+   "t": "Implicit BC (IBC)",
+   "u": "https://arxiv.org/abs/2109.00137",
+   "d": "Score actions with an energy function instead of predicting them. The idea diffusion later stabilized.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "energy"
+  },
+  {
+   "y": "2021",
+   "t": "VINN",
+   "u": "https://arxiv.org/abs/2112.01511",
+   "d": "No action network at all: good visual features plus a nearest-neighbor lookup over demos.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "lookup"
+  },
+  {
+   "y": "2022",
+   "t": "Behavior Transformer (BeT)",
+   "u": "https://arxiv.org/abs/2206.11251",
+   "d": "Cluster behaviors into modes, let a transformer pick one. VQ-BeT's ancestor.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "quantise"
+  },
+  {
+   "y": "2024",
+   "t": "VQ-BeT",
+   "u": "https://arxiv.org/abs/2403.03181",
+   "d": "Tokenize actions with a residual VQ-VAE. As expressive as diffusion, ~5× faster.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "quantise"
+  },
+  {
+   "y": "2023",
+   "t": "Diffusion Policy",
+   "u": "https://arxiv.org/abs/2303.04137",
+   "d": "Generate action trajectories by denoising. Handles the \"many right ways\" of a task.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "denoise"
+  },
+  {
+   "y": "2025",
+   "t": "Much Ado About Noising",
+   "u": "https://arxiv.org/abs/2512.01809",
+   "d": "Why do diffusion policies really work? Not multimodality: it's iterative, supervised computation. A 2-step regressor (MIP) keeps up.",
+   "tag": "policy · myth-busting",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "denoise"
+  },
+  {
+   "y": "2023",
+   "t": "ACT / ALOHA",
+   "u": "https://arxiv.org/abs/2304.13705",
+   "d": "Action chunking: predict a burst of moves at once. The baseline every task gets first.",
+   "tag": "policy",
+   "tagClass": "",
+   "now": false,
+   "spine": "policy",
+   "branch": "chunk"
+  },
+  {
+   "y": "2026",
+   "t": "Patch Policy",
+   "u": "https://arxiv.org/abs/2607.18236",
+   "d": "Keep dense vision-transformer patches instead of pooling them — beat a 7.6B model at 0.7% the size.",
+   "tag": "policy · we're testing it",
+   "tagClass": "",
+   "now": true,
+   "spine": "policy",
+   "branch": "chunk"
+  },
+  {
+   "y": "2022",
+   "t": "RT-1",
+   "u": "https://arxiv.org/abs/2212.06817",
+   "d": "The transformer that turned robot actions into tokens and trained on them at scale.",
+   "tag": "vla",
+   "tagClass": "vla",
+   "now": false,
+   "spine": "vla",
+   "branch": "scale"
+  },
+  {
+   "y": "2024",
+   "t": "OpenVLA",
+   "u": "https://openvla.github.io/",
+   "d": "An open 7B vision-language-action model. The reference point for \"big VLA\" baselines.",
+   "tag": "vla",
+   "tagClass": "vla",
+   "now": false,
+   "spine": "vla",
+   "branch": "scale"
+  },
+  {
+   "y": "2024",
+   "t": "π₀ — a generalist policy",
+   "u": "https://www.physicalintelligence.company/blog/pi0",
+   "d": "A flow-matching VLA foundation model, in plain language. Read the blog, then the paper.",
+   "tag": "vla",
+   "tagClass": "vla",
+   "now": false,
+   "spine": "vla",
+   "branch": "scale"
+  },
+  {
+   "y": "2025",
+   "t": "GR00T N1",
+   "u": "https://arxiv.org/abs/2503.14734",
+   "d": "An open humanoid foundation model split into fast \"acting\" and slow \"reasoning\" systems.",
+   "tag": "vla",
+   "tagClass": "vla",
+   "now": false,
+   "spine": "vla",
+   "branch": "scale"
+  },
+  {
+   "y": "2025",
+   "t": "SmolVLA",
+   "u": "https://huggingface.co/papers/2506.01844",
+   "d": "A 450M vision-language-action model that runs on consumer hardware. In our policy zoo.",
+   "tag": "vla",
+   "tagClass": "vla",
+   "now": false,
+   "spine": "vla",
+   "branch": "shrink"
+  },
+  {
+   "y": "2023",
+   "t": "DINOv2",
+   "u": "https://github.com/facebookresearch/dinov2",
+   "d": "The frozen vision backbone Patch Policy — and half the field — builds on.",
+   "tag": "vision",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "features"
+  },
+  {
+   "y": "2025",
+   "t": "LeJEPA identifiability",
+   "u": "https://arxiv.org/abs/2605.26379",
+   "d": "When does a JEPA actually learn a world model? The conditions under which the representation is identifiable.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "stopcollapse"
+  },
+  {
+   "y": "2024",
+   "t": "FALCON",
+   "u": "https://arxiv.org/abs/2410.04959",
+   "d": "A non-contrastive objective engineered so that full collapse is provably impossible.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "stopcollapse"
+  },
+  {
+   "y": "2025",
+   "t": "Dual Perspectives on Non-Contrastive SSL",
+   "u": "https://arxiv.org/abs/2507.01028",
+   "d": "Two lenses on why these methods collapse, and what the collapse dynamics actually look like.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "stopcollapse"
+  },
+  {
+   "y": "2026",
+   "t": "The Obsessed Encoder",
+   "u": "https://www.enigma.inc/posts/obsessed-encoder",
+   "d": "JEPA spends its latent on whatever is easiest to predict. A 12-bit watermark ate 1024 dimensions, and anti-collapse regularisers did not stop it.",
+   "tag": "ssl · read this",
+   "tagClass": "",
+   "now": true,
+   "spine": "repr",
+   "branch": "notenough"
+  },
+  {
+   "y": "2026",
+   "t": "Rectified LpJEPA (RDMReg)",
+   "u": "https://arxiv.org/abs/2602.01456",
+   "d": "Replace SIGReg's Gaussian test with a sliced Wasserstein distance, which has no gradient dead zone at collapse.",
+   "tag": "ssl",
+   "tagClass": "",
+   "now": false,
+   "spine": "repr",
+   "branch": "notenough"
+  },
+  {
+   "y": "2026",
+   "t": "LeWorldModel",
+   "u": "https://arxiv.org/abs/2603.19312",
+   "d": "A stable end-to-end JEPA world model learned straight from pixels.",
+   "tag": "world model",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "pixels"
+  },
+  {
+   "y": "2026",
+   "t": "μ₀ — 3D interaction traces",
+   "u": "https://arxiv.org/abs/2606.13769",
+   "d": "Forecast sparse 3D interaction traces instead of pixels, arguing pixel models waste capacity on appearance.",
+   "tag": "world model",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "cheaper"
+  },
+  {
+   "y": "2026",
+   "t": "The Relling Working Paper",
+   "u": "https://rellingsystems.com/whitepaper",
+   "d": "The bottleneck is not intelligence, it is the deployment layer. Integrator hours, not model quality, are what keep robots off the floor.",
+   "tag": "deployment",
+   "tagClass": "",
+   "now": false,
+   "spine": "deploy",
+   "branch": "layer"
+  }
+ ]
+}
+    </script>
+    <div id="flow" class="flow reveal">
+      <noscript><p class="flow-err">The reading map needs JavaScript. The papers are listed in the page source.</p></noscript>
+    </div>
 
     <div class="read-sub reveal">Writers &amp; blogs to follow</div>
     <div class="res-grid">
@@ -242,7 +592,6 @@
     </div>
   </section>
 
-  <!-- 03 · WATCH -->
   <section class="section learn-section" id="watch">
     <div class="sec-head reveal"><span class="sec-idx">03</span><span class="sec-label">Watch</span></div>
     <div class="res-grid">
@@ -389,6 +738,94 @@
     links.querySelectorAll('a').forEach(function(a){
       a.addEventListener('click', function(){ links.classList.remove('open'); toggle.setAttribute('aria-expanded','false'); });
     });
+
+
+    /* ---------- Read: the field flow (question-rooted paper map) ----------
+       Data lives in <script type="application/json" id="papers-data"> above.
+       Adding a paper = adding one object there. Never touch this renderer. */
+    (function () {
+      var mount = document.getElementById("flow");
+      var src = document.getElementById("papers-data");
+      if (!mount || !src) return;
+      var data;
+      try { data = JSON.parse(src.textContent); }
+      catch (e) { mount.innerHTML = '<p class="flow-err">Reading list failed to parse.</p>'; return; }
+
+      var SHORT = { policy:"Learning from demos", vla:"Generalists", repr:"Representations",
+                    world:"World models", deploy:"Deployment" };
+      function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
+        return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+      function link(p){ return '<a href="'+esc(p.u)+'" target="_blank" rel="noopener">'+esc(p.t)+
+        '<span class="ext" aria-hidden="true">&#8599;</span></a>'; }
+      function hot(p){ return /read this|testing it/i.test(p.tag||"") ? " hot" : ""; }
+      function byYear(a,b){ return String(a.y).localeCompare(String(b.y)) || a.t.localeCompare(b.t); }
+
+      function node(p){
+        return '<li class="node"><span class="node-dot'+(p.now?" now":"")+'"></span>'+
+          '<h4>'+link(p)+'<span class="node-y">'+esc(p.y)+'</span>'+
+          (p.tag ? '<span class="node-tag'+hot(p)+'">'+esc(p.tag)+'</span>' : '')+'</h4>'+
+          (p.d ? '<p>'+esc(p.d)+'</p>' : '')+'</li>';
+      }
+      function spineView(s){
+        var forks = s.branches.map(function(b){
+          var ps = data.papers.filter(function(p){ return p.spine===s.id && p.branch===b.id; }).sort(byYear);
+          if (!ps.length) return "";
+          return '<div class="fork"><p class="fork-label">'+esc(b.label)+'</p>'+
+                 '<ol class="fork-nodes">'+ps.map(node).join("")+'</ol></div>';
+        }).join("");
+        return '<p class="spine-n">'+esc(s.n)+'</p><h3 class="spine-q">'+esc(s.q)+'</h3>'+
+               '<p class="spine-framing">'+esc(s.framing)+'</p><div class="spine-body">'+forks+'</div>';
+      }
+      function yearView(){
+        return '<ol class="pt-list">'+data.papers.slice().sort(byYear).map(function(p){
+          return '<li class="pt-item"><span class="pt-year">'+esc(p.y)+'</span>'+
+            '<span class="pt-dot'+(p.now?" now":"")+'"></span><div><h3>'+link(p)+
+            (p.tag ? '<span class="pt-thread'+(p.tagClass?" "+esc(p.tagClass):"")+'">'+esc(p.tag)+'</span>' : '')+
+            '</h3>'+(p.d?'<p>'+esc(p.d)+'</p>':'')+'</div></li>';
+        }).join("")+'</ol>';
+      }
+
+      var view = "question", spine = data.spines[0].id;
+      function draw(){
+        var tabs = data.spines.map(function(s){
+          var on = s.id === spine;
+          return '<button class="flow-tab" type="button" role="tab" id="tab-'+esc(s.id)+
+            '" aria-controls="flow-stage" aria-selected="'+on+'" tabindex="'+(on?0:-1)+'">'+
+            '<span class="fx">'+esc(s.n)+'</span>'+esc(SHORT[s.id]||s.id)+'</button>';
+        }).join("");
+        var views = [["question","By question"],["year","By year"]].map(function(v){
+          return '<button class="flow-view" type="button" role="tab" data-v="'+v[0]+
+            '" aria-selected="'+(v[0]===view)+'">'+v[1]+'</button>';
+        }).join("");
+        var left = view==="question"
+          ? '<div class="flow-tabs" role="tablist" aria-label="Choose a question">'+tabs+'</div>'
+          : '<div class="flow-tabs"><span class="flow-err">'+data.papers.length+' papers, oldest first</span></div>';
+        var body = view==="question"
+          ? spineView(data.spines.filter(function(s){ return s.id===spine; })[0])
+          : yearView();
+        mount.innerHTML = '<div class="flow-bar">'+left+
+          '<div class="flow-views" role="tablist" aria-label="View">'+views+'</div></div>'+
+          '<div id="flow-stage" role="tabpanel">'+body+'</div>';
+        wire();
+      }
+      function focusTab(){ requestAnimationFrame(function(){
+        var t = mount.querySelector('.flow-tab[aria-selected="true"]'); if (t) t.focus(); }); }
+      function wire(){
+        var tabs = Array.prototype.slice.call(mount.querySelectorAll(".flow-tab"));
+        tabs.forEach(function(b,i){
+          b.addEventListener("click", function(){ spine = b.id.slice(4); draw(); });
+          b.addEventListener("keydown", function(e){
+            var d = e.key==="ArrowRight"?1 : e.key==="ArrowLeft"?-1 : 0;
+            if (!d) return; e.preventDefault();
+            spine = tabs[(i+d+tabs.length)%tabs.length].id.slice(4); draw(); focusTab();
+          });
+        });
+        mount.querySelectorAll(".flow-view").forEach(function(b){
+          b.addEventListener("click", function(){ view = b.getAttribute("data-v"); draw(); });
+        });
+      }
+      draw();
+    })();
 
     var io = new IntersectionObserver(function(entries){
       entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); } });
