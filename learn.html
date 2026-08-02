@@ -274,8 +274,46 @@
    "short": "Learning from demos"
   },
   {
-   "id": "vla",
+   "id": "data",
    "n": "02",
+   "q": "Where does the data actually come from?",
+   "framing": "Robot data is not on the internet. Every episode costs a person's time on real hardware, and that single fact shapes everything else on this page. Each branch below is a different way to dodge that cost: make the driving cheaper, drop the robot entirely, borrow from human video, or manufacture data outright. The last branch is the bill arriving, because data made anywhere other than your own robot still has to cross the gap to it.",
+   "branches": [
+    {
+     "id": "teleop",
+     "label": "Make driving the robot cheap enough to do a lot of it",
+     "era": "2018 – 24"
+    },
+    {
+     "id": "norobot",
+     "label": "Collect it without a robot at all",
+     "era": "2023 – 25"
+    },
+    {
+     "id": "humanvideo",
+     "label": "Take it from humans on video",
+     "era": "2021 – 26"
+    },
+    {
+     "id": "sim",
+     "label": "Manufacture it in a simulator",
+     "era": "2023 – 24"
+    },
+    {
+     "id": "augment",
+     "label": "Or multiply the real data you already have",
+     "era": "2024 – 26"
+    },
+    {
+     "id": "gap",
+     "label": "But data made elsewhere still has to cross the gap",
+     "era": "2017 – 25"
+    }
+   ]
+  },
+  {
+   "id": "vla",
+   "n": "03",
    "q": "How do you avoid collecting fresh data for every new task?",
    "framing": "Spine 01 trains a specialist per task, which means fresh demonstrations for every new thing you want. The alternative is to train one large model on all the robot data that exists, then adapt it. That bet has driven the field since 2022. Read the last branch before believing it: the newest work finds a small, well-matched dataset can beat pooling everything, and that pooling badly is worse than not pooling at all.",
    "branches": [
@@ -314,7 +352,7 @@
   },
   {
    "id": "repr",
-   "n": "03",
+   "n": "04",
    "q": "Why do learned representations keep collapsing?",
    "framing": "Train an encoder so two views of the same thing agree, and the trivial winner is to output a constant. Everything below is a way to make that constant unattractive. Watch the eras: the field has swung twice between two different kinds of fix, constraining the shape of the representation, or constraining how its capacity gets divided. The 2026 papers at the bottom are where the first kind ran out of road.",
    "branches": [
@@ -358,7 +396,7 @@
   },
   {
    "id": "world",
-   "n": "04",
+   "n": "05",
    "q": "Can a robot predict the future well enough to plan with it?",
    "framing": "If a model can imagine what happens next, it can plan instead of react. The field's long argument is about what to predict, because pixels are expensive and mostly appearance, while anything cheaper throws information away. Keep the last branch in mind throughout: prediction loss and planning ability are not the same quantity, and one of the 2026 papers in spine 03 shows a model lowering the first while scoring zero on the second.",
    "branches": [
@@ -387,7 +425,7 @@
   },
   {
    "id": "deploy",
-   "n": "05",
+   "n": "06",
    "q": "Why doesn't any of this work on a real factory floor?",
    "framing": "Benchmarks are not floors. A policy that scores well in the lab meets different lighting, a nudged camera and objects nobody trained on, and the drop is far larger than most papers report. This spine is the argument that the binding constraint is not model quality but our inability to tell whether a robot works before we ship it.",
    "branches": [
@@ -1004,6 +1042,306 @@
    "spine": "deploy",
    "branch": "careful",
    "read": false
+  },
+  {
+   "y": "2018",
+   "t": "RoboTurk",
+   "u": "https://arxiv.org/abs/1811.02790",
+   "d": "Turn an iPhone into a 6-DoF controller so anyone on the internet can drive the robot. Crowdsourcing collected 137 hours and 2,200 demos in 22 hours of system uptime.",
+   "tag": "teleop",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "teleop",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "GELLO",
+   "u": "https://arxiv.org/abs/2309.13037",
+   "d": "A 3D-printed miniature of your own arm as the controller: move the small one, the big one copies. Beat VR controllers and spacemice in a user study.",
+   "tag": "teleop",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "teleop",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "ALOHA 2",
+   "u": "https://arxiv.org/abs/2405.02292",
+   "d": "The open-sourced hardware refresh of the puppeteering rig behind ACT. This is the machine most low-cost bimanual data now comes from, ours included in spirit.",
+   "tag": "teleop",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "teleop",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "Mobile ALOHA",
+   "u": "https://arxiv.org/abs/2401.02117",
+   "d": "Bolt the rig to a wheeled base so demonstrations can cross a room. Co-training with the older static data pushed success up to 90% from 50 demos per task.",
+   "tag": "teleop",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "teleop",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "DROID",
+   "u": "https://arxiv.org/abs/2403.12945",
+   "d": "Standardise one Franka setup, ship it to 50 collectors in many labs, and have everyone teleoperate for a year. 76,000 trajectories across 564 scenes and 84 tasks.",
+   "tag": "teleop · dataset",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "teleop",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "Dobb-E",
+   "u": "https://arxiv.org/abs/2311.16098",
+   "d": "An iPhone taped to a reacher-grabber stick. Thirteen hours of recording in 22 New York homes gave 81% success across 109 tasks in ten homes.",
+   "tag": "no robot",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "norobot",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "UMI",
+   "u": "https://arxiv.org/abs/2402.10329",
+   "d": "A handheld gripper with a fisheye camera that you carry anywhere. No robot present during collection, yet the policies deploy on real arms across platforms.",
+   "tag": "no robot",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "norobot",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "DexUMI",
+   "u": "https://arxiv.org/abs/2505.21864",
+   "d": "Extends the idea to dexterous hands with a wearable exoskeleton, then paints a robot hand over the human hand in the video so the images match what the robot will see. 86% average success.",
+   "tag": "no robot",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "norobot",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "DexWild",
+   "u": "https://arxiv.org/abs/2505.07813",
+   "d": "Record bare human hands in the wild, mix in a little robot data. 68.5% in unseen environments, roughly four times a policy trained on robot data alone.",
+   "tag": "no robot",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "norobot",
+   "read": false
+  },
+  {
+   "y": "2021",
+   "t": "Ego4D",
+   "u": "https://arxiv.org/abs/2110.07058",
+   "d": "The raw substrate: 3,670 hours of first-person video of people doing ordinary things, 931 wearers, 9 countries. No robot, no actions, enormous scale.",
+   "tag": "human video · dataset",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "humanvideo",
+   "read": false
+  },
+  {
+   "y": "2022",
+   "t": "R3M",
+   "u": "https://arxiv.org/abs/2203.12601",
+   "d": "Pretrain a vision encoder on human video, freeze it, bolt it onto a policy. Twenty percent better than training from scratch, and a real Franka task from 20 demos.",
+   "tag": "human video",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "humanvideo",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "LAPA",
+   "u": "https://arxiv.org/abs/2410.11758",
+   "d": "Human video has no action labels, so invent them: learn a discrete vocabulary of what changed between frames, pretrain on that, then map it to real actions with a little robot data. Beat OpenVLA, which had true actions, at over 30x the pretraining efficiency.",
+   "tag": "human video",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "humanvideo",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "EgoDex",
+   "u": "https://arxiv.org/abs/2505.11709",
+   "d": "Vision Pro headsets recording 829 hours across 194 tabletop tasks with every hand joint tracked natively. Egocentric video that arrives with the hand pose already solved.",
+   "tag": "human video · dataset",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "humanvideo",
+   "read": false
+  },
+  {
+   "y": "2026",
+   "t": "EgoScale",
+   "u": "https://arxiv.org/abs/2602.16710",
+   "d": "20,854 hours of action-labelled egocentric video, more than twenty times prior work, plus a log-linear scaling law between human-data scale and loss. Fifty-four percent average gain on a 22-DoF hand.",
+   "tag": "human video",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "humanvideo",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "MimicGen",
+   "u": "https://arxiv.org/abs/2310.17596",
+   "d": "Cut a few human demos into object-centric pieces and re-warp them onto new object positions, keeping only attempts that succeed. About 200 demos became over 50,000 across 18 tasks.",
+   "tag": "sim",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "sim",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "RoboCasa",
+   "u": "https://arxiv.org/abs/2406.02523",
+   "d": "A large simulated kitchen with generative-AI assets: 100 tasks, 2,500 objects, and 100,000 trajectories produced by running MimicGen inside it.",
+   "tag": "sim",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "sim",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "RialTo",
+   "u": "https://arxiv.org/abs/2403.03949",
+   "d": "Scan the real scene into simulation, improve the policy there with reinforcement learning, bring it back. Robustness to object pose reached 91% against 25% for plain imitation from the same 15 demos.",
+   "tag": "sim",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "sim",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "RoVi-Aug",
+   "u": "https://arxiv.org/abs/2409.03403",
+   "d": "Synthesise new camera angles and even new robot bodies into your existing footage, so a policy stops overfitting to the one viewpoint it was filmed from.",
+   "tag": "augment",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "augment",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "DemoGen",
+   "u": "https://arxiv.org/abs/2502.16932",
+   "d": "Edit the recorded point cloud rather than re-shooting: move the objects, retarget the motion. One demo per task became hundreds, taking eight real tasks from 11% to 74.6% average success.",
+   "tag": "augment",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "augment",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "RoboEngine",
+   "u": "https://arxiv.org/abs/2503.18738",
+   "d": "Generative scene augmentation from demonstrations collected in a single room, generalising to six entirely new ones. Over 200% improvement on the no-augmentation baseline.",
+   "tag": "augment",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "augment",
+   "read": false
+  },
+  {
+   "y": "2017",
+   "t": "Domain Randomization",
+   "u": "https://arxiv.org/abs/1703.06907",
+   "d": "If the simulator cannot look real, make it look absurdly varied instead, so reality becomes just another variation. Localised real objects to within 1.5 cm having trained only on synthetic images.",
+   "tag": "gap",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "gap",
+   "read": false
+  },
+  {
+   "y": "2018",
+   "t": "RCAN",
+   "u": "https://arxiv.org/abs/1812.07252",
+   "d": "The clearest measurement of the gap. A pixel policy trained in plain simulation grasps 21% of the time on a real robot. Randomisation buys about 35%. Translating randomised images to a canonical one buys 70%. Training on real data gets 87%.",
+   "tag": "gap · read this",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "gap",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "SplatSim",
+   "u": "https://arxiv.org/abs/2409.10161",
+   "d": "Photorealistic Gaussian-splat rendering of a real scene. Even here, sim-trained policies reach 86.25% against 97.5% for real-trained, and without pixel augmentation the number collapses to 21%.",
+   "tag": "gap",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "gap",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "Data Scaling Laws in Imitation Learning",
+   "u": "https://arxiv.org/abs/2410.18647",
+   "d": "Forty thousand demos and fifteen thousand real rollouts to answer one question: what should you collect more of? Past 32 environment-object pairs, a quarter of the demonstrations matched all of them. Diversity scales, volume does not.",
+   "tag": "gap · read this",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "gap",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "Sim-and-Real Co-Training",
+   "u": "https://arxiv.org/abs/2503.24361",
+   "d": "Mixing simulated with real data helps, but on a knife edge. Misaligning only the simulated camera pose dropped one task from 95% to 70%.",
+   "tag": "gap",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "gap",
+   "read": false
   }
  ]
 }
@@ -1195,7 +1533,7 @@
       try { data = JSON.parse(src.textContent); }
       catch (e) { mount.innerHTML = '<p class="flow-err">Reading list failed to parse.</p>'; return; }
 
-      var SHORT = { policy:"Learning from demos", vla:"Generalists", repr:"Representations",
+      var SHORT = { policy:"Learning from demos", data:"Where data comes from", vla:"Generalists", repr:"Representations",
                     world:"World models", deploy:"Deployment" };
       function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
         return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
