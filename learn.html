@@ -360,15 +360,27 @@
    "id": "world",
    "n": "04",
    "q": "Can a robot predict the future well enough to plan with it?",
-   "framing": "If a model can imagine what happens next, it can plan instead of react. The open question is what to predict: pixels are expensive and mostly appearance, but anything cheaper throws information away.",
+   "framing": "If a model can imagine what happens next, it can plan instead of react. The field's long argument is about what to predict, because pixels are expensive and mostly appearance, while anything cheaper throws information away. Keep the last branch in mind throughout: prediction loss and planning ability are not the same quantity, and one of the 2026 papers in spine 03 shows a model lowering the first while scoring zero on the second.",
    "branches": [
     {
+     "id": "latent",
+     "label": "Learn the dynamics in a latent space and plan there",
+     "era": "2018 – 23"
+    },
+    {
      "id": "pixels",
-     "label": "Predict the next frame"
+     "label": "Predict the pixels themselves",
+     "era": "2024 – 26"
     },
     {
      "id": "cheaper",
-     "label": "Predict something cheaper than pixels"
+     "label": "Predict something cheaper than pixels",
+     "era": "2026"
+    },
+    {
+     "id": "control",
+     "label": "But does prediction quality actually buy control?",
+     "era": "2023"
     }
    ],
    "short": "World models"
@@ -377,11 +389,27 @@
    "id": "deploy",
    "n": "05",
    "q": "Why doesn't any of this work on a real factory floor?",
-   "framing": "Benchmarks are not floors. This spine is thin because we have only just started reading it, which is honest: it grows as we do.",
+   "framing": "Benchmarks are not floors. A policy that scores well in the lab meets different lighting, a nudged camera and objects nobody trained on, and the drop is far larger than most papers report. This spine is the argument that the binding constraint is not model quality but our inability to tell whether a robot works before we ship it.",
    "branches": [
     {
      "id": "layer",
-     "label": "The missing piece is deployment, not intelligence"
+     "label": "The layer between a paper and a paid hour of work",
+     "era": "2026"
+    },
+    {
+     "id": "notfloors",
+     "label": "Benchmarks are not floors",
+     "era": "2023 – 24"
+    },
+    {
+     "id": "predict",
+     "label": "So try to predict real performance in simulation",
+     "era": "2024"
+    },
+    {
+     "id": "careful",
+     "label": "And when you measure carefully, the gains get smaller",
+     "era": "2025"
     }
    ],
    "short": "Deployment"
@@ -855,6 +883,126 @@
    "now": false,
    "spine": "vla",
    "branch": "doubt",
+   "read": false
+  },
+  {
+   "y": "2018",
+   "t": "World Models",
+   "u": "https://arxiv.org/abs/1803.10122",
+   "d": "The paper that named the field. Compress the world into a latent, learn its dynamics with an RNN, then train the controller entirely inside the model's own dream and transfer it back.",
+   "tag": "world model",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "latent",
+   "read": false
+  },
+  {
+   "y": "2018",
+   "t": "PlaNet",
+   "u": "https://arxiv.org/abs/1811.04551",
+   "d": "Learn latent dynamics from pixels and plan online in that latent space. Matches model-free methods using far fewer episodes, which is the whole argument for bothering with a model.",
+   "tag": "world model",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "latent",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "DreamerV3",
+   "u": "https://arxiv.org/abs/2301.04104",
+   "d": "One configuration, 150+ tasks, and the first system to mine diamonds in Minecraft from scratch. Learning behaviour by imagining futures, made robust enough to apply out of the box.",
+   "tag": "world model",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "latent",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "Genie",
+   "u": "https://arxiv.org/abs/2402.15391",
+   "d": "An 11B foundation world model trained on unlabelled internet video, controllable frame by frame. It learns a latent action space with no action labels at all, which is what makes raw video usable as robot data.",
+   "tag": "world model",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "pixels",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "TD-MPC2",
+   "u": "https://arxiv.org/abs/2310.16828",
+   "d": "A decoder-free world model: never reconstruct the observation, optimise the latent for control instead. One 317M agent covers 80 tasks across embodiments, suggesting fidelity to pixels was the wrong target.",
+   "tag": "world model · sceptic",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "control",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "Decomposing the Generalization Gap",
+   "u": "https://arxiv.org/abs/2307.03659",
+   "d": "Breaks the environment into enumerable factors and measures each one separately, in simulation and on a real robot. Produces an ordering of what actually hurts, consistent across both.",
+   "tag": "deployment",
+   "tagClass": "",
+   "now": false,
+   "spine": "deploy",
+   "branch": "notfloors",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "THE COLOSSEUM",
+   "u": "https://arxiv.org/abs/2402.08191",
+   "d": "Twenty tasks perturbed along 14 axes. Five state-of-the-art models degrade 30 to 50% per factor and over 75% when factors combine. Distractor count, target colour and lighting hurt most.",
+   "tag": "deployment",
+   "tagClass": "",
+   "now": false,
+   "spine": "deploy",
+   "branch": "notfloors",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "VLATest",
+   "u": "https://arxiv.org/abs/2409.12894",
+   "d": "A fuzzing framework, borrowed from software testing, that generates manipulation scenes to break VLAs. Its verdict on seven models: they lack the robustness necessary for practical deployment.",
+   "tag": "deployment",
+   "tagClass": "",
+   "now": false,
+   "spine": "deploy",
+   "branch": "notfloors",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "SIMPLER",
+   "u": "https://arxiv.org/abs/2405.05941",
+   "d": "Rather than building full digital twins, close the control and visual gaps just enough that simulated evaluation ranks policies the way the real world does. Paired sim-and-real trials show it tracks.",
+   "tag": "deployment",
+   "tagClass": "",
+   "now": false,
+   "spine": "deploy",
+   "branch": "predict",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "A Careful Examination of Large Behavior Models",
+   "u": "https://arxiv.org/abs/2507.05331",
+   "d": "Extends Diffusion Policy across a large sim and real corpus, then judges it with blind randomised trials because meaningful real-world evaluation is itself unsolved. Pretraining pays off in robustness and data efficiency; the harder contribution is the evaluation pipeline.",
+   "tag": "deployment · read this",
+   "tagClass": "",
+   "now": false,
+   "spine": "deploy",
+   "branch": "careful",
    "read": false
   }
  ]
