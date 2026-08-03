@@ -37,6 +37,8 @@
   /* card grid */
   .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:clamp(22px,2.6vw,36px) clamp(26px,3.2vw,48px)}
   .res{position:relative;border-top:1px solid var(--ink);padding:16px 0 0;display:flex;flex-direction:column;transition:border-color .28s var(--ease)}
+  /* our exact hardware — marks the whole card, page-wide, with the one accent already in use */
+  .res.so101{border-top-color:var(--apple)}
   .res-grid .res:nth-child(2){animation-delay:.05s}
   .res-grid .res:nth-child(3){animation-delay:.1s}
   .res-grid .res:nth-child(4){animation-delay:.15s}
@@ -424,8 +426,47 @@
    "short": "World models"
   },
   {
-   "id": "deploy",
+   "id": "rl",
    "n": "06",
+   "q": "What if nobody shows the robot what to do?",
+   "framing": "Imitation needs a demonstrator. Reinforcement learning needs only a way to score the outcome, which sounds easier and is not: somebody still has to write the score, the trials have to happen somewhere, and a robot that learns by failing breaks itself. Every branch here is an answer to one of those three. Watch the direction of travel: the field spent a decade moving the trials off the robot and into simulation, and then spent the last two years moving them back onto real hardware with a human standing next to it. One route is missing on purpose. Learning a model of the world and planning inside it is reinforcement learning too, and it has its own spine at 05.",
+   "branches": [
+    {
+     "id": "afford",
+     "label": "First, make trial-and-error affordable",
+     "era": "2017 – 2018"
+    },
+    {
+     "id": "brute",
+     "label": "Or brute-force it on real robots and pay for it",
+     "era": "2018"
+    },
+    {
+     "id": "sim",
+     "label": "Move the trials into simulation, and randomize until reality is just another variation",
+     "era": "2019"
+    },
+    {
+     "id": "logged",
+     "label": "Stop collecting. Learn from the data you already have",
+     "era": "2020 – 2023"
+    },
+    {
+     "id": "human",
+     "label": "Put a human back in the loop, and it starts working on real hardware",
+     "era": "2024"
+    },
+    {
+     "id": "fast",
+     "label": "Make simulation fast enough that trying the transfer is cheap",
+     "era": "2026"
+    }
+   ],
+   "short": "Learning without demos"
+  },
+  {
+   "id": "deploy",
+   "n": "07",
    "q": "Why doesn't any of this work on a real factory floor?",
    "framing": "Benchmarks are not floors. A policy that scores well in the lab meets different lighting, a nudged camera and objects nobody trained on, and the drop is far larger than most papers report. This spine is the argument that the binding constraint is not model quality but our inability to tell whether a robot works before we ship it.",
    "branches": [
@@ -454,6 +495,126 @@
   }
  ],
  "papers": [
+  {
+   "y": "2017",
+   "t": "Hindsight Experience Replay (HER)",
+   "u": "https://arxiv.org/abs/1707.01495",
+   "d": "If the robot missed, pretend the place it did reach was the goal all along. Turns a sparse binary reward into something learnable, so nobody has to hand-engineer a reward.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "afford",
+   "read": false
+  },
+  {
+   "y": "2018",
+   "t": "Soft Actor-Critic (SAC)",
+   "u": "https://arxiv.org/abs/1801.01290",
+   "d": "Maximize reward while staying as random as possible. Off-policy, so it reuses every past attempt, and stable across seeds — which is why it is the algorithm shipped inside LeRobot.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "afford",
+   "read": false
+  },
+  {
+   "y": "2018",
+   "t": "QT-Opt",
+   "u": "https://arxiv.org/abs/1806.10293",
+   "d": "580,000 real grasp attempts across a farm of arms, to 96% on unseen objects. It worked, it learned to nudge and regrasp on its own, and the cost is the argument for every other branch here.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "brute",
+   "read": false
+  },
+  {
+   "y": "2019",
+   "t": "Rubik's cube with a robot hand (ADR)",
+   "u": "https://arxiv.org/abs/1910.07113",
+   "d": "Randomization pushed to its conclusion: let the simulator keep getting harder on its own as the policy improves. The high-water mark of the sim-only era, and it took a compute budget nobody could repeat.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "sim",
+   "read": false
+  },
+  {
+   "y": "2020",
+   "t": "Conservative Q-Learning (CQL)",
+   "u": "https://arxiv.org/abs/2006.04779",
+   "d": "Learning from a fixed dataset makes the model overvalue actions nobody ever tried. CQL deliberately underestimates them, so the policy stays near what the data can actually vouch for.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "logged",
+   "read": false
+  },
+  {
+   "y": "2021",
+   "t": "Implicit Q-Learning (IQL)",
+   "u": "https://arxiv.org/abs/2110.06169",
+   "d": "The same problem, solved by never asking about an unseen action at all. Simpler than CQL and the usual first thing to reach for offline.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "logged",
+   "read": false
+  },
+  {
+   "y": "2023",
+   "t": "V-PTR",
+   "u": "https://arxiv.org/abs/2309.13041",
+   "d": "Human video has no actions and no rewards, so learn a value function from it instead and never roll out dynamics. The opposing bet to every world model in spine 05.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "logged",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "SERL",
+   "u": "https://arxiv.org/abs/2401.16013",
+   "d": "The argument that robot RL was never blocked on algorithms but on implementation. A careful library learns PCB assembly and cable routing in 25 to 50 minutes per policy, on real hardware.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "human",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "HIL-SERL",
+   "u": "https://arxiv.org/abs/2410.21845",
+   "d": "Let a human take over when the policy is about to fail. Near-perfect success in 1 to 2.5 hours of real training, roughly double the imitation baselines. This is the stack that ships inside our LeRobot install.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "human",
+   "read": false
+  },
+  {
+   "y": "2026",
+   "t": "Squint",
+   "u": "https://arxiv.org/abs/2602.21203",
+   "d": "Visual SAC, heavily randomized, on an eight-task SO-101 suite that transfers to a real arm. Most tasks converge in under six minutes on one GPU — cheap enough to retry the transfer until it works.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "fast",
+   "read": false
+  },
   {
    "y": "2021",
    "t": "Implicit BC (IBC)",
@@ -1350,12 +1511,46 @@
       <noscript><p class="flow-err">The reading map needs JavaScript. The papers are listed in the page source.</p></noscript>
     </div>
 
-    <div class="read-sub reveal">Writers &amp; blogs to follow</div>
+    <div class="read-sub reveal">Build logs — our arm, by people who did it</div>
     <div class="res-grid">
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Guide</span><span class="res-src">Sherry Chen</span></div>
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Sherry Chen</span></div>
         <h3><a href="https://huggingface.co/blog/sherryxychen/train-act-on-so-101" target="_blank" rel="noopener">Training ACT on the SO-101<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A candid, failure-and-all end-to-end walkthrough: setup, teleop, data, and training ACT on our exact arm.</p></div>
 
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 1 of 4</span></div>
+        <h3><a href="https://ggando.com/blog/so101-rl-lift/" target="_blank" rel="noopener">RL to grasp and lift, in MuJoCo<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>Trains SAC to lift a cube in simulation. The reward table, and the eleven versions it took to get there, are the real lesson. 100% in sim, and he claims nothing about the real arm.</p></div>
+
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 2 of 4</span></div>
+        <h3><a href="https://ggando.com/blog/image-rl-grasp/" target="_blank" rel="noopener">Grasping from pixels<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>The same task, now from camera images instead of privileged state. This is the step where it starts to resemble what we actually run.</p></div>
+
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 3 of 4</span></div>
+        <h3><a href="https://ggando.com/blog/so101-hil-serl/" target="_blank" rel="noopener">HIL-SERL: real-world grasping from scratch<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>On hardware, no simulator, human correcting it as it learns. Uses the same HIL-SERL machinery that already ships inside our LeRobot install.</p></div>
+
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 4 of 4</span></div>
+        <h3><a href="https://ggando.com/blog/smolvla-so101/" target="_blank" rel="noopener">Fine-tuning SmolVLA<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>Pick-and-place with a vision-language-action model on our arm. Where three months of one person's work lands.</p></div>
+    </div>
+
+    <div class="read-sub reveal">Simulation &amp; RL — the toolchain</div>
+    <div class="res-grid">
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Google DeepMind</span></div>
+        <h3><a href="https://github.com/google-deepmind/mujoco_menagerie" target="_blank" rel="noopener">MuJoCo Menagerie — <code>trs_so_arm100</code><span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>The official MJCF model of our arm. It ships <em>two</em> calibration variants — new-calib zeroes each joint mid-range, old-calib zeroes it fully extended. Pin one and write it down, or simulation and hardware will disagree about what an action means, silently.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">Stone Tao</span></div>
+        <h3><a href="https://github.com/StoneT2000/lerobot-sim2real" target="_blank" rel="noopener">lerobot-sim2real<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>Train with RL in GPU-parallel ManiSkill3, then deploy to a real arm zero-shot. Built to sit on top of LeRobot, so the hardware side is already solved.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">Almuzairee · UCSD</span></div>
+        <h3><a href="https://github.com/aalmuzairee/squint" target="_blank" rel="noopener">Squint<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>The reference implementation for the fastest visual RL numbers on our arm, and the eight-task SO-101 benchmark suite that came with it. The <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">paper</a> is mapped in spine 06.</p></div>
+    </div>
+
+    <div class="read-sub reveal">Writers to follow</div>
+    <div class="res-grid">
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Lilian Weng</span></div>
         <h3><a href="https://lilianweng.github.io" target="_blank" rel="noopener">Lil'Log<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The clearest long-form deep-dives in ML — diffusion, RL, agents, and more.</p></div>
@@ -1393,11 +1588,11 @@
         <h3><a href="https://www.youtube.com/watch?v=-0s0v3q7mBk" target="_blank" rel="noopener">OpenVLA — a walkthrough<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Moo Jin Kim, OpenVLA's author, on building an open vision-language-action model.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Trelis Research</span></div>
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Trelis Research</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-tkEMLOLEwo" target="_blank" rel="noopener">Train an ACT policy on the SO-101<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A practical, start-to-finish walkthrough of training ACT on the SO-101 with LeRobot.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Ilia Larchenko</span></div>
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Ilia Larchenko</span></div>
         <h3><a href="https://www.youtube.com/@ilialarchenko" target="_blank" rel="noopener">Ilia Larchenko<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Deep, practical robotics — SO-101 teleop, training, and reinforcement learning on the arm.</p></div>
 
@@ -1456,6 +1651,10 @@
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">MIT · Tedrake</span></div>
         <h3><a href="https://www.youtube.com/playlist?list=PLkx8KyIQkMfU5szP43GlE_S1QGSPQfL9s" target="_blank" rel="noopener">Underactuated Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Dynamics and control for real, underactuated robots. Deep, rigorous, and worth it.</p></div>
+
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Georgia Tech · Tucker</span></div>
+        <h3><a href="https://maegantucker.com/ECE4560/" target="_blank" rel="noopener">ECE 4560 — Intro to Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>Ten progressive labs with a MuJoCo homework repo, <strong>taught on SO-101 arms</strong>. Forward and inverse kinematics, trajectory planning, Lie groups. The nearest thing to a ready-made curriculum for a club with our hardware.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UC Berkeley · Levine</span></div>
         <h3><a href="http://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank" rel="noopener">CS 285 — Deep RL<span class="ext" aria-hidden="true">↗</span></a></h3>
@@ -1534,7 +1733,7 @@
       catch (e) { mount.innerHTML = '<p class="flow-err">Reading list failed to parse.</p>'; return; }
 
       var SHORT = { policy:"Learning from demos", data:"Where data comes from", vla:"Generalists", repr:"Representations",
-                    world:"World models", deploy:"Deployment" };
+                    world:"World models", deploy:"Deployment", rl:"Learning without demos" };
       function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(c){
         return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
       function link(p){ return '<a href="'+esc(p.u)+'" target="_blank" rel="noopener">'+esc(p.t)+
