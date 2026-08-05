@@ -420,7 +420,7 @@
     {
      "id": "control",
      "label": "But does prediction quality actually buy control?",
-     "era": "2023"
+     "era": "2023 – 26"
     }
    ],
    "short": "World models"
@@ -837,6 +837,18 @@
   },
   {
    "y": "2026",
+   "t": "DreamDojo",
+   "u": "https://arxiv.org/abs/2602.06949",
+   "d": "44k hours of egocentric human video, the largest corpus yet used to pretrain a world model, and the scale answer to Genie. Continuous latent actions stand in for the action labels the videos never had, so unlabelled human footage still teaches interaction. Distilled to 10.81 FPS, which is what turns live teleoperation, policy evaluation and model-based planning from a claim into something you can run.",
+   "tag": "world model",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "pixels",
+   "read": false
+  },
+  {
+   "y": "2026",
    "t": "μ₀ — 3D interaction traces",
    "u": "https://arxiv.org/abs/2606.13769",
    "d": "Forecast sparse 3D interaction traces instead of pixels, arguing pixel models waste capacity on appearance.",
@@ -1138,6 +1150,18 @@
    "u": "https://arxiv.org/abs/2310.16828",
    "d": "A decoder-free world model: never reconstruct the observation, optimise the latent for control instead. One 317M agent covers 80 tasks across embodiments, suggesting fidelity to pixels was the wrong target.",
    "tag": "world model · sceptic",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "control",
+   "read": false
+  },
+  {
+   "y": "2026",
+   "t": "DreamZero",
+   "u": "https://arxiv.org/abs/2602.15922",
+   "d": "This branch's question, answered by removing the question: a 14B video-diffusion model predicts future frames and actions jointly, so the world model IS the policy and no planner exists. Over 2x the generalisation of state-of-the-art VLAs to new tasks and environments, at 7 Hz closed-loop. Video-only demos from another robot or a human buy 42% on unseen tasks from 10-20 minutes of data, and a whole new embodiment needs 30 minutes of play — the part that matters if you own one arm.",
+   "tag": "world model",
    "tagClass": "",
    "now": false,
    "spine": "world",
