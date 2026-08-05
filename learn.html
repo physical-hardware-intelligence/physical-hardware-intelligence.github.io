@@ -265,7 +265,7 @@
     {
      "id": "chunk",
      "label": "Commit to a chunk, so error has fewer chances to compound",
-     "era": "2023 – 26"
+     "era": "2023"
     },
     {
      "id": "rethink",
@@ -304,7 +304,7 @@
     {
      "id": "augment",
      "label": "Or multiply the real data you already have",
-     "era": "2024 – 26"
+     "era": "2024 – 25"
     },
     {
      "id": "gap",
@@ -342,7 +342,7 @@
     {
      "id": "shrink",
      "label": "Shrink it until it runs on real hardware",
-     "era": "2025"
+     "era": "2025 – 26"
     },
     {
      "id": "doubt",
@@ -376,12 +376,12 @@
     {
      "id": "allocation",
      "label": "Constrain how the capacity gets divided",
-     "era": "2020 – 23"
+     "era": "2020 – 24"
     },
     {
      "id": "distribution",
      "label": "Match one target distribution",
-     "era": "2024 – 26"
+     "era": "2025 – 26"
     },
     {
      "id": "theory",
@@ -405,7 +405,7 @@
     {
      "id": "latent",
      "label": "Learn the dynamics in a latent space and plan there",
-     "era": "2018 – 23"
+     "era": "2018 – 26"
     },
     {
      "id": "pixels",
@@ -700,8 +700,8 @@
    "tag": "policy · we're testing it",
    "tagClass": "",
    "now": true,
-   "spine": "policy",
-   "branch": "chunk"
+   "spine": "vla",
+   "branch": "shrink"
   },
   {
    "y": "2022",
@@ -770,7 +770,7 @@
    "branch": "allocation"
   },
   {
-   "y": "2025",
+   "y": "2026",
    "t": "LeJEPA identifiability",
    "u": "https://arxiv.org/abs/2605.26379",
    "d": "When does a JEPA actually learn a world model? The conditions under which the representation is identifiable.",
@@ -789,7 +789,7 @@
    "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "distribution"
+   "branch": "allocation"
   },
   {
    "y": "2025",
@@ -828,18 +828,18 @@
    "y": "2026",
    "t": "LeWorldModel",
    "u": "https://arxiv.org/abs/2603.19312",
-   "d": "A stable end-to-end JEPA world model learned straight from pixels.",
+   "d": "Stable end-to-end JEPA: pixels go in, but it predicts next embeddings, not pixels. Two loss terms instead of six, and it plans 48x faster at 15M params.",
    "tag": "world model",
    "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "pixels"
+   "branch": "latent"
   },
   {
    "y": "2026",
    "t": "DreamDojo",
    "u": "https://arxiv.org/abs/2602.06949",
-   "d": "44k hours of egocentric human video, the largest corpus yet used to pretrain a world model, and the scale answer to Genie. Continuous latent actions stand in for the action labels the videos never had, so unlabelled human footage still teaches interaction. Distilled to 10.81 FPS, which is what turns live teleoperation, policy evaluation and model-based planning from a claim into something you can run.",
+   "d": "44k hours of egocentric human video, the largest corpus yet used to pretrain a world model. Latent actions stand in for the labels it never had; distilled to 10.81 FPS.",
    "tag": "world model",
    "tagClass": "",
    "now": false,
@@ -1160,7 +1160,7 @@
    "y": "2026",
    "t": "DreamZero",
    "u": "https://arxiv.org/abs/2602.15922",
-   "d": "This branch's question, answered by removing the question: a 14B video-diffusion model predicts future frames and actions jointly, so the world model IS the policy and no planner exists. Over 2x the generalisation of state-of-the-art VLAs to new tasks and environments, at 7 Hz closed-loop. Video-only demos from another robot or a human buy 42% on unseen tasks from 10-20 minutes of data, and a whole new embodiment needs 30 minutes of play — the part that matters if you own one arm.",
+   "d": "A 14B video-diffusion model predicts frames and actions jointly, so the world model is the policy and no planner exists. Over 2x a VLA's generalisation, at 7 Hz closed-loop.",
    "tag": "world model",
    "tagClass": "",
    "now": false,
@@ -1512,8 +1512,8 @@
    "tag": "gap · read this",
    "tagClass": "",
    "now": false,
-   "spine": "data",
-   "branch": "gap",
+   "spine": "vla",
+   "branch": "doubt",
    "read": false
   },
   {
