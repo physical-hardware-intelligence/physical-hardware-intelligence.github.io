@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blog · Phi</title>
+<meta name="description" content="Writing from the Phi club: what we read, what we built, and where we think the field is wrong.">
+<meta name="theme-color" content="#ECE7DC">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Blog · Phi">
+<meta property="og:description" content="Writing from the Phi club: what we read, what we built, and where we think the field is wrong.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .bp{max-width:none;margin:0 auto}
+  .bp-wrap{max-width:720px;margin:0 auto;padding:clamp(86px,11vh,112px) clamp(20px,5vw,44px) 0}
+  .bp-back{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    display:inline-block;margin-bottom:clamp(22px,3vw,32px);border-bottom:1px solid transparent}
+  .bp-back:hover{color:var(--ink);border-color:var(--line-2)}
+  .bp-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 18px}
+  .bp h1{font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0}
+  .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch}
+  .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
+
+  .bp-body{font-size:1.06rem;line-height:1.72}
+  .bp-body p{margin:0 0 1.15em}
+  .bp-body .lede{font-size:1.2rem;line-height:1.62}
+  .bp-body .lede strong{font-family:var(--disp);font-weight:600}
+  .bp-body h2{font-family:var(--disp);font-size:clamp(1.24rem,2.3vw,1.56rem);font-weight:500;letter-spacing:-.012em;
+    line-height:1.2;margin:clamp(34px,4.4vw,52px) 0 .6em}
+  .bp-body strong{font-weight:500;color:var(--ink)}
+  .bp-body em{font-style:italic}
+  .bp-body a{border-bottom:1px solid var(--line-2);transition:border-color .2s}
+  .bp-body a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-body .note{margin-top:clamp(30px,4vw,44px);padding-top:20px;border-top:1px solid var(--line);
+    font-size:.98rem;color:var(--ink-2)}
+
+  .fig{margin:clamp(28px,3.6vw,42px) 0;padding:0}
+  .fig svg{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line)}
+  .fig figcaption{margin-top:12px;font-size:.9rem;line-height:1.5;color:var(--ink-3)}
+  .fig figcaption a{border-bottom:1px solid var(--line-2)}
+  .fig .box{fill:none;stroke:var(--ink);stroke-width:1}
+  .fig .box.fixed{stroke:var(--line-2);stroke-dasharray:5 4}
+  .fig .dh{font-family:var(--mono);font-size:10px;letter-spacing:.14em;fill:var(--ink-3)}
+  .fig .bt{font-family:var(--disp);font-size:16px;font-weight:500;fill:var(--ink)}
+  .fig .bs{font-family:var(--serif);font-size:13.5px;fill:var(--ink-2)}
+  .fig .bn{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;fill:var(--ink-3)}
+  .fig .hz{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+  .fig .ln{stroke:var(--ink-2);stroke-width:1}
+  .fig .seam{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;fill:var(--ink-2)}
+  .fig .rail{stroke:var(--line-2);stroke-width:1;stroke-dasharray:2 4}
+  .fig .ax{font-family:var(--serif);font-size:12.5px;fill:var(--ink-3)}
+  .fig .ax.axr{fill:var(--apple)}
+  .fig .add{fill:none;stroke:var(--apple);stroke-width:1}
+  .fig .addt{font-family:var(--serif);font-size:12px;font-style:italic;fill:var(--apple)}
+
+  .bp-src{max-width:720px;margin:0 auto;padding:clamp(40px,5vw,60px) clamp(20px,5vw,44px) 0}
+  .bp-src h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
+  .bp-src ol{list-style:none;counter-reset:s;margin:0;padding:0}
+  .bp-src li{counter-increment:s;position:relative;padding:0 0 15px 34px;font-size:.95rem;line-height:1.5}
+  .bp-src li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;
+    font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .bp-src a{border-bottom:1px solid var(--line-2)}
+  .bp-src a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-src span{display:block;color:var(--ink-3);font-size:.88rem;margin-top:3px}
+
+  @media (max-width:620px){ .bp-body{font-size:1.02rem} .bp-body .lede{font-size:1.1rem} }
+  @media (prefers-reduced-motion:reduce){ .reveal,.reveal.vis{opacity:1!important;animation:none!important} }
+  .reveal{opacity:0}
+  .reveal.vis{animation:rv .5s var(--ease) both}
+  @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="brand" href="../index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="../assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="index.html" class="active">Blog</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top">
+  <section class="bp-wrap">
+    <p class="bp-meta"><span>The blog</span></p>
+    <h1 style="font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0">Notes from a club with one arm.</h1>
+    <p class="dek" style="font-size:clamp(1.04rem,1.7vw,1.18rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch">We read a lot and we run one SO-101. Occasionally the two disagree, and that is usually worth writing down.</p>
+    <hr class="bp-rule">
+
+    <ol style="list-style:none;margin:0;padding:0">
+      <li class="reveal" style="border-top:1px solid var(--line-2);padding:clamp(20px,2.6vw,28px) 0">
+        <p class="bp-meta" style="margin:0 0 10px"><span>21 August 2026</span><span>7 min read</span></p>
+        <h2 style="font-family:var(--disp);font-size:clamp(1.3rem,2.6vw,1.72rem);font-weight:500;letter-spacing:-.014em;line-height:1.16;margin:0 0 10px">
+          <a href="a-vla-is-not-the-policy.html">A VLA is not the policy</a></h2>
+        <p style="margin:0;color:var(--ink-2);font-size:1.01rem;line-height:1.55;max-width:60ch">Action chunking is what made behaviour cloning work. It is also what leaves the policy blind for two seconds at a time.</p>
+      </li>
+    </ol>
+
+    <p style="margin:clamp(34px,4.4vw,50px) 0 0;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3)">
+      More when we have something worth saying &#183; the reading is on <a href="../learn.html" style="border-bottom:1px solid var(--line-2)">Learn</a>, the companies on <a href="../industry.html" style="border-bottom:1px solid var(--line-2)">Industry</a>
+    </p>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="../assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club.</p>
+</footer>
+<script>
+(function(){
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){
+    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
+  },{threshold:0.08,rootMargin:'0px 0px -5% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+})();
+</script>
+</body>
+</html>

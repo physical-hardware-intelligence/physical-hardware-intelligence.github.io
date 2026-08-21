@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A VLA is not the policy · Phi</title>
+<meta name="description" content="Action chunking is what made behaviour cloning work. It is also what leaves the policy blind for two seconds at a time.">
+<meta name="theme-color" content="#ECE7DC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A VLA is not the policy · Phi">
+<meta property="og:description" content="Action chunking is what made behaviour cloning work. It is also what leaves the policy blind for two seconds at a time.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/a-vla-is-not-the-policy.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .bp{max-width:none;margin:0 auto}
+  .bp-wrap{max-width:720px;margin:0 auto;padding:clamp(86px,11vh,112px) clamp(20px,5vw,44px) 0}
+  .bp-back{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    display:inline-block;margin-bottom:clamp(22px,3vw,32px);border-bottom:1px solid transparent}
+  .bp-back:hover{color:var(--ink);border-color:var(--line-2)}
+  .bp-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 18px}
+  .bp h1{font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0}
+  .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch}
+  .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
+
+  .bp-body{font-size:1.06rem;line-height:1.72}
+  .bp-body p{margin:0 0 1.15em}
+  .bp-body .lede{font-size:1.2rem;line-height:1.62}
+  .bp-body .lede strong{font-family:var(--disp);font-weight:600}
+  .bp-body h2{font-family:var(--disp);font-size:clamp(1.24rem,2.3vw,1.56rem);font-weight:500;letter-spacing:-.012em;
+    line-height:1.2;margin:clamp(34px,4.4vw,52px) 0 .6em}
+  .bp-body strong{font-weight:500;color:var(--ink)}
+  .bp-body em{font-style:italic}
+  .bp-body a{border-bottom:1px solid var(--line-2);transition:border-color .2s}
+  .bp-body a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-body .note{margin-top:clamp(30px,4vw,44px);padding-top:20px;border-top:1px solid var(--line);
+    font-size:.98rem;color:var(--ink-2)}
+
+  .fig{margin:clamp(28px,3.6vw,42px) 0;padding:0}
+  .fig svg{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line)}
+  .fig figcaption{margin-top:12px;font-size:.9rem;line-height:1.5;color:var(--ink-3)}
+  .fig figcaption a{border-bottom:1px solid var(--line-2)}
+  .fig .box{fill:none;stroke:var(--ink);stroke-width:1}
+  .fig .box.fixed{stroke:var(--line-2);stroke-dasharray:5 4}
+  .fig .dh{font-family:var(--mono);font-size:10px;letter-spacing:.14em;fill:var(--ink-3)}
+  .fig .bt{font-family:var(--disp);font-size:16px;font-weight:500;fill:var(--ink)}
+  .fig .bs{font-family:var(--serif);font-size:13.5px;fill:var(--ink-2)}
+  .fig .bn{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;fill:var(--ink-3)}
+  .fig .hz{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+  .fig .ln{stroke:var(--ink-2);stroke-width:1}
+  .fig .seam{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;fill:var(--ink-2)}
+  .fig .rail{stroke:var(--line-2);stroke-width:1;stroke-dasharray:2 4}
+  .fig .ax{font-family:var(--serif);font-size:12.5px;fill:var(--ink-3)}
+  .fig .ax.axr{fill:var(--apple)}
+  .fig .add{fill:none;stroke:var(--apple);stroke-width:1}
+  .fig .addt{font-family:var(--serif);font-size:12px;font-style:italic;fill:var(--apple)}
+
+  .bp-src{max-width:720px;margin:0 auto;padding:clamp(40px,5vw,60px) clamp(20px,5vw,44px) 0}
+  .bp-src h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
+  .bp-src ol{list-style:none;counter-reset:s;margin:0;padding:0}
+  .bp-src li{counter-increment:s;position:relative;padding:0 0 15px 34px;font-size:.95rem;line-height:1.5}
+  .bp-src li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;
+    font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .bp-src a{border-bottom:1px solid var(--line-2)}
+  .bp-src a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-src span{display:block;color:var(--ink-3);font-size:.88rem;margin-top:3px}
+
+  @media (max-width:620px){ .bp-body{font-size:1.02rem} .bp-body .lede{font-size:1.1rem} }
+  @media (prefers-reduced-motion:reduce){ .reveal,.reveal.vis{opacity:1!important;animation:none!important} }
+  .reveal{opacity:0}
+  .reveal.vis{animation:rv .5s var(--ease) both}
+  @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="brand" href="../index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="../assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="index.html" class="active">Blog</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top" class="bp">
+  <article>
+    <div class="bp-wrap">
+      <a class="bp-back" href="index.html">&#8592; Blog</a>
+      <p class="bp-meta"><span>21 August 2026</span><span>7 min read</span><span>Physical Hardware Intelligence</span></p>
+      <h1>A VLA is not the policy</h1>
+      <p class="dek">Action chunking is what made behaviour cloning work. It is also what leaves the policy blind for two seconds at a time.</p>
+      <hr class="bp-rule">
+      <div class="bp-body">
+<p class="lede">Start with a number from the <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT paper</a>. Predicting one action at a time gives you a <strong>1%</strong> success rate. Predicting a hundred at a time gives you <strong>44%</strong>.</p>
+
+<p>That is not a tuning improvement. That is the gap between a method that does not work and a method that does. Action chunking is the reason modern imitation learning functions at all, and almost everything built since has inherited it: diffusion policy, <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&pi;<sub>0</sub></a>, ACT-1, GR00T.</p>
+
+<p>So it is worth looking closely at what is actually inside the chunk.</p>
+
+<p>ACT predicts a hundred <strong>target joint positions</strong>, at a control frequency of 50Hz. That is two seconds of motion, committed in a single forward pass. &pi;<sub>0</sub> emits fifty-step chunks from a flow-matching head on top of a 3-billion-parameter vision-language model. Different architectures, same output type: a list of places to be.</p>
+
+<h2>The seam nobody draws</h2>
+
+<p>A joint position target is not a motor command. Something downstream has to turn &ldquo;be at this angle&rdquo; into current through a winding, and that something is almost always a PD or impedance controller with gains an engineer chose once, running at several hundred hertz or more.</p>
+
+<p>Which means the learned half of the system decides <em>where to go</em>, and the unlearned half decides <em>how hard to push to get there</em>.</p>
+
+<p>That seam is exactly where force lives. Stiffness, contact, friction, the difference between setting down a wine glass and setting down a brick. The policy cannot see it, cannot represent it, and cannot change it. Stiffness is a constant in a configuration file.</p>
+
+<figure class="fig">
+  <!-- original diagram, drawn for this post -->
+  <svg viewBox="0 0 800 430" role="img" aria-label="Diagram of a manipulation stack: a learned vision-language-action model emitting joint position targets at 10 to 50 hertz, above a hand-tuned PD controller running at 500 to 1000 hertz where contact and friction actually occur.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/>
+      </marker>
+      <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#B23A2E"/>
+      </marker>
+    </defs>
+
+    <!-- learned layer -->
+    <text x="16" y="22" class="dh">LEARNED</text>
+    <rect x="16" y="32" width="500" height="112" class="box learned"/>
+    <text x="38" y="60" class="bt">Vision-language-action model</text>
+    <text x="38" y="83" class="bs">camera + instruction in, a chunk of joint position targets out</text>
+    <text x="38" y="112" class="bn">ACT: 100 targets &#183; &pi;&#8320;: 50</text>
+    <text x="500" y="60" class="hz" text-anchor="end">~10&#8211;50 Hz</text>
+
+    <!-- the seam -->
+    <line x1="150" y1="144" x2="150" y2="196" class="ln" marker-end="url(#ar)"/>
+    <text x="166" y="176" class="seam">position targets. one number per joint.</text>
+
+    <!-- what SoftMimic adds, clearly separated below the seam label -->
+    <path d="M150 206 C 196 224, 196 236, 150 254" class="add" marker-end="url(#arR)"/>
+    <text x="206" y="220" class="addt">what SoftMimic adds: a stiffness input,</text>
+    <text x="206" y="238" class="addt">so one policy spans many</text>
+    <text x="206" y="256" class="addt">force&#8211;displacement laws</text>
+
+    <!-- hand-tuned layer -->
+    <text x="16" y="290" class="dh dhr">HAND-TUNED</text>
+    <rect x="16" y="300" width="500" height="104" class="box fixed"/>
+    <text x="38" y="330" class="bt">PD / impedance controller</text>
+    <text x="38" y="353" class="bs">position error in, torque and current out</text>
+    <text x="38" y="382" class="bn">gains fixed at design time</text>
+    <text x="500" y="330" class="hz" text-anchor="end">~500&#8211;1000 Hz</text>
+
+    <!-- right rail -->
+    <line x1="556" y1="44" x2="556" y2="392" class="rail"/>
+    <text x="574" y="58" class="ax">what the policy</text>
+    <text x="574" y="76" class="ax">can perceive and</text>
+    <text x="574" y="94" class="ax">reason about</text>
+    <text x="574" y="330" class="ax axr">contact, slip, friction,</text>
+    <text x="574" y="348" class="ax axr">stiffness. all of it</text>
+    <text x="574" y="366" class="ax axr">happens down here</text>
+  </svg>
+  <figcaption>The learned part of a modern manipulation stack stops at the seam. Below it, a controller with fixed gains does the physics, blind to the task. <a href="https://arxiv.org/abs/2510.17792" target="_blank" rel="noopener">SoftMimic</a> is interesting because it does not remove that controller, it parameterises it.</figcaption>
+</figure>
+
+<h2>Ten hertz of intelligence, a kilohertz of physics</h2>
+
+<p>Put the numbers side by side and the problem stops being philosophical.</p>
+
+<p>The policy runs at somewhere between 10 and 50Hz, because that is roughly how fast cameras produce frames and large models produce tokens. Contact transients, a slip, an early collision, a jam, happen an order of magnitude faster than that. The only component fast enough to respond is the controller, and the controller responds identically no matter what the task is, because nothing has told it anything about the task.</p>
+
+<p>Action chunking makes this trade explicitly. It buys coherence and multimodality, the ability to commit to going left around an obstacle rather than averaging left and right into a collision, and it pays for them with reactivity. Two seconds of ACT is two seconds during which the plan does not know the object has moved. Temporal ensembling and re-planning before the chunk ends soften this, and in practice most systems are receding-horizon rather than truly open-loop. But re-planning at 20Hz does not help you catch a slip either.</p>
+
+<p>This is the sense in which a VLA is not a policy. It is the perception-to-plan arc of a loop, and the rest of the loop, the part where the plan meets a physical object, is not learned by anyone.</p>
+
+<h2>The fix that sounds right and is wrong</h2>
+
+<p>The tempting conclusion is to learn the whole thing end to end, straight from pixels down to torques. We think that is the wrong lesson, and not because it is difficult.</p>
+
+<p>Vision cannot close a kilohertz loop. Cameras do not produce the information, so no amount of model capacity conjures it. Biology is blunt about this too: your spinal reflexes fire long before your visual cortex has an opinion, and that arrangement is not a design flaw.</p>
+
+<p>The hierarchy is not the mistake. <strong>The mistake is that the bottom of the hierarchy is dumb, and the channel between the layers is one number per joint.</strong> A position target cannot express &ldquo;be soft here,&rdquo; or &ldquo;expect contact in two centimetres,&rdquo; or &ldquo;hold three newtons.&rdquo; There is no room in the message.</p>
+
+<h2>Widen the interface</h2>
+
+<p>Which is why <a href="https://arxiv.org/abs/2510.17792" target="_blank" rel="noopener">SoftMimic</a> is the most quietly interesting robotics paper we read this year. Its policy still outputs joint-space position targets for a PD controller. It does not replace the classical layer at all. What it adds is a <strong>stiffness input at deployment time</strong>, so a single policy realises a whole range of force-displacement relationships.</p>
+
+<p>The learned layer stops saying only <em>where</em> and starts saying <em>how</em>. It never has to run at a kilohertz to do it.</p>
+
+<p>That is what people mean, mechanically, when they say force should be a native representation rather than a bolted-on sensor. Not "add a tactile pad." Give the planner a vocabulary for dynamics, and give the fast loop something to listen to.</p>
+
+<h2>Locomotion already ran this experiment</h2>
+
+<p>The reason we are fairly confident about this is that the argument is not hypothetical. Learned low-level control works, and has for years, in the next field over.</p>
+
+<p>Legged locomotion policies run at control rate with proprioception in the loop, and they are trained against the actual dynamics. Hwangbo and colleagues&rsquo; <a href="https://www.science.org/doi/10.1126/scirobotics.aau5872" target="_blank" rel="noopener">2019 Science Robotics paper</a> went as far as learning an <em>actuator model</em>, a network that captures what the real motors do, precisely because the analytical model was the thing breaking transfer. That is learned control, and it is a large part of why legged robots crossed over to reliable hardware well before manipulation did.</p>
+
+<p>Manipulation has not copied it for one reason, and it is not a lack of imagination. <strong>Contact is the part of physics simulators nobody has solved.</strong> Friction, deformation, compliance. You cannot train a fast contact-aware controller in a simulator that is wrong about contact.</p>
+
+<p>So the interesting bet in manipulation right now is not a bigger model. It is whether contact-fidelity simulation has become good enough to run the locomotion playbook on hands. That is a claim about simulators, and it is testable, which is more than can be said for most of what gets announced.</p>
+
+<h2>What this changes if you are building something</h2>
+
+<p>Three things we now check before believing a demo.</p>
+
+<p><strong>What is the action space?</strong> If it is positions, the policy has no opinion about force, whatever the press release says about dexterity.</p>
+
+<p><strong>What is between the model and the motors, and who tuned it?</strong> If the answer is a fixed-gain controller, the interesting behaviour in the video is partly that controller's, and it will not transfer to a task needing different compliance.</p>
+
+<p><strong>How long is the chunk, and what happens inside it?</strong> Two seconds is a long time in contact.</p>
+
+<p>None of this says vision-language-action models are a wrong turn. They solved a real problem, the one where you could not specify a task at all without hand-labelling a state representation for it, and they solved it well enough to be the substrate everyone builds on. The claim is narrower and, we think, harder to argue with: <strong>a VLA is one arc of the perception-action loop, and the field has been treating it as the whole circle.</strong></p>
+
+<p class="note">We run one <a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">SO-101</a> arm and a few dozen recorded episodes, which is exactly the scale at which you notice that your demonstrations encode a fixed camera pose and a particular controller and nothing about force. The reading behind this post is on our <a href="../learn.html">Learn</a> page, and the companies making each bet are mapped on <a href="../industry.html">Industry</a>. If we have something wrong, we would genuinely like to know.</p>
+</div>
+    </div>
+
+    <section class="bp-src">
+      <h2 class="reveal">Sources</h2>
+      <ol class="reveal"><li><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al., <em>Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</em> (ACT), RSS 2023</a><span>chunk size 1 &rarr; 100 gives 1% &rarr; 44%; 100 target joint positions at 50Hz control; temporal ensembling</span></li><li><a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">Physical Intelligence, <em>&pi;<sub>0</sub>: A Vision-Language-Action Flow Model for General Robot Control</em>, 2024</a><span>PaliGemma 3B backbone, flow-matching action expert, 50-step action chunks, 10,000+ hours of robot data</span></li><li><a href="https://arxiv.org/abs/2510.17792" target="_blank" rel="noopener"><em>SoftMimic: Learning Compliant Whole-body Control from Examples</em> (MIT), 2025</a><span>policy outputs joint-space position targets for a PD controller; stiffness is an input at deployment, one policy spans many stiffnesses</span></li><li><a href="https://www.science.org/doi/10.1126/scirobotics.aau5872" target="_blank" rel="noopener">Hwangbo et al., <em>Learning agile and dynamic motor skills for legged robots</em>, Science Robotics 4(26), 2019</a><span>learned actuator model; learned control at control rate with proprioception</span></li><li><a href="https://www2.eecs.berkeley.edu/Pubs/TechRpts/2018/EECS-2018-133.pdf" target="_blank" rel="noopener">Agrawal, <em>Computational Sensorimotor Learning</em>, PhD dissertation, UC Berkeley, 2018</a><span>physics operates on mass, friction and stiffness rather than pixels; robustness over precision; the argument against modular perception-then-physics pipelines</span></li><li><a href="https://www.youtube.com/watch?v=vDiWUuYxbZI" target="_blank" rel="noopener">Agrawal, <em>Question the role of vision for robotic control</em> (talk)</a><span>vision is for planning; control needs force</span></li></ol>
+    </section>
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="../assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club.</p>
+</footer>
+<script>
+(function(){
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){
+    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
+  },{threshold:0.08,rootMargin:'0px 0px -5% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+})();
+</script>
+</body>
+</html>
