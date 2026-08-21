@@ -37,8 +37,6 @@
   /* card grid */
   .res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:clamp(22px,2.6vw,36px) clamp(26px,3.2vw,48px)}
   .res{position:relative;border-top:1px solid var(--ink);padding:16px 0 0;display:flex;flex-direction:column;transition:border-color .28s var(--ease)}
-  /* our exact hardware — marks the whole card, page-wide, with the one accent already in use */
-  .res.so101{border-top-color:var(--apple)}
   .res-grid .res:nth-child(2){animation-delay:.05s}
   .res-grid .res:nth-child(3){animation-delay:.1s}
   .res-grid .res:nth-child(4){animation-delay:.15s}
@@ -46,7 +44,7 @@
   .res-grid .res:nth-child(6){animation-delay:.25s}
   .res-grid .res:nth-child(7){animation-delay:.3s}
   .res-meta{display:flex;align-items:center;gap:10px;margin-bottom:11px;font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-  .res-tag{color:var(--apple)}
+  .res-tag{color:var(--ink-2)}
   .res-src{color:var(--ink-3)}
   .res h3{font-size:1.16rem;font-weight:500;line-height:1.2;margin:0 0 9px}
   .res p{margin:0;color:var(--ink-2);font-size:.98rem;line-height:1.5}
@@ -60,7 +58,6 @@
   .pt-dot.now{background:var(--apple);border-color:var(--apple)}
   .pt-item h3{font-size:1.12rem;font-weight:500;line-height:1.2;margin:0 0 5px;display:flex;align-items:baseline;gap:11px;flex-wrap:wrap}
   .pt-thread{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);flex:none}
-  .pt-thread.vla{color:var(--apple)}
   .pt-item p{margin:0;color:var(--ink-2);font-size:.96rem;line-height:1.48;max-width:62ch}
   .read-sub{margin:clamp(44px,5.5vw,68px) 0 clamp(20px,2.6vw,30px);font-family:var(--mono);font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
   /* shared link underline (cards + timeline) */
@@ -125,9 +122,6 @@
   }
   .node h4 a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
   .fork-era{font-family:var(--mono);font-size:10px;letter-spacing:.09em;color:var(--ink-3);font-style:normal;margin-left:11px;white-space:nowrap}
-  .node.todo .node-dot{border-color:var(--line-2)}
-  .node.todo h4 a{color:var(--ink-2)}
-  @media (hover:hover){ .node.todo:hover .node-dot{border-color:var(--apple)} }
   .flow-err{font-family:var(--mono);font-size:12.5px;color:var(--ink-3)}
   @media (max-width:640px){
     .fork{padding-left:22px}.fork::before{width:28px}
@@ -1868,7 +1862,7 @@
       function byYear(a,b){ return String(a.y).localeCompare(String(b.y)) || a.t.localeCompare(b.t); }
 
       function node(p){
-        return '<li class="node'+(p.read===false?" todo":"")+'"><span class="node-dot'+(p.now?" now":"")+'"></span>'+
+        return '<li class="node"><span class="node-dot'+(p.now?" now":"")+'"></span>'+
           '<h4>'+link(p)+'<span class="node-y">'+esc(p.y)+'</span>'+
           (p.tag ? '<span class="node-tag'+hot(p)+'">'+esc(p.tag)+'</span>' : '')+'</h4>'+
           (p.d ? '<p>'+esc(p.d)+'</p>' : '')+'</li>';
