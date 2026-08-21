@@ -20,10 +20,7 @@
 <link rel="stylesheet" href="styles.css">
 <style>
   .in-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(88px,11vh,114px) clamp(20px,5vw,44px) 0}
-  .in-hero .eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;margin:0 0 clamp(18px,2.4vw,26px)}
-  .in-hero h1{font-family:var(--disp);font-size:clamp(2.05rem,4.9vw,3.25rem);font-weight:500;line-height:1.06;letter-spacing:-.02em;max-width:23ch;margin:0}
-  .in-hero h1 em{font-style:italic}
-  .in-hero .lede{font-size:1.03rem;color:var(--ink-2);max-width:54ch;margin:22px 0 0}
+  .in-hero h1.eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;margin:0 0 clamp(18px,2.4vw,26px)}
 
   .in-wrap{max-width:var(--maxw);margin:0 auto;padding:clamp(34px,4.6vw,56px) clamp(20px,5vw,44px) 0}
   .in-key{display:flex;flex-wrap:wrap;gap:6px 26px;align-items:baseline;
@@ -73,7 +70,7 @@
   .det a:hover{border-color:var(--apple)}
   .det a span{font-size:.85em;margin-left:2px}
 
-  .in-z{max-width:var(--maxw);margin:0 auto;padding:clamp(40px,5vw,64px) clamp(20px,5vw,44px) 0}
+  .in-z{max-width:var(--maxw);margin:0 auto;padding:clamp(40px,5vw,64px) clamp(20px,5vw,44px) clamp(20px,3vw,32px)}
   .in-z h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
     border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
   .in-z ul{list-style:none;margin:0;padding:0;columns:3;column-gap:clamp(24px,3.4vw,50px)}
@@ -84,11 +81,6 @@
   .in-z a+a::before{content:", ";color:var(--line-2)}
   .in-z a:hover{color:var(--apple);border-color:var(--apple)}
 
-  .in-foot{max-width:var(--maxw);margin:0 auto;padding:clamp(38px,4.8vw,58px) clamp(20px,5vw,44px) 0}
-  .in-foot p{margin:0;max-width:62ch;font-size:.97rem;color:var(--ink-2)}
-  .in-foot a{border-bottom:1px solid var(--line-2)}
-  .in-foot a:hover{border-color:var(--ink)}
-  .in-fine{margin-top:15px!important;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3)!important}
 
   .reveal{opacity:0}
   .reveal.vis{animation:rv .5s var(--ease) both}
@@ -134,9 +126,7 @@
 <main id="top">
 
   <section class="in-hero">
-    <p class="eyebrow">The board</p>
-    <h1>Thirteen companies, one goal, <em>no</em> agreement on what to scale.</h1>
-    <p class="lede">They are all building a robot foundation model. They disagree about what you have to scale to get one. Each bet buys something and costs something.</p>
+    <h1 class="eyebrow">The board</h1>
   </section>
 
   <div class="in-wrap">
@@ -263,12 +253,6 @@
   <section class="in-z">
     <h2 class="reveal">Every company, and the axes it is betting on</h2>
     <ul class="reveal"><li><b>AgiBot</b><a href="#a-repr">representation</a><a href="#a-tasks">tasks</a></li><li><b>Dyna Robotics</b><a href="#a-data">data</a><a href="#a-repr">representation</a><a href="#a-tasks">tasks</a></li><li><b>Eka Robotics</b><a href="#a-data">data</a><a href="#a-repr">representation</a><a href="#a-tasks">tasks</a></li><li><b>Field AI</b><a href="#a-repr">representation</a><a href="#a-bodies">bodies</a></li><li><b>Figure AI</b><a href="#a-bodies">bodies</a></li><li><b>Generalist AI</b><a href="#a-tasks">tasks</a></li><li><b>Genesis AI</b><a href="#a-data">data</a></li><li><b>Google DeepMind</b><a href="#a-data">data</a><a href="#a-repr">representation</a><a href="#a-bodies">bodies</a></li><li><b>NVIDIA</b><a href="#a-data">data</a><a href="#a-bodies">bodies</a></li><li><b>Physical Intelligence</b><a href="#a-data">data</a><a href="#a-repr">representation</a><a href="#a-tasks">tasks</a></li><li><b>Skild AI</b><a href="#a-data">data</a><a href="#a-tasks">tasks</a><a href="#a-bodies">bodies</a></li><li><b>Sunday Robotics</b><a href="#a-data">data</a></li><li><b>Toyota Research Institute</b><a href="#a-data">data</a></li></ul>
-  </section>
-
-  <section class="in-foot">
-    <p class="reveal">5 of the 13 sit on three axes at once, and that combination is the actual strategy. Physical Intelligence and Eka Robotics are the cleanest opposition on the board: same goal, and they disagree about where data comes from, what the model should predict, and whether generality costs you speed.</p>
-    <p class="reveal" style="margin-top:14px">One absence is worth naming. Of these thirteen, only Toyota Research Institute publishes a statistically careful evaluation of its own model. The validation industry that does exist was built for autonomous vehicles, where somebody was legally obliged to prove a safety case, and it is only now moving into robotics.</p>
-    <p class="reveal in-fine">Robot foundation-model companies only, so no tooling, sensors or integrators &#183; public sources only, one per entry &#183; the papers live on <a href="learn.html">Learn</a> &#183; tended 20 Aug 2026 &#183; wrong axis? <a href="index.html#join">tell us</a></p>
   </section>
 
 </main>
