@@ -1648,7 +1648,7 @@
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Talk</span><span class="res-src">Pulkit Agrawal · MIT, 2024</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-ghQJNmStB4" target="_blank" rel="noopener">Embodied Intelligence — why sim-to-real needs a teacher<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>The clearest 26 minutes on <strong>teacher–student distillation</strong>, the trick underneath most sim-to-real that actually works. In simulation you can, in his words, play god: you know the object's true velocity and pose, so you train an RL <em>teacher</em> on that small privileged state, which is tractable. The real robot can sense none of it, so you <em>distill</em> the teacher into a student reading only camera and joint data, by plain supervised learning. The same recipe unchanged does in-hand reorientation of objects it has never seen and quadruped locomotion. He is equally clear about the bill: reward functions get hand-tuned term by term, you can only attempt what you can simulate, and deployment safety has no good answer yet.</p></div>
+        <p>Teacher–student distillation, clearly explained: train an RL teacher on privileged simulator state, then distill into a student that only sees real sensors.</p></div>
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Trelis Research</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-tkEMLOLEwo" target="_blank" rel="noopener">Train an ACT policy on the SO-101<span class="ext" aria-hidden="true">↗</span></a></h3>
