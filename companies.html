@@ -4,113 +4,104 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Companies · Phi</title>
-<meta name="description" content="Everyone in robotics says they are scaling. Almost nobody says what. Eight axes you can scale a robot company along, what each one buys you, what it blinds you to, and who is betting on it.">
+<meta name="description" content="Robotics has one word for eight different bets. A visual map of which axis each company is actually scaling on, with a public source for every claim.">
 <meta name="theme-color" content="#ECE7DC">
-
 <meta property="og:type" content="website">
 <meta property="og:title" content="Companies — Physical Hardware Intelligence">
-<meta property="og:description" content="Eight axes you can scale a robot company along. What each buys you, what it costs, what it blinds you to, and who is betting on it.">
+<meta property="og:description" content="Eight axes you can scale a robot company along, and who is actually on each. Every claim carries a public source.">
 <meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
 <meta property="og:url" content="https://physical-hardware-intelligence.github.io/companies.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
-
 <link rel="icon" href="assets/phi-mark-ink.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 <style>
-  .fld-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(90px,11vh,116px) clamp(20px,5vw,44px) 0}
-  .fld-hero .eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin-bottom:clamp(20px,2.6vw,28px)}
-  .fld-hero h1{font-family:var(--disp);font-size:clamp(2.3rem,5.6vw,3.7rem);font-weight:500;line-height:1.04;letter-spacing:-.02em;max-width:20ch;margin:0}
-  .fld-hero h1 em{font-style:italic}
-  .fld-hero .lede{font-size:clamp(1.04rem,1.7vw,1.22rem);color:var(--ink-2);max-width:60ch;margin:26px 0 0}
-  .fld-stat{display:flex;flex-wrap:wrap;gap:8px 30px;margin:30px 0 0;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--ink-3)}
-  .fld-stat b{color:var(--ink);font-weight:500}
+  .mp-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(88px,11vh,114px) clamp(20px,5vw,44px) 0}
+  .mp-hero .eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;margin:0 0 clamp(18px,2.4vw,26px)}
+  .mp-hero h1{font-family:var(--disp);font-size:clamp(2.1rem,5vw,3.3rem);font-weight:500;line-height:1.06;letter-spacing:-.02em;max-width:22ch;margin:0}
+  .mp-hero h1 em{font-style:italic}
 
-  .fld-wrap{max-width:var(--maxw);margin:0 auto;padding:clamp(46px,6vw,76px) clamp(20px,5vw,44px) 0}
-  .fld-tools{display:flex;justify-content:space-between;align-items:baseline;gap:18px;flex-wrap:wrap;
-    border-bottom:1px solid var(--ink);padding-bottom:9px;margin-bottom:clamp(20px,3vw,32px)}
-  .fld-tools p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
-  .fld-toggle{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);
-    background:none;border:0;padding:2px 0;cursor:pointer;border-bottom:1px solid var(--line-2);transition:color .2s,border-color .2s}
-  .fld-toggle:hover{color:var(--ink);border-color:var(--ink)}
+  .mp-wrap{max-width:var(--maxw);margin:0 auto;padding:clamp(40px,5.4vw,66px) clamp(20px,5vw,44px) 0}
+  .mp-key{display:flex;flex-wrap:wrap;gap:6px 26px;align-items:center;
+    font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    border-bottom:1px solid var(--ink);padding-bottom:10px;margin-bottom:6px}
+  .mp-key i{display:inline-block;width:22px;height:7px;margin-right:8px;vertical-align:1px}
+  .mp-key .k1 i{background:var(--ink)}
+  .mp-key .k2 i{background:var(--line-2)}
+  .mp-key b{color:var(--ink);font-weight:500}
 
-  /* ---- trunk ---- */
-  .trunk{border-top:1px solid var(--line-2)}
-  .trunk:last-of-type{border-bottom:1px solid var(--line-2)}
-  .trunk>summary{list-style:none;cursor:pointer;display:grid;
-    grid-template-columns:auto 1fr auto auto;align-items:baseline;gap:0 16px;
-    padding:clamp(18px,2.4vw,26px) 0}
-  .trunk>summary::-webkit-details-marker{display:none}
-  .tk-n{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);letter-spacing:.06em}
-  .tk-label{font-family:var(--disp);font-size:clamp(1.32rem,2.7vw,1.92rem);font-weight:500;letter-spacing:-.012em;line-height:1.12}
-  .tk-count{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
-  .tk-mark{width:11px;height:11px;position:relative;align-self:center;flex:none}
-  .tk-mark::before,.tk-mark::after{content:"";position:absolute;background:var(--ink);transition:transform .3s var(--ease),opacity .3s var(--ease)}
-  .tk-mark::before{left:0;right:0;top:5px;height:1px}
-  .tk-mark::after{top:0;bottom:0;left:5px;width:1px}
-  .trunk[open]>summary .tk-mark::after{transform:scaleY(0)}
-  .trunk[open]>summary .tk-label{font-style:italic}
-  @media (hover:hover){ .trunk>summary:hover .tk-label{color:var(--apple)} }
-  .trunk>summary:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:2px}
-  .tk-claim{margin:-6px 0 clamp(22px,3vw,30px);max-width:64ch;color:var(--ink-2);font-size:1.02rem;line-height:1.6;
-    padding-left:clamp(0px,3.6vw,42px)}
+  .ax{border-bottom:1px solid var(--line)}
+  .ax>summary{list-style:none;cursor:pointer;display:grid;
+    grid-template-columns:auto minmax(0,1fr) minmax(90px,32%) auto;align-items:center;gap:0 clamp(12px,2vw,22px);
+    padding:clamp(15px,1.9vw,21px) 0}
+  .ax>summary::-webkit-details-marker{display:none}
+  .ax>summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+  .ax-n{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  .ax-l{font-family:var(--disp);font-size:clamp(1.12rem,2.1vw,1.5rem);font-weight:500;letter-spacing:-.01em;line-height:1.16;
+    transition:color .2s var(--ease)}
+  .ax-bar{position:relative;height:7px;background:var(--line);overflow:hidden}
+  .ax-bar i{position:absolute;inset:0;width:var(--w);background:var(--line-2);
+    transition:width .6s var(--ease)}
+  .ax-bar i::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--co);background:var(--ink)}
+  .ax-c{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);min-width:2ch;text-align:right}
+  @media (hover:hover){ .ax>summary:hover .ax-l{color:var(--apple)} }
+  .ax[open]>summary .ax-l{font-style:italic}
 
-  /* ---- branches: the vertical rail is the branch ---- */
-  .branches{position:relative;margin:0 0 clamp(26px,3.4vw,38px);padding-left:clamp(14px,3.6vw,42px)}
-  .branches::before{content:"";position:absolute;left:clamp(0px,1.1vw,13px);top:6px;bottom:14px;width:1px;background:var(--line-2)}
-  .branch{position:relative;padding:0 0 2px}
-  .branch>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:12px;padding:9px 0}
-  .branch>summary::-webkit-details-marker{display:none}
-  .br-tick{flex:none;width:clamp(10px,1.9vw,22px);height:1px;background:var(--line-2);
-    margin-left:calc(-1 * clamp(14px,3.6vw,42px) + clamp(0px,1.1vw,13px) + 1px);align-self:center;transition:background .25s var(--ease),width .25s var(--ease)}
-  .br-label{font-size:1.03rem;line-height:1.42;color:var(--ink);transition:color .2s}
-  .branch[open]>summary .br-tick,
-  .branch>summary:hover .br-tick{background:var(--apple)}
-  .branch[open]>summary .br-label{color:var(--apple)}
-  @media (hover:hover){ .branch>summary:hover .br-label{color:var(--apple)} }
-  .branch>summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+  .ax-b{padding:2px 0 clamp(22px,3vw,32px)}
+  .ax-t{margin:0 0 clamp(18px,2.4vw,26px);font-size:.97rem;color:var(--ink-2);max-width:62ch;
+    padding-left:clamp(0px,3vw,34px)}
+  .grp{display:grid;grid-template-columns:clamp(120px,17vw,200px) minmax(0,1fr);gap:0 clamp(14px,2vw,26px);
+    padding:0 0 13px;align-items:start}
+  .grp-l{margin:3px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);line-height:1.5}
+  .grp-c{display:flex;flex-wrap:wrap;gap:7px}
+  .grp-d{grid-column:2;display:contents}
 
-  .br-body{padding:4px 0 22px 0}
-  .ledger{display:grid;grid-template-columns:repeat(3,1fr);gap:0 clamp(18px,2.4vw,34px);margin:6px 0 20px}
-  .ledger>div{border-top:1px solid var(--line);padding:9px 0 0}
-  .ledger dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin:0 0 5px}
-  .ledger dd{margin:0;font-size:.95rem;line-height:1.46;color:var(--ink-2)}
-  .ledger .blind{border-top-color:var(--apple)}
-  .ledger .blind dt{color:var(--apple)}
-  .ledger .blind dd{color:var(--ink)}
+  .chip{display:inline-block;font-size:.93rem;line-height:1;padding:6px 11px 7px;
+    border:1px solid var(--line-2);border-radius:2px;color:var(--ink);
+    transition:border-color .2s var(--ease),background .2s var(--ease),color .2s var(--ease)}
+  .chip.open{border-style:dashed;color:var(--ink-2)}
+  @media (hover:hover){ .chip:hover{border-color:var(--ink);background:var(--paper-2)} }
+  .chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
 
-  /* ---- roots ---- */
-  .roots{list-style:none;margin:0;padding:0}
-  .roots li{position:relative;padding:0 0 9px 20px;font-size:.95rem;line-height:1.5}
-  .roots li::before{content:"";position:absolute;left:2px;top:.62em;width:9px;height:1px;background:var(--line-2)}
-  .roots b{font-weight:500;font-family:var(--disp);font-size:.99rem}
-  .roots span{color:var(--ink-2)}
-  .roots b::after{content:" · ";color:var(--ink-3)}
+  .det{display:none;grid-column:2;margin:9px 0 2px;font-size:.95rem;line-height:1.5;color:var(--ink-2);max-width:70ch}
+  .det.on{display:block;animation:det-in .3s var(--ease) both}
+  @keyframes det-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+  .det b{font-family:var(--disp);font-weight:500;color:var(--ink)}
+  .det b::after{content:"\2009\2014\00a0";color:var(--ink-3);font-family:var(--serif)}
+  .det a{color:var(--apple);border-bottom:1px solid transparent;white-space:nowrap}
+  .det a:hover{border-color:var(--apple)}
+  .det a span{font-size:.85em;margin-left:2px}
 
-  .fld-close{max-width:var(--maxw);margin:0 auto;padding:clamp(58px,7vw,92px) clamp(20px,5vw,44px) 0}
-  .fld-close-inner{border-top:1px solid var(--ink);padding-top:clamp(22px,3vw,32px);max-width:66ch}
-  .fld-close h2{font-family:var(--disp);font-size:clamp(1.3rem,2.6vw,1.72rem);font-weight:500;margin:0 0 12px;letter-spacing:-.01em}
-  .fld-close p{margin:0 0 14px;color:var(--ink-2);font-size:1.01rem}
-  .fld-close a.tx{border-bottom:1px solid var(--line-2)}
-  .fld-close a.tx:hover{border-color:var(--ink)}
+  .mp-foot{max-width:var(--maxw);margin:0 auto;padding:clamp(40px,5vw,64px) clamp(20px,5vw,44px) 0}
+  .mp-foot p{margin:0;max-width:60ch;font-size:.97rem;color:var(--ink-2)}
+  .mp-foot a{border-bottom:1px solid var(--line-2)}
+  .mp-foot a:hover{border-color:var(--ink)}
 
   .reveal{opacity:0}
-  .reveal.vis{animation:reveal-up .55s var(--ease) both}
-  @keyframes reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .reveal.vis{animation:rv .5s var(--ease) both}
+  @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 
-  @media (max-width:760px){
-    .ledger{grid-template-columns:1fr;gap:0}
-    .ledger>div{padding:9px 0 12px}
-    .trunk>summary{grid-template-columns:auto 1fr auto;gap:0 12px}
-    .tk-count{grid-column:2;grid-row:2;margin-top:5px}
-    .tk-mark{grid-column:3;grid-row:1}
+  @media (max-width:820px){
+    /* explicit placement: index, label, count on row 1; bar spans row 2 */
+    .ax>summary{grid-template-columns:auto minmax(0,1fr) auto;gap:0 12px}
+    .ax-n{grid-column:1;grid-row:1}
+    .ax-l{grid-column:2;grid-row:1}
+    .ax-c{grid-column:3;grid-row:1}
+    .ax-bar{grid-column:1/-1;grid-row:2;margin-top:10px}
+    /* single column: .det must not create an implicit column 2 */
+    .grp{grid-template-columns:minmax(0,1fr);gap:0;padding-bottom:17px}
+    .grp-l{grid-column:1;margin:0 0 7px}
+    .grp-c{grid-column:1}
+    .grp-d,.det{grid-column:1}
+    .ax-t{padding-left:0}
   }
   @media (prefers-reduced-motion:reduce){
     .reveal,.reveal.vis{opacity:1!important;animation:none!important}
-    .tk-mark::before,.tk-mark::after,.br-tick{transition:none}
+    .ax-bar i{transition:none} .det.on{animation:none}
   }
 </style>
 </head>
@@ -132,481 +123,247 @@
 
 <main id="top">
 
-  <section class="fld-hero">
+  <section class="mp-hero">
     <p class="eyebrow">The field</p>
-    <h1>Everyone says they are scaling. Almost nobody says <em>what</em>.</h1>
-    <p class="lede">Robotics has one word for eight different bets. Each of them buys you something real, charges you something real, and leaves you blind to something real. This is the tree. Open a trunk to see the branches, open a branch to see who is out on it.</p>
-    <p class="fld-stat"><span><b>8</b> trunks</span><span><b>33</b> branches</span><span><b>67</b> companies and systems</span><span>Last tended <b>20 Aug 2026</b></span></p>
+    <h1>Everyone is scaling something. <em>Which axis?</em></h1>
   </section>
 
-  <div class="fld-wrap">
-    <div class="fld-tools">
-      <p>Tap a trunk &nbsp;→&nbsp; tap a branch &nbsp;→&nbsp; the roots are the companies</p>
-      <button class="fld-toggle" id="allBtn" type="button" data-open="0">Open everything</button>
-    </div>
+  <div class="mp-wrap">
+    <p class="mp-key">
+      <span class="k1"><i></i>company</span>
+      <span class="k2"><i></i>open work</span>
+      <span><b>8</b> axes</span>
+      <span><b>50</b> entries</span>
+      <span>bar &#61; how crowded</span>
+    </p>
 
-    <div id="tree">
-      <details class="trunk reveal" id="t-data">
+    <div id="map">
+      <details class="ax reveal" id="a-data">
         <summary>
-          <span class="tk-n">01</span>
-          <span class="tk-label">Scale the data</span>
-          <span class="tk-count">8 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">01</span>
+          <span class="ax-l">Scale the data</span>
+          <span class="ax-bar" style="--w:100.0%;--co:85.71%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">14</span>
         </summary>
-        <p class="tk-claim">The default answer, and the only one most people mean. But data is not one thing — it is eight different bets, and each buys you something by blinding you to something else.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Let the robot try it itself</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Correct by construction</dd></div>
-              <div><dt>Costs you</dt><dd>Slowest, and it needs a score</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything you cannot write a reward for</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Physical Intelligence</b><span>RECAP: demonstrations, then corrections, then self-improvement from autonomous trials</span></li><li><b>Dyna Robotics</b><span>one task pushed to commercial reliability before adding the next</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">Cheapest where it is furthest from the robot. Wrongest where it matters.</p>
+          <div class="grp">
+            <p class="grp-l">its own trials</p>
+            <div class="grp-c"><a class="chip co" href="https://arxiv.org/abs/2511.14759" target="_blank" rel="noopener">Physical Intelligence</a><a class="chip co" href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">Dyna Robotics</a></div>
+            <div class="grp-d"><p class="det"><b>Physical Intelligence</b>Demonstrations, then expert corrections, then RL from its own autonomous attempts. <a href="https://arxiv.org/abs/2511.14759" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Dyna Robotics</b>One task pushed to commercial reliability before the next one is added. <a href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">a human at the controls</p>
+            <div class="grp-c"><a class="chip co" href="https://huggingface.co/datasets/XDOF/ABC-130k" target="_blank" rel="noopener">XDOF</a><a class="chip co" href="https://www.tri.global/our-work/large-behavior-models" target="_blank" rel="noopener">Toyota Research Institute</a></div>
+            <div class="grp-d"><p class="det"><b>XDOF</b>An outsourced teleoperation factory. Open-sourced 134,806 episodes, 3,553 hours, Apache 2.0. <a href="https://huggingface.co/datasets/XDOF/ABC-130k" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Toyota Research Institute</b>Fifty to a hundred bimanual haptic teleop demos per behaviour, tactile included. <a href="https://www.tri.global/our-work/large-behavior-models" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">a glove, no robot</p>
+            <div class="grp-c"><a class="chip co" href="https://www.sunday.ai/journal/no-robot-data" target="_blank" rel="noopener">Sunday Robotics</a><a class="chip co" href="https://www.proception.ai/news/introducing-prohand" target="_blank" rel="noopener">Proception</a></div>
+            <div class="grp-d"><p class="det"><b>Sunday Robotics</b>A $200 glove sharing the robot&#x27;s exact hand geometry and sensors. No simulator. <a href="https://www.sunday.ai/journal/no-robot-data" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Proception</b>ProHand&#x27;s sensor skin, worn as a glove. The hand and the capture device are one design. <a href="https://www.proception.ai/news/introducing-prohand" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">other robots&#x27; data</p>
+            <div class="grp-c"><a class="chip open" href="https://robotics-transformer-x.github.io/" target="_blank" rel="noopener">Open X-Embodiment</a></div>
+            <div class="grp-d"><p class="det"><b>Open X-Embodiment</b>Pool it across labs and embodiments, then train one policy on the union. <a href="https://robotics-transformer-x.github.io/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">humans on video</p>
+            <div class="grp-c"><a class="chip co" href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">Skild AI</a><a class="chip open" href="https://ego4d-data.org/" target="_blank" rel="noopener">Ego4D</a></div>
+            <div class="grp-d"><p class="det"><b>Skild AI</b>Pre-trains on internet human video, on the view that humans are another form factor. <a href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Ego4D</b>Thousands of hours of egocentric human activity. No action labels, ever. <a href="https://ego4d-data.org/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">a simulator</p>
+            <div class="grp-c"><a class="chip co" href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">Eka Robotics</a><a class="chip co" href="https://www.genesis.ai/press/genesis-ai-emerges-from-stealth-with-dollar105m-to-build-universal-robotics-found" target="_blank" rel="noopener">Genesis AI</a><a class="chip co" href="https://antimlabs.com/" target="_blank" rel="noopener">Antim Labs</a></div>
+            <div class="grp-d"><p class="det"><b>Eka Robotics</b>Contact fidelity over photorealism: mass, inertia, friction. Explicitly not imitation data. <a href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Genesis AI</b>A physics engine generating synthetic experience up to 430,000x faster than real time. <a href="https://www.genesis.ai/press/genesis-ai-emerges-from-stealth-with-dollar105m-to-build-universal-robotics-found" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Antim Labs</b>A prompt or a floorplan becomes an export-ready scene with real colliders and articulation. <a href="https://antimlabs.com/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">robots already on the clock</p>
+            <div class="grp-c"><a class="chip co" href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">Ambi Robotics</a><a class="chip co" href="https://www.dexory.com/insights/strong-customer-demand-enables-dexory-to-secure-165m-in-funding" target="_blank" rel="noopener">Dexory</a></div>
+            <div class="grp-d"><p class="det"><b>Ambi Robotics</b>Twenty-two years of robot data, collected by sorting over a hundred million real parcels. <a href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Dexory</b>Ten thousand warehouse locations scanned an hour, resold as a live digital twin. <a href="https://www.dexory.com/insights/strong-customer-demand-enables-dexory-to-secure-165m-in-funding" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Put a human on the controls</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Perfectly aligned with the robot&#x27;s own body</dd></div>
-              <div><dt>Costs you</dt><dd>An hour of human time per hour of data</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Force — a remote operator cannot feel anything</dd></div>
-            </dl>
-            <ul class="roots"><li><b>XDOF</b><span>runs the teleoperation collection that AI labs would rather not own</span></li><li><b>Sanctuary AI</b><span>teleoperation first, on the argument that you cannot automate what you cannot yet do</span></li><li><b>Toyota Research Institute</b><span>bimanual haptic teleop — the rare version where the operator does feel</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Give the human the robot&#x27;s hands, then remove the robot</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Data scales with people, not with arms</dd></div>
-              <div><dt>Costs you</dt><dd>The arm behind the hand is still a human arm</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Viewpoint and whole-body consistency</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Sunday Robotics</b><span>a $200 glove matching Memo&#x27;s hands exactly, in 500+ homes</span></li><li><b>Proception</b><span>a sensor glove feeding a 22-degree-of-freedom hand</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Borrow other robots&#x27; data</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Hundreds of thousands of episodes, already recorded</dd></div>
-              <div><dt>Costs you</dt><dd>You inherit their calibration and their cameras</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Your own gripper&#x27;s quirks</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Skild AI</b><span>one omni-bodied policy across quadrupeds, humanoids and factory arms</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Take it from humans on video</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Free, and effectively unlimited</dd></div>
-              <div><dt>Costs you</dt><dd>No actions, ever</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>What to do — video only shows what happened</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Asimov</b><span>pays people to record their own routines on a head-mounted phone</span></li><li><b>Niantic Spatial</b><span>thirty billion posed images turned into geometry</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Manufacture it in a simulator</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Infinite, free and resettable</dd></div>
-              <div><dt>Costs you</dt><dd>Wrong in exactly the place contact happens</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Friction, deformation, compliance</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Eka Robotics</b><span>contact fidelity over photorealism: mass, inertia, friction</span></li><li><b>Genesis AI</b><span>a physics engine used to manufacture the training set</span></li><li><b>Antim Labs</b><span>a prompt or a floorplan becomes a simulator-ready scene</span></li><li><b>Dirac Robotics</b><span>asset physics measured against real hardware instead of eyeballed</span></li><li><b>AuraML</b><span>a multimodal world simulator aimed at the sim-to-real gap</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Multiply the real data you already have</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Cheapest possible gain per episode</dd></div>
-              <div><dt>Costs you</dt><dd>Cannot create what was never recorded</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything outside the span of your originals</dd></div>
-            </dl>
-            <ul class="roots"><li><b>MimicGen, DemoGen, RoVi-Aug</b><span>the augmentation line on the Learn page&#x27;s data spine</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Let robots that already have a job collect it</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>The only data that pays for itself</dd></div>
-              <div><dt>Costs you</dt><dd>Only exists for tasks narrow enough to deploy today</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything nobody will pay for yet</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Ambi Robotics</b><span>twenty-two years of robot data, collected by sorting a hundred million real parcels</span></li><li><b>Addverb Technologies</b><span>India&#x27;s largest deployed fleet</span></li><li><b>Ati Robotics</b><span>two million industrial missions a year</span></li><li><b>Burro</b><span>a quarter of a million autonomous field miles</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
-      <details class="trunk reveal" id="t-bodies">
+      <details class="ax reveal" id="a-tasks">
         <summary>
-          <span class="tk-n">02</span>
-          <span class="tk-label">Scale the bodies</span>
-          <span class="tk-count">4 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">02</span>
+          <span class="ax-l">Scale the tasks</span>
+          <span class="ax-bar" style="--w:42.86%;--co:83.33%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">6</span>
         </summary>
-        <p class="tk-claim">A policy is worth more if it runs on more machines, and a machine is worth less if it costs more. Four different ways out, and two of them are about not building a robot at all.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">One policy, many morphologies</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Every new body multiplies the training set</dd></div>
-              <div><dt>Costs you</dt><dd>Nothing is tuned for anything</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>The last few percent, which is where deployment lives</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Skild AI</b><span>omni-bodied by design — humans counted as another form factor</span></li><li><b>Open X-Embodiment</b><span>the pooled dataset that made the argument possible</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">Generality is what everyone announces. Narrowness is what ships.</p>
+          <div class="grp">
+            <p class="grp-l">many tasks, one model</p>
+            <div class="grp-c"><a class="chip co" href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">Physical Intelligence</a><a class="chip co" href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">Skild AI</a></div>
+            <div class="grp-d"><p class="det"><b>Physical Intelligence</b>One flow-matching policy across many jobs, rather than one policy per job. <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Skild AI</b>Generality across task and hardware is the stated product, not a side effect. <a href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">one task, to a reliability nobody else reaches</p>
+            <div class="grp-c"><a class="chip co" href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">Dyna Robotics</a><a class="chip co" href="https://indiatechreport.in/2026/04/30/eka-robotics-bets-on-force-not-language-to-teach-robots-dexterity/" target="_blank" rel="noopener">Eka Robotics</a></div>
+            <div class="grp-d"><p class="det"><b>Dyna Robotics</b>Commercial reliability on a single task first. Generality later, or never. <a href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Eka Robotics</b>Narrow, force-native dexterity sold per deployment rather than as a generalist. <a href="https://indiatechreport.in/2026/04/30/eka-robotics-bets-on-force-not-language-to-teach-robots-dexterity/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">learn it from a single demonstration</p>
+            <div class="grp-c"><a class="chip co" href="https://generalistai.com/blog/gen-1.5" target="_blank" rel="noopener">Generalist AI</a></div>
+            <div class="grp-d"><p class="det"><b>Generalist AI</b>59% one-shot across ten tasks with no gradient updates at all. 83% after ten steps. <a href="https://generalistai.com/blog/gen-1.5" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">language as the task interface</p>
+            <div class="grp-c"><a class="chip open" href="https://openvla.github.io/" target="_blank" rel="noopener">OpenVLA</a></div>
+            <div class="grp-d"><p class="det"><b>OpenVLA</b>A new task becomes a sentence. Which is also why force never makes it into the instruction. <a href="https://openvla.github.io/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">One body, mass-manufactured</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Unit cost falls with volume, like every other machine</dd></div>
-              <div><dt>Costs you</dt><dd>You must be right about the design before you tool up</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything the form factor cannot reach</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Figure AI</b><span>a factory whose output is measured in robots per hour</span></li><li><b>Apptronik</b><span>force-controlled actuators built around a manufacturing thesis</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Retrofit machines that already exist</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Skips the hardest and slowest part entirely</dd></div>
-              <div><dt>Costs you</dt><dd>You inherit somebody else&#x27;s mechanism</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything needing a body nobody has built</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Bedrock Robotics</b><span>autonomy fitted to excavators and dozers already on site</span></li><li><b>Bonsai Robotics</b><span>a kit into existing orchard equipment rather than a new vehicle</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Make the body cheap enough to stop mattering</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Volume, and a community that can afford to experiment</dd></div>
-              <div><dt>Costs you</dt><dd>Precision, stiffness and lifetime</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything needing real payload or repeatability</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Cosine Robots</b><span>a $4,000 humanoid from automotive actuators</span></li><li><b>Menlo Research</b><span>an open-source humanoid you can print for around $15,000</span></li><li><b>SO-101</b><span>the arm this club actually runs, and the reason any of this is legible to us</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
-      <details class="trunk reveal" id="t-tasks">
+      <details class="ax reveal" id="a-teaching">
         <summary>
-          <span class="tk-n">03</span>
-          <span class="tk-label">Scale the tasks</span>
-          <span class="tk-count">4 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">03</span>
+          <span class="ax-l">Scale the teaching</span>
+          <span class="ax-bar" style="--w:42.86%;--co:16.67%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">6</span>
         </summary>
-        <p class="tk-claim">Generality is the prize everyone names and almost nobody sells. The interesting move of the last two years is companies deliberately scaling the other way.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Many tasks in one model</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Transfer between tasks, and one artefact to improve</dd></div>
-              <div><dt>Costs you</dt><dd>Interference — new tasks degrade old ones</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Guarantees about any single task</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Physical Intelligence</b><span>π0 as one policy across many jobs</span></li><li><b>Generalist AI</b><span>GEN-1.5, which learns a task from a single demonstration</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">Decides whether task forty costs a PhD or an afternoon. Almost entirely academic so far.</p>
+          <div class="grp">
+            <p class="grp-l">let non-experts write the reward</p>
+            <div class="grp-c"><a class="chip open" href="https://arxiv.org/abs/2412.01527" target="_blank" rel="noopener">HEPO</a></div>
+            <div class="grp-d"><p class="det"><b>HEPO</b>Built to work with reward functions that are badly engineered by non-experts. On purpose. <a href="https://arxiv.org/abs/2412.01527" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">put a human back in the loop</p>
+            <div class="grp-c"><a class="chip open" href="https://hil-serl.github.io/" target="_blank" rel="noopener">HIL-SERL</a><a class="chip co" href="https://arxiv.org/abs/2511.14759" target="_blank" rel="noopener">Physical Intelligence</a></div>
+            <div class="grp-d"><p class="det"><b>HIL-SERL</b>The point where real-robot RL starts actually converging. <a href="https://hil-serl.github.io/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Physical Intelligence</b>Expert corrections as a formal stage, not a fallback. <a href="https://arxiv.org/abs/2511.14759" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">distil a teacher that could see everything</p>
+            <div class="grp-c"><a class="chip open" href="learn.html#watch" target="_blank" rel="noopener">Teacher-student distillation</a><a class="chip open" href="https://arxiv.org/abs/2203.09452" target="_blank" rel="noopener">TGRL</a></div>
+            <div class="grp-d"><p class="det"><b>Teacher-student distillation</b>Train on privileged simulator state, then distil into a student with real sensors. <a href="learn.html#watch" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>TGRL</b>The published fix for when the naive version breaks, which it does with tactile. <a href="https://arxiv.org/abs/2203.09452" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">remove the teacher entirely</p>
+            <div class="grp-c"><a class="chip open" href="https://arxiv.org/abs/1705.05363" target="_blank" rel="noopener">Curiosity-driven exploration</a></div>
+            <div class="grp-d"><p class="det"><b>Curiosity-driven exploration</b>Pathak and Agrawal, 2017. The paper behind both Skild and Eka, written together. <a href="https://arxiv.org/abs/1705.05363" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">One task, to a reliability nobody else reaches</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>A number a customer will actually sign against</dd></div>
-              <div><dt>Costs you</dt><dd>Task forty costs roughly what task one cost</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Everything you did not scope</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Dyna Robotics</b><span>commercial reliability first, generality later or never</span></li><li><b>Eka Robotics</b><span>narrow and force-native, sold per deployment</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Subtract skills to buy reliability</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Removing capability measurably raises success</dd></div>
-              <div><dt>Costs you</dt><dd>You are shipping a deliberately smaller model</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>The thing you switched off</dd></div>
-            </dl>
-            <ul class="roots"><li><b>TorqueAGI</b><span>fine-tune, then turn the other skills off</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Language as the task interface</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>A new task is a sentence, not a dataset</dd></div>
-              <div><dt>Costs you</dt><dd>Language underdetermines force and contact</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Everything that cannot be said</dd></div>
-            </dl>
-            <ul class="roots"><li><b>OpenVLA and π0</b><span>the VLA line on the Learn page</span></li><li><b>Orangewood Labs</b><span>an arm you program by describing the job</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
-      <details class="trunk reveal" id="t-model">
+      <details class="ax reveal" id="a-bodies">
         <summary>
-          <span class="tk-n">04</span>
-          <span class="tk-label">Scale the model</span>
-          <span class="tk-count">3 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">04</span>
+          <span class="ax-l">Scale the bodies</span>
+          <span class="ax-bar" style="--w:35.71%;--co:60.0%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
         </summary>
-        <p class="tk-claim">The straight import from language modelling, and the one that transfers least cleanly, because a robot has a deadline every twenty milliseconds.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Parameters and pretraining</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>The scaling laws that worked for text</dd></div>
-              <div><dt>Costs you</dt><dd>Compute, and a data supply that does not exist yet</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Whether robot data scales the same way at all</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Skild AI</b><span>trillions of examples, on the stated view that real data cannot reach that scale</span></li><li><b>Genesis AI</b><span>a foundation model fed by its own physics engine</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">Every extra body multiplies the data and dilutes the tuning.</p>
+          <div class="grp">
+            <p class="grp-l">one policy, many bodies</p>
+            <div class="grp-c"><a class="chip co" href="https://www.therobotreport.com/skild-ai-raises-1-4b-building-omni-bodied-robot-skild-brain/" target="_blank" rel="noopener">Skild AI</a><a class="chip open" href="https://robotics-transformer-x.github.io/" target="_blank" rel="noopener">Open X-Embodiment</a></div>
+            <div class="grp-d"><p class="det"><b>Skild AI</b>One omni-bodied model for quadrupeds, humanoids, tabletop arms and mobile manipulators. <a href="https://www.therobotreport.com/skild-ai-raises-1-4b-building-omni-bodied-robot-skild-brain/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Open X-Embodiment</b>The pooled dataset that made the cross-embodiment argument testable. <a href="https://robotics-transformer-x.github.io/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">one body, mass-manufactured</p>
+            <div class="grp-c"><a class="chip co" href="https://www.figure.ai/news/botq" target="_blank" rel="noopener">Figure AI</a></div>
+            <div class="grp-d"><p class="det"><b>Figure AI</b>One robot per hour at BotQ, up from one per day in four months. Line rated at 12,000 a year. <a href="https://www.figure.ai/news/botq" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">retrofit what already exists</p>
+            <div class="grp-c"><a class="chip co" href="https://www.globenewswire.com/news-release/2026/08/17/3346247/0/en/bedrock-robotics-launches-first-fully-autonomous-excavator-deployments-on-critical-u-s-infrastructure-projects.html" target="_blank" rel="noopener">Bedrock Robotics</a></div>
+            <div class="grp-d"><p class="det"><b>Bedrock Robotics</b>Autonomy kits onto excavators the contractor already owns. $350M raised to skip building machines. <a href="https://www.globenewswire.com/news-release/2026/08/17/3346247/0/en/bedrock-robotics-launches-first-fully-autonomous-excavator-deployments-on-critical-u-s-infrastructure-projects.html" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">make the body cheap enough to stop mattering</p>
+            <div class="grp-c"><a class="chip open" href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">LeRobot / SO-101</a></div>
+            <div class="grp-d"><p class="det"><b>LeRobot / SO-101</b>An open arm and stack cheap enough that a student club can run the whole loop. Ours does. <a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Shrink it until it runs on the robot</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Control rates a real machine can use</dd></div>
-              <div><dt>Costs you</dt><dd>Capability, and often generality</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything needing a model that will not fit</dd></div>
-            </dl>
-            <ul class="roots"><li><b>SmolVLA and the distillation line</b><span>the shrink branch on the Learn page</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Parallel simulation throughput</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Millennia of experience per wall-clock week</dd></div>
-              <div><dt>Costs you</dt><dd>All of it inside a simulator&#x27;s assumptions</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Everything the physics engine gets wrong</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Isaac Lab and Newton</b><span>the substrate Skild trains on</span></li><li><b>Eka Robotics</b><span>the same lever, pointed at contact instead of locomotion</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
-      <details class="trunk reveal" id="t-senses">
+      <details class="ax reveal" id="a-measuring">
         <summary>
-          <span class="tk-n">05</span>
-          <span class="tk-label">Scale the senses</span>
-          <span class="tk-count">3 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">05</span>
+          <span class="ax-l">Scale the measuring</span>
+          <span class="ax-bar" style="--w:35.71%;--co:0.0%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
         </summary>
-        <p class="tk-claim">The axis almost nobody was on until recently, and the one with the cleanest argument behind it: you cannot control what you cannot measure.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Add force and touch</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>The channel that contact-rich work actually runs on</dd></div>
-              <div><dt>Costs you</dt><dd>New hardware, and no pretrained anything</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Nothing — this is the gap the others have</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Eka Robotics</b><span>force, not language, as the native representation</span></li><li><b>Proception</b><span>tactile sensing integrated into the hand itself</span></li><li><b>Tensiq</b><span>touch treated as infrastructure rather than a feature</span></li><li><b>DexWrist, DEXOP, SoftMimic</b><span>the force branch on the Learn page</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">Not one company here sells measurement. Every chip on this row is a paper.</p>
+          <div class="grp">
+            <p class="grp-l">benchmarks</p>
+            <div class="grp-c"><a class="chip open" href="https://robot-colosseum.github.io/" target="_blank" rel="noopener">THE COLOSSEUM</a><a class="chip open" href="https://arxiv.org/abs/2409.12894" target="_blank" rel="noopener">VLATest</a></div>
+            <div class="grp-d"><p class="det"><b>THE COLOSSEUM</b>Systematic perturbation. Useful, and still not a factory floor. <a href="https://robot-colosseum.github.io/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>VLATest</b>Tests VLAs the way software gets tested, which nobody was doing. <a href="https://arxiv.org/abs/2409.12894" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">predict real performance in simulation</p>
+            <div class="grp-c"><a class="chip open" href="https://simpler-env.github.io/" target="_blank" rel="noopener">SIMPLER</a></div>
+            <div class="grp-d"><p class="det"><b>SIMPLER</b>Evaluate without a physical reset. The gap you are measuring is the gap you cannot model. <a href="https://simpler-env.github.io/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">measure real robots honestly, with statistics</p>
+            <div class="grp-c"><a class="chip open" href="https://arxiv.org/abs/2507.05331" target="_blank" rel="noopener">A Careful Examination of LBMs</a><a class="chip open" href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">The 100,000-year data gap</a></div>
+            <div class="grp-d"><p class="det"><b>A Careful Examination of LBMs</b>Toyota Research Institute. Measured carefully, and the reported gains got smaller. <a href="https://arxiv.org/abs/2507.05331" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>The 100,000-year data gap</b>Ken Goldberg: at current collection rates, a ChatGPT-scale robot dataset arrives in 100,000 years. <a href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Add geometry and 3D</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>What every deployed fleet turns out to run on</dd></div>
-              <div><dt>Costs you</dt><dd>Calibration, and a pipeline to maintain</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Material properties, which geometry cannot see</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Niantic Spatial</b><span>reconstruction and positioning from ordinary cameras</span></li><li><b>CynLr</b><span>handling an object it has never seen, without a fixture</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Model your own actuators honestly</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Closes a sim-to-real gap nobody budgets for</dd></div>
-              <div><dt>Costs you</dt><dd>Unglamorous, per-robot work</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Everything outside the drivetrain</dd></div>
-            </dl>
-            <ul class="roots"><li><b>learned actuator models</b><span>called out as decisive in Pulkit Agrawal&#x27;s ETH talk</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
-      <details class="trunk reveal" id="t-teaching">
+      <details class="ax reveal" id="a-hours">
         <summary>
-          <span class="tk-n">06</span>
-          <span class="tk-label">Scale the teaching</span>
-          <span class="tk-count">4 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">06</span>
+          <span class="ax-l">Scale the paid hours</span>
+          <span class="ax-bar" style="--w:35.71%;--co:100.0%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
         </summary>
-        <p class="tk-claim">Not how much data, but how many people are allowed to produce it. This is the axis that decides whether a new task costs a PhD or an afternoon.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Let non-experts write the reward</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>A new task stops needing a researcher</dd></div>
-              <div><dt>Costs you</dt><dd>Rewards get worse before the method gets better</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Tasks nobody can describe as a score</dd></div>
-            </dl>
-            <ul class="roots"><li><b>HEPO</b><span>explicitly built to work with badly engineered, non-expert reward functions</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">The only axis with a bank statement attached. Every company above is judged on this one.</p>
+          <div class="grp">
+            <p class="grp-l">narrow and reliable, sold per deployment</p>
+            <div class="grp-c"><a class="chip co" href="https://www.ycombinator.com/companies/relling" target="_blank" rel="noopener">Relling</a><a class="chip co" href="https://www.universal-robots.com/news-and-media/news-center/robotics-transforms-cell-therapy/" target="_blank" rel="noopener">Multiply Labs</a></div>
+            <div class="grp-d"><p class="det"><b>Relling</b>Hybrid cells: classical motion composed with learned primitives. Live in weeks, not quarters. <a href="https://www.ycombinator.com/companies/relling" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Multiply Labs</b>74% cost reduction, peer-reviewed with UCSF, on off-the-shelf Universal Robots arms. <a href="https://www.universal-robots.com/news-and-media/news-center/robotics-transforms-cell-therapy/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">price the robot like a person</p>
+            <div class="grp-c"><a class="chip co" href="https://www.figure.ai/news/ramping-figure-03-production" target="_blank" rel="noopener">Figure AI</a></div>
+            <div class="grp-d"><p class="det"><b>Figure AI</b>Roughly $1,000 per robot per month, hardware and support included. <a href="https://www.figure.ai/news/ramping-figure-03-production" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">run the fleet, not the robot</p>
+            <div class="grp-c"><a class="chip co" href="https://www.businesswire.com/news/home/20251112126106/en/Foxglove-Raises-$40-Million-Series-B-to-Power-the-Future-of-Physical-AI" target="_blank" rel="noopener">Foxglove</a><a class="chip co" href="https://www.dexory.com/about-us" target="_blank" rel="noopener">Dexory</a></div>
+            <div class="grp-d"><p class="det"><b>Foxglove</b>MCAP ships by default with ROS 2 and NVIDIA Isaac, so other people&#x27;s fleets log into it. <a href="https://www.businesswire.com/news/home/20251112126106/en/Foxglove-Raises-$40-Million-Series-B-to-Power-the-Future-of-Physical-AI" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Dexory</b>The scan is the product, and the fleet is what makes the scan worth buying. <a href="https://www.dexory.com/about-us" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Put a human back in the loop</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Real-world RL that actually converges</dd></div>
-              <div><dt>Costs you</dt><dd>A person has to sit there</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Autonomy, by construction</dd></div>
-            </dl>
-            <ul class="roots"><li><b>HIL-SERL</b><span>the branch where real-robot RL starts working</span></li><li><b>Physical Intelligence</b><span>expert corrections as a formal stage of RECAP</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Distil a teacher that could see everything</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>A tractable teacher, then a deployable student</dd></div>
-              <div><dt>Costs you</dt><dd>Two training runs and a fragile handoff</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Tactile — where the student must go and find what the teacher never needed</dd></div>
-            </dl>
-            <ul class="roots"><li><b>teacher–student distillation</b><span>the mechanism explained on the Learn page&#x27;s Watch shelf</span></li><li><b>TGRL</b><span>the published fix for when the naive version breaks</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Remove the teacher entirely</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>No supervision to bottleneck on</dd></div>
-              <div><dt>Costs you</dt><dd>Sample efficiency, badly</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything requiring taste about what counts as good</dd></div>
-            </dl>
-            <ul class="roots"><li><b>curiosity-driven exploration</b><span>Pathak and Agrawal, 2017 — the paper behind both Skild and Eka</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
-      <details class="trunk reveal" id="t-hours">
+      <details class="ax reveal" id="a-senses">
         <summary>
-          <span class="tk-n">07</span>
-          <span class="tk-label">Scale the paid hours</span>
-          <span class="tk-count">4 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">07</span>
+          <span class="ax-l">Scale the senses</span>
+          <span class="ax-bar" style="--w:35.71%;--co:60.0%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
         </summary>
-        <p class="tk-claim">The only axis with a bank statement attached. Every company here is really being judged on this one, whatever they scale to get there.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Narrow and reliable, sold per deployment</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Revenue now, from a task you fully scoped</dd></div>
-              <div><dt>Costs you</dt><dd>Growth is linear in engineers</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>The general robot everyone promised</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Relling</b><span>a qualified workcell deployment-ready in under thirty days</span></li><li><b>Multiply Labs</b><span>a peer-reviewed 74% cost reduction in one process</span></li><li><b>Cargo Robotics</b><span>one job: loading a delivery van</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">You cannot control what you cannot measure. The newest axis, and the least crowded.</p>
+          <div class="grp">
+            <p class="grp-l">force and touch</p>
+            <div class="grp-c"><a class="chip co" href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">Eka Robotics</a><a class="chip co" href="https://www.ycombinator.com/companies/proception-inc" target="_blank" rel="noopener">Proception</a><a class="chip open" href="learn.html#papers" target="_blank" rel="noopener">DexWrist / DEXOP / SoftMimic</a></div>
+            <div class="grp-d"><p class="det"><b>Eka Robotics</b>Force, not language, as the native representation of physical interaction. <a href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Proception</b>Twenty-two degrees of freedom with tactile sensing built into the hand itself. <a href="https://www.ycombinator.com/companies/proception-inc" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>DexWrist / DEXOP / SoftMimic</b>Backdrivable hardware and compliance rewards. Filed under the same question on Learn. <a href="learn.html#papers" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">geometry and 3D</p>
+            <div class="grp-c"><a class="chip co" href="https://www.nianticspatial.com/blog/niantic-spatial-day-one" target="_blank" rel="noopener">Niantic Spatial</a></div>
+            <div class="grp-d"><p class="det"><b>Niantic Spatial</b>Thirty billion posed images from Pokemon GO, turned into centimetre positioning for robots. <a href="https://www.nianticspatial.com/blog/niantic-spatial-day-one" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">model your own actuators honestly</p>
+            <div class="grp-c"><a class="chip open" href="learn.html#watch" target="_blank" rel="noopener">Learned actuator models</a></div>
+            <div class="grp-d"><p class="det"><b>Learned actuator models</b>Unglamorous, per-robot, and repeatedly named as decisive for closing the sim gap. <a href="learn.html#watch" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Price the robot like a person</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Removes capex from the customer&#x27;s decision</dd></div>
-              <div><dt>Costs you</dt><dd>You carry the hardware risk and the downtime</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Anything where utilisation stays low</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Figure AI</b><span>sold by the robot-month</span></li><li><b>Agility Robotics</b><span>Digit working shifts rather than being purchased</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Compress the time from purchase to production</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>The bottleneck nobody writes papers about</dd></div>
-              <div><dt>Costs you</dt><dd>Ruthless narrowing of what the cell can do</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Novelty of any kind</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Relling</b><span>thirty days against the industry&#x27;s six to twelve months</span></li><li><b>Foundry Robotics</b><span>modular cells sold as flexible capacity</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Run the fleet, not the robot</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Compounding advantage the moment fleets get large</dd></div>
-              <div><dt>Costs you</dt><dd>You have to already have a fleet</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>The first deployment, which this cannot help</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Foxglove</b><span>petabyte-scale observability, and MCAP, which other fleets record into</span></li><li><b>Dexory</b><span>ten thousand scanned locations an hour, resold as a live twin</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
-      <details class="trunk reveal" id="t-measuring">
+      <details class="ax reveal" id="a-model">
         <summary>
-          <span class="tk-n">08</span>
-          <span class="tk-label">Scale the measuring</span>
-          <span class="tk-count">3 branches</span>
-          <span class="tk-mark" aria-hidden="true"></span>
+          <span class="ax-n">08</span>
+          <span class="ax-l">Scale the model</span>
+          <span class="ax-bar" style="--w:28.57%;--co:50.0%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">4</span>
         </summary>
-        <p class="tk-claim">The trunk with almost nothing growing on it. Seven axes above, and no trustworthy way to compare progress along any of them. This is the honest state of the field.</p>
-        <div class="branches">
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Benchmarks</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Comparability, cheaply</dd></div>
-              <div><dt>Costs you</dt><dd>They are not floors, and everyone knows it</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Real environments, which is the entire point</dd></div>
-            </dl>
-            <ul class="roots"><li><b>COLOSSEUM and VLATest</b><span>the benchmark branch on the Learn page&#x27;s deployment spine</span></li></ul>
+        <div class="ax-b">
+          <p class="ax-t">The straight import from language modelling, into a system with a deadline every 20ms.</p>
+          <div class="grp">
+            <p class="grp-l">parameters and pretraining</p>
+            <div class="grp-c"><a class="chip co" href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">Skild AI</a><a class="chip co" href="https://www.genesis.ai/press/genesis-ai-emerges-from-stealth-with-dollar105m-to-build-universal-robotics-found" target="_blank" rel="noopener">Genesis AI</a></div>
+            <div class="grp-d"><p class="det"><b>Skild AI</b>Argues the target is trillions of examples, and that real data cannot get there. <a href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Genesis AI</b>$105M to pair a foundation model with the engine that feeds it. <a href="https://www.genesis.ai/press/genesis-ai-emerges-from-stealth-with-dollar105m-to-build-universal-robotics-found" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">shrink it until it fits on the robot</p>
+            <div class="grp-c"><a class="chip open" href="https://huggingface.co/blog/smolvla" target="_blank" rel="noopener">SmolVLA</a></div>
+            <div class="grp-d"><p class="det"><b>SmolVLA</b>Small enough to run on hardware a club can afford, which is the only test that counts. <a href="https://huggingface.co/blog/smolvla" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">parallel simulation throughput</p>
+            <div class="grp-c"><a class="chip open" href="https://developer.nvidia.com/isaac/lab" target="_blank" rel="noopener">NVIDIA Isaac Lab</a></div>
+            <div class="grp-d"><p class="det"><b>NVIDIA Isaac Lab</b>Thousands of environments at once. Millennia of experience per wall-clock week. <a href="https://developer.nvidia.com/isaac/lab" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
           </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Predict real performance in simulation</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Evaluation without a physical reset</dd></div>
-              <div><dt>Costs you</dt><dd>The gap you are measuring is the gap you cannot model</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Contact, again</dd></div>
-            </dl>
-            <ul class="roots"><li><b>SIMPLER</b><span>filed under exactly this question on the Learn page</span></li></ul>
-          </div>
-        </details>
-<details class="branch">
-          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Measure real robots honestly, with statistics</span></summary>
-          <div class="br-body">
-            <dl class="ledger">
-              <div><dt>Buys you</dt><dd>Numbers that survive contact with a reviewer</dd></div>
-              <div><dt>Costs you</dt><dd>Every rollout is a physical reset, so n stays tiny</dd></div>
-              <div class="blind"><dt>Blind to</dt><dd>Nothing. This is the correct answer and almost nobody pays for it</dd></div>
-            </dl>
-            <ul class="roots"><li><b>Toyota Research Institute</b><span>A Careful Examination of Large Behavior Models — where the gains got smaller under scrutiny</span></li><li><b>Sunday Robotics</b><span>a 50-household beta makes this strictly harder: you cannot reset a real kitchen</span></li></ul>
-          </div>
-        </details>
         </div>
       </details>
     </div>
   </div>
 
-  <section class="fld-close">
-    <div class="fld-close-inner reveal">
-      <h2>Why the last trunk is nearly bare</h2>
-      <p>Seven axes with real money on them, and one with almost nothing: nobody is scaling the ability to tell whether any of it worked. Every rollout on a real robot costs a physical reset, so sample sizes stay small and the error bars stay wide. When one group did measure carefully, the reported gains got smaller.</p>
-      <p>That is not a swipe at anyone. It is the most useful thing on this page, and it is why a four-person club with one arm can still say something true: the cheap experiment is a better measurement, not a bigger model.</p>
-      <p>The papers behind every branch here live on the <a class="tx" href="learn.html">Learn</a> page. Think a trunk is missing, or a company is on the wrong branch? <a class="tx" href="index.html#join">Tell us</a> — this is a working document, not a verdict.</p>
-    </div>
+  <section class="mp-foot">
+    <p class="reveal">One row has no solid chips on it at all: <a href="#a-measuring"><strong>scale the measuring</strong></a>. Seven axes carry real money. Knowing whether any of it worked is carried entirely by papers. That is the gap a small club with one arm can actually stand in.</p>
+    <p class="reveal" style="margin-top:14px;font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;color:var(--ink-3)">Public sources only &#183; every entry links to one &#183; papers live on <a href="learn.html">Learn</a> &#183; tended 20 Aug 2026</p>
   </section>
 
 </main>
@@ -625,70 +382,64 @@
     <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
     <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
   </div>
-  <p class="footer-fine">Open source · built by the club. Public sources only.</p>
+  <p class="footer-fine">Open source · built by the club.</p>
 </footer>
 
 <script>
 (function(){
-  var nav = document.getElementById('nav');
-  var ticking = false;
-  function frame(){ ticking=false; nav.classList.toggle('scrolled', window.scrollY > 10); }
-  window.addEventListener('scroll', function(){ if(!ticking){ ticking=true; requestAnimationFrame(frame); } }, {passive:true});
-  frame();
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){
+    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
 
-  var toggle = document.getElementById('navToggle'), links = document.getElementById('navLinks');
-  if (toggle && links) toggle.addEventListener('click', function(){
-    var open = links.classList.toggle('open');
-    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
+  var map=document.getElementById('map');
+  var axes=[].slice.call(map.querySelectorAll('.ax'));
 
-  var tree = document.getElementById('tree');
-  var trunks = Array.prototype.slice.call(tree.querySelectorAll('.trunk'));
-
-  // opening a trunk closes its siblings, so the tree stays readable
-  trunks.forEach(function(t){
-    t.addEventListener('toggle', function(){
-      if (!t.open) return;
-      trunks.forEach(function(o){ if (o !== t) o.open = false; });
-      sync();
+  // one axis at a time, so the map never becomes a wall
+  axes.forEach(function(a){
+    a.addEventListener('toggle',function(){
+      if(a.open) axes.forEach(function(o){ if(o!==a) o.open=false; });
+      else clear(a);
     });
   });
 
-  var btn = document.getElementById('allBtn');
-  var all = Array.prototype.slice.call(tree.querySelectorAll('details'));
-  function sync(){
-    var anyOpen = all.some(function(d){ return d.open; });
-    btn.textContent = anyOpen ? 'Collapse everything' : 'Open everything';
-    btn.setAttribute('data-open', anyOpen ? '1' : '0');
+  function clear(scope){
+    (scope||map).querySelectorAll('.det.on').forEach(function(d){d.classList.remove('on');});
+    (scope||map).querySelectorAll('.chip.on').forEach(function(c){
+      c.classList.remove('on');c.setAttribute('aria-expanded','false');});
   }
-  btn.addEventListener('click', function(){
-    var opening = btn.getAttribute('data-open') === '0';
-    // suspend the sibling-closing rule while bulk-opening
-    tree.dataset.bulk = '1';
-    all.forEach(function(d){ d.open = opening; });
-    delete tree.dataset.bulk;
-    sync();
+
+  // chips are real links to the source; JS upgrades them to reveal in place
+  map.querySelectorAll('.chip').forEach(function(c){
+    c.setAttribute('aria-expanded','false');
+    c.addEventListener('click',function(e){
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0) return;   // let people open the source directly
+      e.preventDefault();
+      // paired by position inside the group, so a chip and its line can be
+      // added by hand without keeping any id in sync
+      var grp=c.closest('.grp');
+      var cs=[].slice.call(grp.querySelectorAll('.chip'));
+      var det=grp.querySelectorAll('.det')[cs.indexOf(c)];
+      var was=c.classList.contains('on');
+      clear();
+      if(!was&&det){
+        c.classList.add('on');c.setAttribute('aria-expanded','true');det.classList.add('on');
+      }
+    });
   });
-  tree.addEventListener('toggle', function(e){
-    if (tree.dataset.bulk) return;
-    if (e.target.classList.contains('branch')) sync();
-  }, true);
-  sync();
 
-  // deep link: #t-data opens that trunk
-  function openFromHash(){
-    var id = location.hash.slice(1);
-    if (!id) return;
-    var el = document.getElementById(id);
-    if (el && el.classList.contains('trunk')) { el.open = true; sync(); el.scrollIntoView({block:'start'}); }
+  function fromHash(){
+    var el=document.getElementById(location.hash.slice(1));
+    if(el&&el.classList.contains('ax')){el.open=true;el.scrollIntoView({block:'start'});}
   }
-  window.addEventListener('hashchange', openFromHash);
-  openFromHash();
+  window.addEventListener('hashchange',fromHash);fromHash();
 
-  var io = new IntersectionObserver(function(entries){
-    entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); } });
-  }, { threshold:0.1, rootMargin:'0px 0px -6% 0px' });
-  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
+  },{threshold:0.1,rootMargin:'0px 0px -6% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
 })();
 </script>
 </body>
