@@ -139,6 +139,12 @@
   .learn-close-inner{border-top:1px solid var(--ink);padding-top:clamp(30px,4vw,46px);display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:20px}
   .learn-close h2{font-size:clamp(1.5rem,3vw,2.1rem);font-weight:500;max-width:20ch}
   .learn-close p{color:var(--ink-2);margin:12px 0 0;max-width:46ch}
+  /* Switching spines replaces #flow-stage wholesale, so a CSS animation on it
+     replays on every switch. No JS needed: the node is new each time. */
+  #flow-stage{animation:stage-in .34s var(--ease) both}
+  @keyframes stage-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .flow-tab{transition:color .2s var(--ease),border-color .2s var(--ease)}
+  @media (prefers-reduced-motion:reduce){ #flow-stage{animation:none} }
   .reveal{opacity:0}
   .reveal.vis{animation:reveal-up .55s var(--ease) both}
   @keyframes reveal-up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
