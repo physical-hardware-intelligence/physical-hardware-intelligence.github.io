@@ -460,6 +460,11 @@
      "id": "fast",
      "label": "Make simulation fast enough that trying the transfer is cheap",
      "era": "2026"
+    },
+    {
+     "id": "force",
+     "label": "But you cannot see forces",
+     "era": "2024 \u2013 25"
     }
    ],
    "short": "Learning without demos"
@@ -613,6 +618,54 @@
    "now": false,
    "spine": "rl",
    "branch": "fast",
+   "read": false
+  },
+  {
+   "y": "2024",
+   "t": "EyeSight Hand",
+   "u": "https://arxiv.org/abs/2408.06265",
+   "d": "A 7-DoF hand with vision-based tactile sensors in every fingertip and quasi-direct-drive actuation, 650g and under $2,500 to build. Adding tactile sharply improved bottle opening, cutting and plate handling.",
+   "tag": "hardware \u00b7 tactile",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "force",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "DexWrist",
+   "u": "https://arxiv.org/abs/2507.01008",
+   "d": "Most wrists put their joints in series and make them stiff, so small motions need large arm movements. Co-locating the joints and letting them backdrive raised policy success 50-55% and cut task time 3-5x.",
+   "tag": "hardware \u00b7 read this",
+   "tagClass": "",
+   "now": true,
+   "spine": "rl",
+   "branch": "force",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "DEXOP",
+   "u": "https://arxiv.org/abs/2509.04441",
+   "d": "Teleoperation gives the human no force feedback. Linking human fingers to robot fingers mechanically does, so the demonstrator feels contact while collecting vision and tactile data.",
+   "tag": "data \u00b7 tactile",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "force",
+   "read": false
+  },
+  {
+   "y": "2025",
+   "t": "SoftMimic",
+   "u": "https://arxiv.org/abs/2510.17792",
+   "d": "Motion tracking rewards stiffness, which is why humanoids fail on contact. Reward the compliant response instead and treat the reference as a reference: one policy spans a range of stiffnesses, and one demo generalises across box sizes with no retraining.",
+   "tag": "control \u00b7 read this",
+   "tagClass": "",
+   "now": true,
+   "spine": "rl",
+   "branch": "force",
    "read": false
   },
   {
@@ -1649,6 +1702,10 @@
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Talk</span><span class="res-src">Pulkit Agrawal · MIT, 2024</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-ghQJNmStB4" target="_blank" rel="noopener">Embodied Intelligence — the cost of a new behaviour<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Teleop versus sim-to-real, teacher–student distillation, learned reward trade-offs, scanning real rooms into simulators, and adversarial safety testing. His unit throughout is human hours, not success rate.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Talk</span><span class="res-src">Pulkit Agrawal · ICCV 2025</span></div>
+        <h3><a href="https://www.youtube.com/watch?v=vDiWUuYxbZI" target="_blank" rel="noopener">Question the role of vision for robotic control<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>Vision is for planning; control needs force. Why manipulation lags locomotion, and why a hand heavier than the object it holds can never be reliable.</p></div>
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Trelis Research</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-tkEMLOLEwo" target="_blank" rel="noopener">Train an ACT policy on the SO-101<span class="ext" aria-hidden="true">↗</span></a></h3>
