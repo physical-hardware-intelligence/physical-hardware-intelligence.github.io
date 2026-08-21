@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Companies · Phi</title>
+<meta name="description" content="Everyone in robotics says they are scaling. Almost nobody says what. Eight axes you can scale a robot company along, what each one buys you, what it blinds you to, and who is betting on it.">
+<meta name="theme-color" content="#ECE7DC">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Companies — Physical Hardware Intelligence">
+<meta property="og:description" content="Eight axes you can scale a robot company along. What each buys you, what it costs, what it blinds you to, and who is betting on it.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/companies.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+
+<link rel="icon" href="assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .fld-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(90px,11vh,116px) clamp(20px,5vw,44px) 0}
+  .fld-hero .eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin-bottom:clamp(20px,2.6vw,28px)}
+  .fld-hero h1{font-family:var(--disp);font-size:clamp(2.3rem,5.6vw,3.7rem);font-weight:500;line-height:1.04;letter-spacing:-.02em;max-width:20ch;margin:0}
+  .fld-hero h1 em{font-style:italic}
+  .fld-hero .lede{font-size:clamp(1.04rem,1.7vw,1.22rem);color:var(--ink-2);max-width:60ch;margin:26px 0 0}
+  .fld-stat{display:flex;flex-wrap:wrap;gap:8px 30px;margin:30px 0 0;font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--ink-3)}
+  .fld-stat b{color:var(--ink);font-weight:500}
+
+  .fld-wrap{max-width:var(--maxw);margin:0 auto;padding:clamp(46px,6vw,76px) clamp(20px,5vw,44px) 0}
+  .fld-tools{display:flex;justify-content:space-between;align-items:baseline;gap:18px;flex-wrap:wrap;
+    border-bottom:1px solid var(--ink);padding-bottom:9px;margin-bottom:clamp(20px,3vw,32px)}
+  .fld-tools p{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+  .fld-toggle{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);
+    background:none;border:0;padding:2px 0;cursor:pointer;border-bottom:1px solid var(--line-2);transition:color .2s,border-color .2s}
+  .fld-toggle:hover{color:var(--ink);border-color:var(--ink)}
+
+  /* ---- trunk ---- */
+  .trunk{border-top:1px solid var(--line-2)}
+  .trunk:last-of-type{border-bottom:1px solid var(--line-2)}
+  .trunk>summary{list-style:none;cursor:pointer;display:grid;
+    grid-template-columns:auto 1fr auto auto;align-items:baseline;gap:0 16px;
+    padding:clamp(18px,2.4vw,26px) 0}
+  .trunk>summary::-webkit-details-marker{display:none}
+  .tk-n{font-family:var(--mono);font-size:12.5px;color:var(--ink-3);letter-spacing:.06em}
+  .tk-label{font-family:var(--disp);font-size:clamp(1.32rem,2.7vw,1.92rem);font-weight:500;letter-spacing:-.012em;line-height:1.12}
+  .tk-count{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+  .tk-mark{width:11px;height:11px;position:relative;align-self:center;flex:none}
+  .tk-mark::before,.tk-mark::after{content:"";position:absolute;background:var(--ink);transition:transform .3s var(--ease),opacity .3s var(--ease)}
+  .tk-mark::before{left:0;right:0;top:5px;height:1px}
+  .tk-mark::after{top:0;bottom:0;left:5px;width:1px}
+  .trunk[open]>summary .tk-mark::after{transform:scaleY(0)}
+  .trunk[open]>summary .tk-label{font-style:italic}
+  @media (hover:hover){ .trunk>summary:hover .tk-label{color:var(--apple)} }
+  .trunk>summary:focus-visible{outline:2px solid var(--ink);outline-offset:4px;border-radius:2px}
+  .tk-claim{margin:-6px 0 clamp(22px,3vw,30px);max-width:64ch;color:var(--ink-2);font-size:1.02rem;line-height:1.6;
+    padding-left:clamp(0px,3.6vw,42px)}
+
+  /* ---- branches: the vertical rail is the branch ---- */
+  .branches{position:relative;margin:0 0 clamp(26px,3.4vw,38px);padding-left:clamp(14px,3.6vw,42px)}
+  .branches::before{content:"";position:absolute;left:clamp(0px,1.1vw,13px);top:6px;bottom:14px;width:1px;background:var(--line-2)}
+  .branch{position:relative;padding:0 0 2px}
+  .branch>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:12px;padding:9px 0}
+  .branch>summary::-webkit-details-marker{display:none}
+  .br-tick{flex:none;width:clamp(10px,1.9vw,22px);height:1px;background:var(--line-2);
+    margin-left:calc(-1 * clamp(14px,3.6vw,42px) + clamp(0px,1.1vw,13px) + 1px);align-self:center;transition:background .25s var(--ease),width .25s var(--ease)}
+  .br-label{font-size:1.03rem;line-height:1.42;color:var(--ink);transition:color .2s}
+  .branch[open]>summary .br-tick,
+  .branch>summary:hover .br-tick{background:var(--apple)}
+  .branch[open]>summary .br-label{color:var(--apple)}
+  @media (hover:hover){ .branch>summary:hover .br-label{color:var(--apple)} }
+  .branch>summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+
+  .br-body{padding:4px 0 22px 0}
+  .ledger{display:grid;grid-template-columns:repeat(3,1fr);gap:0 clamp(18px,2.4vw,34px);margin:6px 0 20px}
+  .ledger>div{border-top:1px solid var(--line);padding:9px 0 0}
+  .ledger dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin:0 0 5px}
+  .ledger dd{margin:0;font-size:.95rem;line-height:1.46;color:var(--ink-2)}
+  .ledger .blind{border-top-color:var(--apple)}
+  .ledger .blind dt{color:var(--apple)}
+  .ledger .blind dd{color:var(--ink)}
+
+  /* ---- roots ---- */
+  .roots{list-style:none;margin:0;padding:0}
+  .roots li{position:relative;padding:0 0 9px 20px;font-size:.95rem;line-height:1.5}
+  .roots li::before{content:"";position:absolute;left:2px;top:.62em;width:9px;height:1px;background:var(--line-2)}
+  .roots b{font-weight:500;font-family:var(--disp);font-size:.99rem}
+  .roots span{color:var(--ink-2)}
+  .roots b::after{content:" · ";color:var(--ink-3)}
+
+  .fld-close{max-width:var(--maxw);margin:0 auto;padding:clamp(58px,7vw,92px) clamp(20px,5vw,44px) 0}
+  .fld-close-inner{border-top:1px solid var(--ink);padding-top:clamp(22px,3vw,32px);max-width:66ch}
+  .fld-close h2{font-family:var(--disp);font-size:clamp(1.3rem,2.6vw,1.72rem);font-weight:500;margin:0 0 12px;letter-spacing:-.01em}
+  .fld-close p{margin:0 0 14px;color:var(--ink-2);font-size:1.01rem}
+  .fld-close a.tx{border-bottom:1px solid var(--line-2)}
+  .fld-close a.tx:hover{border-color:var(--ink)}
+
+  .reveal{opacity:0}
+  .reveal.vis{animation:reveal-up .55s var(--ease) both}
+  @keyframes reveal-up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  @media (max-width:760px){
+    .ledger{grid-template-columns:1fr;gap:0}
+    .ledger>div{padding:9px 0 12px}
+    .trunk>summary{grid-template-columns:auto 1fr auto;gap:0 12px}
+    .tk-count{grid-column:2;grid-row:2;margin-top:5px}
+    .tk-mark{grid-column:3;grid-row:1}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .reveal,.reveal.vis{opacity:1!important;animation:none!important}
+    .tk-mark::before,.tk-mark::after,.br-tick{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="index.html">Home</a>
+    <a href="learn.html">Learn</a>
+    <a href="companies.html" class="active">Companies</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top">
+
+  <section class="fld-hero">
+    <p class="eyebrow">The field</p>
+    <h1>Everyone says they are scaling. Almost nobody says <em>what</em>.</h1>
+    <p class="lede">Robotics has one word for eight different bets. Each of them buys you something real, charges you something real, and leaves you blind to something real. This is the tree. Open a trunk to see the branches, open a branch to see who is out on it.</p>
+    <p class="fld-stat"><span><b>8</b> trunks</span><span><b>33</b> branches</span><span><b>67</b> companies and systems</span><span>Last tended <b>20 Aug 2026</b></span></p>
+  </section>
+
+  <div class="fld-wrap">
+    <div class="fld-tools">
+      <p>Tap a trunk &nbsp;→&nbsp; tap a branch &nbsp;→&nbsp; the roots are the companies</p>
+      <button class="fld-toggle" id="allBtn" type="button" data-open="0">Open everything</button>
+    </div>
+
+    <div id="tree">
+      <details class="trunk reveal" id="t-data">
+        <summary>
+          <span class="tk-n">01</span>
+          <span class="tk-label">Scale the data</span>
+          <span class="tk-count">8 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">The default answer, and the only one most people mean. But data is not one thing — it is eight different bets, and each buys you something by blinding you to something else.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Let the robot try it itself</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Correct by construction</dd></div>
+              <div><dt>Costs you</dt><dd>Slowest, and it needs a score</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything you cannot write a reward for</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Physical Intelligence</b><span>RECAP: demonstrations, then corrections, then self-improvement from autonomous trials</span></li><li><b>Dyna Robotics</b><span>one task pushed to commercial reliability before adding the next</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Put a human on the controls</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Perfectly aligned with the robot&#x27;s own body</dd></div>
+              <div><dt>Costs you</dt><dd>An hour of human time per hour of data</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Force — a remote operator cannot feel anything</dd></div>
+            </dl>
+            <ul class="roots"><li><b>XDOF</b><span>runs the teleoperation collection that AI labs would rather not own</span></li><li><b>Sanctuary AI</b><span>teleoperation first, on the argument that you cannot automate what you cannot yet do</span></li><li><b>Toyota Research Institute</b><span>bimanual haptic teleop — the rare version where the operator does feel</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Give the human the robot&#x27;s hands, then remove the robot</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Data scales with people, not with arms</dd></div>
+              <div><dt>Costs you</dt><dd>The arm behind the hand is still a human arm</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Viewpoint and whole-body consistency</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Sunday Robotics</b><span>a $200 glove matching Memo&#x27;s hands exactly, in 500+ homes</span></li><li><b>Proception</b><span>a sensor glove feeding a 22-degree-of-freedom hand</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Borrow other robots&#x27; data</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Hundreds of thousands of episodes, already recorded</dd></div>
+              <div><dt>Costs you</dt><dd>You inherit their calibration and their cameras</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Your own gripper&#x27;s quirks</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Skild AI</b><span>one omni-bodied policy across quadrupeds, humanoids and factory arms</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Take it from humans on video</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Free, and effectively unlimited</dd></div>
+              <div><dt>Costs you</dt><dd>No actions, ever</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>What to do — video only shows what happened</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Asimov</b><span>pays people to record their own routines on a head-mounted phone</span></li><li><b>Niantic Spatial</b><span>thirty billion posed images turned into geometry</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Manufacture it in a simulator</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Infinite, free and resettable</dd></div>
+              <div><dt>Costs you</dt><dd>Wrong in exactly the place contact happens</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Friction, deformation, compliance</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Eka Robotics</b><span>contact fidelity over photorealism: mass, inertia, friction</span></li><li><b>Genesis AI</b><span>a physics engine used to manufacture the training set</span></li><li><b>Antim Labs</b><span>a prompt or a floorplan becomes a simulator-ready scene</span></li><li><b>Dirac Robotics</b><span>asset physics measured against real hardware instead of eyeballed</span></li><li><b>AuraML</b><span>a multimodal world simulator aimed at the sim-to-real gap</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Multiply the real data you already have</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Cheapest possible gain per episode</dd></div>
+              <div><dt>Costs you</dt><dd>Cannot create what was never recorded</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything outside the span of your originals</dd></div>
+            </dl>
+            <ul class="roots"><li><b>MimicGen, DemoGen, RoVi-Aug</b><span>the augmentation line on the Learn page&#x27;s data spine</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Let robots that already have a job collect it</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>The only data that pays for itself</dd></div>
+              <div><dt>Costs you</dt><dd>Only exists for tasks narrow enough to deploy today</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything nobody will pay for yet</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Ambi Robotics</b><span>twenty-two years of robot data, collected by sorting a hundred million real parcels</span></li><li><b>Addverb Technologies</b><span>India&#x27;s largest deployed fleet</span></li><li><b>Ati Robotics</b><span>two million industrial missions a year</span></li><li><b>Burro</b><span>a quarter of a million autonomous field miles</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+      <details class="trunk reveal" id="t-bodies">
+        <summary>
+          <span class="tk-n">02</span>
+          <span class="tk-label">Scale the bodies</span>
+          <span class="tk-count">4 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">A policy is worth more if it runs on more machines, and a machine is worth less if it costs more. Four different ways out, and two of them are about not building a robot at all.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">One policy, many morphologies</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Every new body multiplies the training set</dd></div>
+              <div><dt>Costs you</dt><dd>Nothing is tuned for anything</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>The last few percent, which is where deployment lives</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Skild AI</b><span>omni-bodied by design — humans counted as another form factor</span></li><li><b>Open X-Embodiment</b><span>the pooled dataset that made the argument possible</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">One body, mass-manufactured</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Unit cost falls with volume, like every other machine</dd></div>
+              <div><dt>Costs you</dt><dd>You must be right about the design before you tool up</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything the form factor cannot reach</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Figure AI</b><span>a factory whose output is measured in robots per hour</span></li><li><b>Apptronik</b><span>force-controlled actuators built around a manufacturing thesis</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Retrofit machines that already exist</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Skips the hardest and slowest part entirely</dd></div>
+              <div><dt>Costs you</dt><dd>You inherit somebody else&#x27;s mechanism</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything needing a body nobody has built</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Bedrock Robotics</b><span>autonomy fitted to excavators and dozers already on site</span></li><li><b>Bonsai Robotics</b><span>a kit into existing orchard equipment rather than a new vehicle</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Make the body cheap enough to stop mattering</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Volume, and a community that can afford to experiment</dd></div>
+              <div><dt>Costs you</dt><dd>Precision, stiffness and lifetime</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything needing real payload or repeatability</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Cosine Robots</b><span>a $4,000 humanoid from automotive actuators</span></li><li><b>Menlo Research</b><span>an open-source humanoid you can print for around $15,000</span></li><li><b>SO-101</b><span>the arm this club actually runs, and the reason any of this is legible to us</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+      <details class="trunk reveal" id="t-tasks">
+        <summary>
+          <span class="tk-n">03</span>
+          <span class="tk-label">Scale the tasks</span>
+          <span class="tk-count">4 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">Generality is the prize everyone names and almost nobody sells. The interesting move of the last two years is companies deliberately scaling the other way.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Many tasks in one model</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Transfer between tasks, and one artefact to improve</dd></div>
+              <div><dt>Costs you</dt><dd>Interference — new tasks degrade old ones</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Guarantees about any single task</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Physical Intelligence</b><span>π0 as one policy across many jobs</span></li><li><b>Generalist AI</b><span>GEN-1.5, which learns a task from a single demonstration</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">One task, to a reliability nobody else reaches</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>A number a customer will actually sign against</dd></div>
+              <div><dt>Costs you</dt><dd>Task forty costs roughly what task one cost</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Everything you did not scope</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Dyna Robotics</b><span>commercial reliability first, generality later or never</span></li><li><b>Eka Robotics</b><span>narrow and force-native, sold per deployment</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Subtract skills to buy reliability</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Removing capability measurably raises success</dd></div>
+              <div><dt>Costs you</dt><dd>You are shipping a deliberately smaller model</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>The thing you switched off</dd></div>
+            </dl>
+            <ul class="roots"><li><b>TorqueAGI</b><span>fine-tune, then turn the other skills off</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Language as the task interface</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>A new task is a sentence, not a dataset</dd></div>
+              <div><dt>Costs you</dt><dd>Language underdetermines force and contact</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Everything that cannot be said</dd></div>
+            </dl>
+            <ul class="roots"><li><b>OpenVLA and π0</b><span>the VLA line on the Learn page</span></li><li><b>Orangewood Labs</b><span>an arm you program by describing the job</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+      <details class="trunk reveal" id="t-model">
+        <summary>
+          <span class="tk-n">04</span>
+          <span class="tk-label">Scale the model</span>
+          <span class="tk-count">3 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">The straight import from language modelling, and the one that transfers least cleanly, because a robot has a deadline every twenty milliseconds.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Parameters and pretraining</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>The scaling laws that worked for text</dd></div>
+              <div><dt>Costs you</dt><dd>Compute, and a data supply that does not exist yet</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Whether robot data scales the same way at all</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Skild AI</b><span>trillions of examples, on the stated view that real data cannot reach that scale</span></li><li><b>Genesis AI</b><span>a foundation model fed by its own physics engine</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Shrink it until it runs on the robot</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Control rates a real machine can use</dd></div>
+              <div><dt>Costs you</dt><dd>Capability, and often generality</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything needing a model that will not fit</dd></div>
+            </dl>
+            <ul class="roots"><li><b>SmolVLA and the distillation line</b><span>the shrink branch on the Learn page</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Parallel simulation throughput</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Millennia of experience per wall-clock week</dd></div>
+              <div><dt>Costs you</dt><dd>All of it inside a simulator&#x27;s assumptions</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Everything the physics engine gets wrong</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Isaac Lab and Newton</b><span>the substrate Skild trains on</span></li><li><b>Eka Robotics</b><span>the same lever, pointed at contact instead of locomotion</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+      <details class="trunk reveal" id="t-senses">
+        <summary>
+          <span class="tk-n">05</span>
+          <span class="tk-label">Scale the senses</span>
+          <span class="tk-count">3 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">The axis almost nobody was on until recently, and the one with the cleanest argument behind it: you cannot control what you cannot measure.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Add force and touch</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>The channel that contact-rich work actually runs on</dd></div>
+              <div><dt>Costs you</dt><dd>New hardware, and no pretrained anything</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Nothing — this is the gap the others have</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Eka Robotics</b><span>force, not language, as the native representation</span></li><li><b>Proception</b><span>tactile sensing integrated into the hand itself</span></li><li><b>Tensiq</b><span>touch treated as infrastructure rather than a feature</span></li><li><b>DexWrist, DEXOP, SoftMimic</b><span>the force branch on the Learn page</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Add geometry and 3D</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>What every deployed fleet turns out to run on</dd></div>
+              <div><dt>Costs you</dt><dd>Calibration, and a pipeline to maintain</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Material properties, which geometry cannot see</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Niantic Spatial</b><span>reconstruction and positioning from ordinary cameras</span></li><li><b>CynLr</b><span>handling an object it has never seen, without a fixture</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Model your own actuators honestly</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Closes a sim-to-real gap nobody budgets for</dd></div>
+              <div><dt>Costs you</dt><dd>Unglamorous, per-robot work</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Everything outside the drivetrain</dd></div>
+            </dl>
+            <ul class="roots"><li><b>learned actuator models</b><span>called out as decisive in Pulkit Agrawal&#x27;s ETH talk</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+      <details class="trunk reveal" id="t-teaching">
+        <summary>
+          <span class="tk-n">06</span>
+          <span class="tk-label">Scale the teaching</span>
+          <span class="tk-count">4 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">Not how much data, but how many people are allowed to produce it. This is the axis that decides whether a new task costs a PhD or an afternoon.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Let non-experts write the reward</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>A new task stops needing a researcher</dd></div>
+              <div><dt>Costs you</dt><dd>Rewards get worse before the method gets better</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Tasks nobody can describe as a score</dd></div>
+            </dl>
+            <ul class="roots"><li><b>HEPO</b><span>explicitly built to work with badly engineered, non-expert reward functions</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Put a human back in the loop</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Real-world RL that actually converges</dd></div>
+              <div><dt>Costs you</dt><dd>A person has to sit there</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Autonomy, by construction</dd></div>
+            </dl>
+            <ul class="roots"><li><b>HIL-SERL</b><span>the branch where real-robot RL starts working</span></li><li><b>Physical Intelligence</b><span>expert corrections as a formal stage of RECAP</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Distil a teacher that could see everything</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>A tractable teacher, then a deployable student</dd></div>
+              <div><dt>Costs you</dt><dd>Two training runs and a fragile handoff</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Tactile — where the student must go and find what the teacher never needed</dd></div>
+            </dl>
+            <ul class="roots"><li><b>teacher–student distillation</b><span>the mechanism explained on the Learn page&#x27;s Watch shelf</span></li><li><b>TGRL</b><span>the published fix for when the naive version breaks</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Remove the teacher entirely</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>No supervision to bottleneck on</dd></div>
+              <div><dt>Costs you</dt><dd>Sample efficiency, badly</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything requiring taste about what counts as good</dd></div>
+            </dl>
+            <ul class="roots"><li><b>curiosity-driven exploration</b><span>Pathak and Agrawal, 2017 — the paper behind both Skild and Eka</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+      <details class="trunk reveal" id="t-hours">
+        <summary>
+          <span class="tk-n">07</span>
+          <span class="tk-label">Scale the paid hours</span>
+          <span class="tk-count">4 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">The only axis with a bank statement attached. Every company here is really being judged on this one, whatever they scale to get there.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Narrow and reliable, sold per deployment</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Revenue now, from a task you fully scoped</dd></div>
+              <div><dt>Costs you</dt><dd>Growth is linear in engineers</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>The general robot everyone promised</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Relling</b><span>a qualified workcell deployment-ready in under thirty days</span></li><li><b>Multiply Labs</b><span>a peer-reviewed 74% cost reduction in one process</span></li><li><b>Cargo Robotics</b><span>one job: loading a delivery van</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Price the robot like a person</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Removes capex from the customer&#x27;s decision</dd></div>
+              <div><dt>Costs you</dt><dd>You carry the hardware risk and the downtime</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Anything where utilisation stays low</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Figure AI</b><span>sold by the robot-month</span></li><li><b>Agility Robotics</b><span>Digit working shifts rather than being purchased</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Compress the time from purchase to production</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>The bottleneck nobody writes papers about</dd></div>
+              <div><dt>Costs you</dt><dd>Ruthless narrowing of what the cell can do</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Novelty of any kind</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Relling</b><span>thirty days against the industry&#x27;s six to twelve months</span></li><li><b>Foundry Robotics</b><span>modular cells sold as flexible capacity</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Run the fleet, not the robot</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Compounding advantage the moment fleets get large</dd></div>
+              <div><dt>Costs you</dt><dd>You have to already have a fleet</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>The first deployment, which this cannot help</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Foxglove</b><span>petabyte-scale observability, and MCAP, which other fleets record into</span></li><li><b>Dexory</b><span>ten thousand scanned locations an hour, resold as a live twin</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+      <details class="trunk reveal" id="t-measuring">
+        <summary>
+          <span class="tk-n">08</span>
+          <span class="tk-label">Scale the measuring</span>
+          <span class="tk-count">3 branches</span>
+          <span class="tk-mark" aria-hidden="true"></span>
+        </summary>
+        <p class="tk-claim">The trunk with almost nothing growing on it. Seven axes above, and no trustworthy way to compare progress along any of them. This is the honest state of the field.</p>
+        <div class="branches">
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Benchmarks</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Comparability, cheaply</dd></div>
+              <div><dt>Costs you</dt><dd>They are not floors, and everyone knows it</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Real environments, which is the entire point</dd></div>
+            </dl>
+            <ul class="roots"><li><b>COLOSSEUM and VLATest</b><span>the benchmark branch on the Learn page&#x27;s deployment spine</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Predict real performance in simulation</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Evaluation without a physical reset</dd></div>
+              <div><dt>Costs you</dt><dd>The gap you are measuring is the gap you cannot model</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Contact, again</dd></div>
+            </dl>
+            <ul class="roots"><li><b>SIMPLER</b><span>filed under exactly this question on the Learn page</span></li></ul>
+          </div>
+        </details>
+<details class="branch">
+          <summary><span class="br-tick" aria-hidden="true"></span><span class="br-label">Measure real robots honestly, with statistics</span></summary>
+          <div class="br-body">
+            <dl class="ledger">
+              <div><dt>Buys you</dt><dd>Numbers that survive contact with a reviewer</dd></div>
+              <div><dt>Costs you</dt><dd>Every rollout is a physical reset, so n stays tiny</dd></div>
+              <div class="blind"><dt>Blind to</dt><dd>Nothing. This is the correct answer and almost nobody pays for it</dd></div>
+            </dl>
+            <ul class="roots"><li><b>Toyota Research Institute</b><span>A Careful Examination of Large Behavior Models — where the gains got smaller under scrutiny</span></li><li><b>Sunday Robotics</b><span>a 50-household beta makes this strictly harder: you cannot reset a real kitchen</span></li></ul>
+          </div>
+        </details>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <section class="fld-close">
+    <div class="fld-close-inner reveal">
+      <h2>Why the last trunk is nearly bare</h2>
+      <p>Seven axes with real money on them, and one with almost nothing: nobody is scaling the ability to tell whether any of it worked. Every rollout on a real robot costs a physical reset, so sample sizes stay small and the error bars stay wide. When one group did measure carefully, the reported gains got smaller.</p>
+      <p>That is not a swipe at anyone. It is the most useful thing on this page, and it is why a four-person club with one arm can still say something true: the cheap experiment is a better measurement, not a bigger model.</p>
+      <p>The papers behind every branch here live on the <a class="tx" href="learn.html">Learn</a> page. Think a trunk is missing, or a company is on the wrong branch? <a class="tx" href="index.html#join">Tell us</a> — this is a working document, not a verdict.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="learn.html">Learn</a>
+    <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club. Public sources only.</p>
+</footer>
+
+<script>
+(function(){
+  var nav = document.getElementById('nav');
+  var ticking = false;
+  function frame(){ ticking=false; nav.classList.toggle('scrolled', window.scrollY > 10); }
+  window.addEventListener('scroll', function(){ if(!ticking){ ticking=true; requestAnimationFrame(frame); } }, {passive:true});
+  frame();
+
+  var toggle = document.getElementById('navToggle'), links = document.getElementById('navLinks');
+  if (toggle && links) toggle.addEventListener('click', function(){
+    var open = links.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  var tree = document.getElementById('tree');
+  var trunks = Array.prototype.slice.call(tree.querySelectorAll('.trunk'));
+
+  // opening a trunk closes its siblings, so the tree stays readable
+  trunks.forEach(function(t){
+    t.addEventListener('toggle', function(){
+      if (!t.open) return;
+      trunks.forEach(function(o){ if (o !== t) o.open = false; });
+      sync();
+    });
+  });
+
+  var btn = document.getElementById('allBtn');
+  var all = Array.prototype.slice.call(tree.querySelectorAll('details'));
+  function sync(){
+    var anyOpen = all.some(function(d){ return d.open; });
+    btn.textContent = anyOpen ? 'Collapse everything' : 'Open everything';
+    btn.setAttribute('data-open', anyOpen ? '1' : '0');
+  }
+  btn.addEventListener('click', function(){
+    var opening = btn.getAttribute('data-open') === '0';
+    // suspend the sibling-closing rule while bulk-opening
+    tree.dataset.bulk = '1';
+    all.forEach(function(d){ d.open = opening; });
+    delete tree.dataset.bulk;
+    sync();
+  });
+  tree.addEventListener('toggle', function(e){
+    if (tree.dataset.bulk) return;
+    if (e.target.classList.contains('branch')) sync();
+  }, true);
+  sync();
+
+  // deep link: #t-data opens that trunk
+  function openFromHash(){
+    var id = location.hash.slice(1);
+    if (!id) return;
+    var el = document.getElementById(id);
+    if (el && el.classList.contains('trunk')) { el.open = true; sync(); el.scrollIntoView({block:'start'}); }
+  }
+  window.addEventListener('hashchange', openFromHash);
+  openFromHash();
+
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('vis'); io.unobserve(e.target); } });
+  }, { threshold:0.1, rootMargin:'0px 0px -6% 0px' });
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
