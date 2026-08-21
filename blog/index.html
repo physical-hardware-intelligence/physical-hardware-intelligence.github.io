@@ -75,6 +75,40 @@
 
   @media (max-width:620px){ .bp-body{font-size:1.02rem} .bp-body .lede{font-size:1.1rem} }
   @media (prefers-reduced-motion:reduce){ .reveal,.reveal.vis{opacity:1!important;animation:none!important} }
+  /* newest post gets a lifted card; later posts fall back to plain rows.
+     Elevation carries the hierarchy, so no "featured" label is needed. */
+  .bp-wrap h1.eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin:0}
+  .post-card{display:block;background:#F6F2E8;border:1px solid var(--ink);border-radius:2px;
+    padding:clamp(18px,2.2vw,24px) clamp(18px,2.2vw,24px) clamp(20px,2.4vw,26px);
+    box-shadow:3px 3px 0 var(--ink);
+    transition:box-shadow .22s var(--ease),transform .22s var(--ease)}
+  .post-card h2{font-family:var(--disp);font-size:clamp(1.3rem,2.6vw,1.72rem);font-weight:500;
+    letter-spacing:-.014em;line-height:1.16;margin:0;
+    background-image:linear-gradient(var(--ink),var(--ink));background-size:0 1px;
+    background-repeat:no-repeat;background-position:0 1.1em;transition:background-size .3s var(--ease)}
+  .pc-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 18px}
+  .rd{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--ink-3);white-space:nowrap;transition:color .2s var(--ease)}
+  .pc-dek{margin:11px 0 0;color:var(--ink-2);font-size:1.01rem;line-height:1.55;max-width:60ch}
+  @media (hover:hover){
+    .post-card:hover{box-shadow:5px 5px 0 var(--ink);transform:translate(-1px,-1px)}
+    .post-card:hover h2{background-size:100% 1px}
+    .post-card:hover .rd{color:var(--apple)}
+  }
+  .post-card:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
+
+  /* plain row, for posts after the first */
+  .post-row{display:block;border-top:1px solid var(--line-2);padding:clamp(20px,2.6vw,28px) 0}
+  .post-row h2{font-family:var(--disp);font-size:clamp(1.24rem,2.4vw,1.56rem);font-weight:500;
+    letter-spacing:-.014em;line-height:1.16;margin:0;
+    background-image:linear-gradient(var(--ink),var(--ink));background-size:0 1px;
+    background-repeat:no-repeat;background-position:0 1.1em;transition:background-size .3s var(--ease)}
+  @media (hover:hover){
+    .post-row:hover h2{background-size:100% 1px}
+    .post-row:hover .rd{color:var(--apple)}
+  }
+  .post-row:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
+  .post-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:clamp(14px,1.8vw,20px)}
   .reveal{opacity:0}
   .reveal.vis{animation:rv .5s var(--ease) both}
   @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -98,17 +132,18 @@
 
 <main id="top">
   <section class="bp-wrap">
-    <h1 class="eyebrow" style="font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin:0">Blog</h1>
+    <h1 class="eyebrow">Blog</h1>
     <hr class="bp-rule">
 
-    <ol style="list-style:none;margin:0;padding:0">
-      <li class="reveal" style="border-top:1px solid var(--line-2);padding:clamp(20px,2.6vw,28px) 0">
-        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 18px">
-          <h2 style="font-family:var(--disp);font-size:clamp(1.3rem,2.6vw,1.72rem);font-weight:500;letter-spacing:-.014em;line-height:1.16;margin:0">
-            <a href="a-vla-is-not-the-policy.html">A VLA is not the policy</a></h2>
-          <p style="margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap">21 August 2026 &#183; 7 min</p>
-        </div>
-        <p style="margin:10px 0 0;color:var(--ink-2);font-size:1.01rem;line-height:1.55;max-width:60ch">Action chunking is what made behaviour cloning work. It is also what leaves the policy blind for two seconds at a time.</p>
+    <ol class="post-list">
+      <li class="reveal">
+        <a class="post-card" href="a-vla-is-not-the-policy.html">
+          <div class="pc-head">
+            <h2>A VLA is not the policy</h2>
+            <p class="rd">21 August 2026 &#183; 7 min &#8599;</p>
+          </div>
+          <p class="pc-dek">Action chunking is what made behaviour cloning work. It is also what leaves the policy blind for two seconds at a time.</p>
+        </a>
       </li>
     </ol>
 
