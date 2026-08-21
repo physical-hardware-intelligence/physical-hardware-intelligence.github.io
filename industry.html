@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Industry · Phi</title>
+<meta name="description" content="Robotics has one word for six different bets. Which axis is each company actually scaling on? A sourced board of 28 companies, sorted by the thing they are betting on.">
+<meta name="theme-color" content="#ECE7DC">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Industry — Physical Hardware Intelligence">
+<meta property="og:description" content="Which axis is each robotics company actually scaling on? A sourced board of 28 companies across six axes.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/industry.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<link rel="icon" href="assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .in-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(88px,11vh,114px) clamp(20px,5vw,44px) 0}
+  .in-hero .eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;margin:0 0 clamp(18px,2.4vw,26px)}
+  .in-hero h1{font-family:var(--disp);font-size:clamp(2.05rem,4.9vw,3.25rem);font-weight:500;line-height:1.06;letter-spacing:-.02em;max-width:23ch;margin:0}
+  .in-hero h1 em{font-style:italic}
+
+  .in-wrap{max-width:var(--maxw);margin:0 auto;padding:clamp(38px,5.2vw,64px) clamp(20px,5vw,44px) 0}
+  .in-key{display:flex;flex-wrap:wrap;gap:6px 26px;align-items:baseline;
+    font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    border-bottom:1px solid var(--ink);padding-bottom:10px;margin:0 0 4px}
+  .in-key b{color:var(--ink);font-weight:500}
+
+  /* --gp and --nc keep the group labels flush with the axis titles */
+  .ax{--gp:clamp(12px,2vw,22px);--nc:21px;border-bottom:1px solid var(--line)}
+  .ax>summary{list-style:none;cursor:pointer;display:grid;
+    grid-template-columns:var(--nc) minmax(0,1fr) minmax(84px,30%) auto;align-items:center;gap:0 var(--gp);
+    padding:clamp(15px,1.9vw,21px) 0}
+  .ax>summary::-webkit-details-marker{display:none}
+  .ax>summary:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+  .ax-n{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  .ax-l{font-family:var(--disp);font-size:clamp(1.12rem,2.1vw,1.5rem);font-weight:500;letter-spacing:-.01em;line-height:1.16;transition:color .2s var(--ease)}
+  .ax-bar{position:relative;height:5px;background:var(--line)}
+  .ax-bar i{position:absolute;left:0;top:0;bottom:0;width:var(--w);background:var(--ink);transition:width .6s var(--ease)}
+  .ax-c{font-family:var(--mono);font-size:12.5px;color:var(--ink-2);min-width:2ch;text-align:right}
+  @media (hover:hover){ .ax>summary:hover .ax-l{color:var(--apple)} }
+  .ax[open]>summary .ax-l{font-style:italic}
+
+  .ax-b{padding:2px 0 clamp(22px,3vw,32px);padding-left:calc(var(--nc) + var(--gp))}
+  .ax-t{margin:0 0 clamp(17px,2.3vw,25px);font-size:.97rem;color:var(--ink-2);max-width:62ch}
+  .grp{display:grid;grid-template-columns:clamp(116px,16vw,190px) minmax(0,1fr);gap:0 clamp(14px,2vw,26px);padding:0 0 13px;align-items:start}
+  .grp-l{margin:3px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);line-height:1.5}
+  .grp-c{display:flex;flex-wrap:wrap;gap:7px}
+  .grp-d{display:contents}
+
+  .chip{display:inline-block;font-size:.93rem;line-height:1;padding:6px 11px 7px;
+    border:1px solid var(--line-2);border-radius:2px;color:var(--ink);
+    transition:border-color .2s var(--ease),background .2s var(--ease),color .2s var(--ease)}
+  @media (hover:hover){ .chip:hover{border-color:var(--ink);background:var(--paper-2)} }
+  .chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+  .chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+
+  .det{display:none;grid-column:2;margin:9px 0 2px;font-size:.95rem;line-height:1.5;color:var(--ink-2);max-width:70ch}
+  .det.on{display:block;animation:det-in .3s var(--ease) both}
+  @keyframes det-in{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+  .det b{font-family:var(--disp);font-weight:500;color:var(--ink)}
+  .det b::after{content:"\2009\2014\00a0";color:var(--ink-3);font-family:var(--serif)}
+  .det a{color:var(--apple);border-bottom:1px solid transparent;white-space:nowrap}
+  .det a:hover{border-color:var(--apple)}
+  .det a span{font-size:.85em;margin-left:2px}
+
+  /* company -> axis, so the board reads both ways */
+  .in-z{max-width:var(--maxw);margin:0 auto;padding:clamp(44px,5.4vw,70px) clamp(20px,5vw,44px) 0}
+  .in-z h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);
+    border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
+  .in-z ul{list-style:none;margin:0;padding:0;columns:3;column-gap:clamp(24px,3.4vw,50px)}
+  .in-z li{break-inside:avoid;padding:0 0 7px;font-size:.9rem;line-height:1.4}
+  .in-z b{font-weight:400;font-family:var(--serif)}
+  .in-z b::after{content:"\00a0\00b7\00a0";color:var(--line-2)}
+  .in-z a{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);
+    border-bottom:1px solid transparent}
+  .in-z a+a::before{content:", ";color:var(--line-2)}
+  .in-z a:hover{color:var(--apple);border-color:var(--apple)}
+
+  .in-foot{max-width:var(--maxw);margin:0 auto;padding:clamp(40px,5vw,62px) clamp(20px,5vw,44px) 0}
+  .in-foot p{margin:0;max-width:62ch;font-size:.97rem;color:var(--ink-2)}
+  .in-foot a{border-bottom:1px solid var(--line-2)}
+  .in-foot a:hover{border-color:var(--ink)}
+  .in-fine{margin-top:15px!important;font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--ink-3)!important}
+
+  .reveal{opacity:0}
+  .reveal.vis{animation:rv .5s var(--ease) both}
+  @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  @media (max-width:900px){ .in-z ul{columns:2} }
+  @media (max-width:820px){
+    .ax>summary{grid-template-columns:var(--nc) minmax(0,1fr) auto;gap:0 12px}
+    .ax-n{grid-column:1;grid-row:1}
+    .ax-l{grid-column:2;grid-row:1}
+    .ax-c{grid-column:3;grid-row:1}
+    .ax-bar{grid-column:1/-1;grid-row:2;margin-top:10px}
+    .ax-b{padding-left:0}
+    .grp{grid-template-columns:minmax(0,1fr);gap:0;padding-bottom:17px}
+    .grp-l{grid-column:1;margin:0 0 7px}
+    .grp-c,.grp-d,.det{grid-column:1}
+  }
+  @media (max-width:520px){ .in-z ul{columns:1} }
+  @media (prefers-reduced-motion:reduce){
+    .reveal,.reveal.vis{opacity:1!important;animation:none!important}
+    .ax-bar i{transition:none} .det.on{animation:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="index.html">Home</a>
+    <a href="learn.html">Learn</a>
+    <a href="industry.html" class="active">Industry</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top">
+
+  <section class="in-hero">
+    <p class="eyebrow">The board</p>
+    <h1>Everyone is scaling something. <em>Which axis?</em></h1>
+  </section>
+
+  <div class="in-wrap">
+    <p class="in-key">
+      <span><b>6</b> axes</span>
+      <span><b>28</b> companies</span>
+      <span><b>38</b> placements</span>
+      <span>bar &#61; placements here</span>
+      <span>tap a name for the source</span>
+    </p>
+
+    <div id="map">
+      <details class="ax reveal" id="a-data">
+        <summary>
+          <span class="ax-n">01</span>
+          <span class="ax-l">Scale the data</span>
+          <span class="ax-bar" style="--w:100.0%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">12</span>
+        </summary>
+        <div class="ax-b">
+          <p class="ax-t">Cheapest where it is furthest from the robot. Wrongest where it matters most.</p>
+          <div class="grp">
+            <p class="grp-l">its own trials</p>
+            <div class="grp-c"><a class="chip" href="https://arxiv.org/abs/2511.14759" target="_blank" rel="noopener">Physical Intelligence</a><a class="chip" href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">Dyna Robotics</a></div>
+            <div class="grp-d"><p class="det"><b>Physical Intelligence</b>Demonstrations, then expert corrections, then RL from its own autonomous attempts. <a href="https://arxiv.org/abs/2511.14759" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Dyna Robotics</b>One task driven to commercial reliability before the next one is added. <a href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">a human at the controls</p>
+            <div class="grp-c"><a class="chip" href="https://huggingface.co/datasets/XDOF/ABC-130k" target="_blank" rel="noopener">XDOF</a><a class="chip" href="https://www.tri.global/our-work/large-behavior-models" target="_blank" rel="noopener">Toyota Research Institute</a></div>
+            <div class="grp-d"><p class="det"><b>XDOF</b>An outsourced teleoperation factory. Open-sourced 134,806 episodes and 3,553 hours. <a href="https://huggingface.co/datasets/XDOF/ABC-130k" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Toyota Research Institute</b>Fifty to a hundred bimanual haptic teleop demos per behaviour, tactile included. <a href="https://www.tri.global/our-work/large-behavior-models" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">a glove, and no robot</p>
+            <div class="grp-c"><a class="chip" href="https://www.sunday.ai/journal/no-robot-data" target="_blank" rel="noopener">Sunday Robotics</a><a class="chip" href="https://www.proception.ai/news/introducing-prohand" target="_blank" rel="noopener">Proception</a></div>
+            <div class="grp-d"><p class="det"><b>Sunday Robotics</b>A $200 glove sharing the robot&#x27;s exact hand geometry and sensors. No simulator at all. <a href="https://www.sunday.ai/journal/no-robot-data" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Proception</b>ProHand&#x27;s sensor skin, worn as a glove. Hand and capture device are one design. <a href="https://www.proception.ai/news/introducing-prohand" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">humans on video</p>
+            <div class="grp-c"><a class="chip" href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">Skild AI</a></div>
+            <div class="grp-d"><p class="det"><b>Skild AI</b>Pre-trains on internet human video, on the view that humans are another form factor. <a href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">a simulator</p>
+            <div class="grp-c"><a class="chip" href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">Eka Robotics</a><a class="chip" href="https://www.genesis.ai/press/genesis-ai-emerges-from-stealth-with-dollar105m-to-build-universal-robotics-found" target="_blank" rel="noopener">Genesis AI</a><a class="chip" href="https://antimlabs.com/" target="_blank" rel="noopener">Antim Labs</a></div>
+            <div class="grp-d"><p class="det"><b>Eka Robotics</b>Contact fidelity over photorealism. Explicitly not human imitation data. <a href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Genesis AI</b>A physics engine generating experience up to 430,000x faster than real time. <a href="https://www.genesis.ai/press/genesis-ai-emerges-from-stealth-with-dollar105m-to-build-universal-robotics-found" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Antim Labs</b>A prompt or a floorplan becomes an export-ready scene with real colliders. <a href="https://antimlabs.com/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">robots already on the clock</p>
+            <div class="grp-c"><a class="chip" href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">Ambi Robotics</a><a class="chip" href="https://www.dexory.com/insights/strong-customer-demand-enables-dexory-to-secure-165m-in-funding" target="_blank" rel="noopener">Dexory</a></div>
+            <div class="grp-d"><p class="det"><b>Ambi Robotics</b>Twenty-two years of robot data, collected by sorting over a hundred million parcels. <a href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Dexory</b>Ten thousand warehouse locations scanned an hour, resold as a live digital twin. <a href="https://www.dexory.com/insights/strong-customer-demand-enables-dexory-to-secure-165m-in-funding" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div>
+        </div>
+      </details>
+      <details class="ax reveal" id="a-senses">
+        <summary>
+          <span class="ax-n">02</span>
+          <span class="ax-l">Scale the senses</span>
+          <span class="ax-bar" style="--w:50.0%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">6</span>
+        </summary>
+        <div class="ax-b">
+          <p class="ax-t">You cannot control what you cannot measure. Mostly sold as components, to everyone else on this board.</p>
+          <div class="grp">
+            <p class="grp-l">force and touch</p>
+            <div class="grp-c"><a class="chip" href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">Eka Robotics</a><a class="chip" href="https://www.gelsight.com/" target="_blank" rel="noopener">GelSight</a><a class="chip" href="https://botasys.com/" target="_blank" rel="noopener">Bota Systems</a><a class="chip" href="https://contactile.com/" target="_blank" rel="noopener">Contactile</a><a class="chip" href="https://www.ycombinator.com/companies/proception-inc" target="_blank" rel="noopener">Proception</a></div>
+            <div class="grp-d"><p class="det"><b>Eka Robotics</b>Force, not language, as the native representation of physical interaction. <a href="https://www.humanoidsdaily.com/news/the-era-of-eka-new-startup-unveils-vision-force-action-model-to-crack-dexterity" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>GelSight</b>Elastomer that deforms on contact, read optically. Shape and force from one surface. <a href="https://www.gelsight.com/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Bota Systems</b>Six-axis force-torque sensors with the electronics and IMU integrated, for humanoids and cobots. <a href="https://botasys.com/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Contactile</b>A nine-pillar three-axis force array small enough to sit on a gripper fingertip. <a href="https://contactile.com/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Proception</b>Twenty-two degrees of freedom with tactile sensing built into the hand itself. <a href="https://www.ycombinator.com/companies/proception-inc" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">geometry and 3D</p>
+            <div class="grp-c"><a class="chip" href="https://www.nianticspatial.com/blog/niantic-spatial-day-one" target="_blank" rel="noopener">Niantic Spatial</a></div>
+            <div class="grp-d"><p class="det"><b>Niantic Spatial</b>Thirty billion posed images from Pokemon GO, turned into centimetre positioning. <a href="https://www.nianticspatial.com/blog/niantic-spatial-day-one" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div>
+        </div>
+      </details>
+      <details class="ax reveal" id="a-tasks">
+        <summary>
+          <span class="ax-n">03</span>
+          <span class="ax-l">Scale the tasks</span>
+          <span class="ax-bar" style="--w:41.67%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
+        </summary>
+        <div class="ax-b">
+          <p class="ax-t">Generality is what gets announced. Narrowness is what gets deployed.</p>
+          <div class="grp">
+            <p class="grp-l">many tasks, one model</p>
+            <div class="grp-c"><a class="chip" href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">Physical Intelligence</a><a class="chip" href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">Skild AI</a></div>
+            <div class="grp-d"><p class="det"><b>Physical Intelligence</b>One flow-matching policy across many jobs rather than one policy per job. <a href="https://www.physicalintelligence.company/blog/pi0" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Skild AI</b>Generality across task and hardware is the stated product, not a side effect. <a href="https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">one task, to a reliability nobody else reaches</p>
+            <div class="grp-c"><a class="chip" href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">Dyna Robotics</a><a class="chip" href="https://indiatechreport.in/2026/04/30/eka-robotics-bets-on-force-not-language-to-teach-robots-dexterity/" target="_blank" rel="noopener">Eka Robotics</a></div>
+            <div class="grp-d"><p class="det"><b>Dyna Robotics</b>Commercial reliability on a single task first. Generality later, or never. <a href="https://www.dyna.co/dyna-2" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Eka Robotics</b>Narrow, force-native dexterity sold per deployment rather than as a generalist. <a href="https://indiatechreport.in/2026/04/30/eka-robotics-bets-on-force-not-language-to-teach-robots-dexterity/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">a single demonstration</p>
+            <div class="grp-c"><a class="chip" href="https://generalistai.com/blog/gen-1.5" target="_blank" rel="noopener">Generalist AI</a></div>
+            <div class="grp-d"><p class="det"><b>Generalist AI</b>59% one-shot across ten tasks with no gradient updates. 83% after ten steps. <a href="https://generalistai.com/blog/gen-1.5" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div>
+        </div>
+      </details>
+      <details class="ax reveal" id="a-measuring">
+        <summary>
+          <span class="ax-n">04</span>
+          <span class="ax-l">Scale the measuring</span>
+          <span class="ax-bar" style="--w:41.67%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
+        </summary>
+        <div class="ax-b">
+          <p class="ax-t">Barely a robot-learning business. It is an autonomous-vehicle business, now moving into robotics.</p>
+          <div class="grp">
+            <p class="grp-l">coverage, and evidence for a safety case</p>
+            <div class="grp-c"><a class="chip" href="https://www.prnewswire.com/news-releases/foretellix-accelerates-ai-powered-autonomous-vehicles-with-data-driven-development-toolchain-and-safety-evaluation-302461702.html" target="_blank" rel="noopener">Foretellix</a></div>
+            <div class="grp-d"><p class="det"><b>Foretellix</b>Foretify measures scenario coverage to produce independent evidence for a safety case. <a href="https://www.prnewswire.com/news-releases/foretellix-accelerates-ai-powered-autonomous-vehicles-with-data-driven-development-toolchain-and-safety-evaluation-302461702.html" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">simulate it, then validate against the real thing</p>
+            <div class="grp-c"><a class="chip" href="https://www.semafor.com/article/07/20/2026/applied-intuition-wants-to-turn-robotics-into-childs-play" target="_blank" rel="noopener">Applied Intuition</a></div>
+            <div class="grp-d"><p class="det"><b>Applied Intuition</b>A $15B validation and simulation stack for cars, trucks, mining and drones. Dana extends it to robots. <a href="https://www.semafor.com/article/07/20/2026/applied-intuition-wants-to-turn-robotics-into-childs-play" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">watch the fleet and score it</p>
+            <div class="grp-c"><a class="chip" href="https://www.businesswire.com/news/home/20260421818840/en/Foxglove-Launches-Unified-Data-Search-and-Curation-Platform-to-Accelerate-Physical-AI-Development" target="_blank" rel="noopener">Foxglove</a><a class="chip" href="https://www.roboto.ai/" target="_blank" rel="noopener">Roboto</a></div>
+            <div class="grp-d"><p class="det"><b>Foxglove</b>Find the critical event across petabytes, then evaluate robot performance against it. <a href="https://www.businesswire.com/news/home/20260421818840/en/Foxglove-Launches-Unified-Data-Search-and-Curation-Platform-to-Accelerate-Physical-AI-Development" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Roboto</b>Search, transform and analyse multimodal robotics logs. <a href="https://www.roboto.ai/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">curate the set you are scoring on</p>
+            <div class="grp-c"><a class="chip" href="https://voxel51.com/" target="_blank" rel="noopener">Voxel51</a></div>
+            <div class="grp-d"><p class="det"><b>Voxel51</b>FiftyOne, for visualising and curating the datasets everything above is measured on. <a href="https://voxel51.com/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div>
+        </div>
+      </details>
+      <details class="ax reveal" id="a-hours">
+        <summary>
+          <span class="ax-n">05</span>
+          <span class="ax-l">Scale the paid hours</span>
+          <span class="ax-bar" style="--w:41.67%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
+        </summary>
+        <div class="ax-b">
+          <p class="ax-t">The only axis with a bank statement attached. Everyone above is judged on this one.</p>
+          <div class="grp">
+            <p class="grp-l">narrow and reliable, sold per deployment</p>
+            <div class="grp-c"><a class="chip" href="https://www.ycombinator.com/companies/relling" target="_blank" rel="noopener">Relling</a><a class="chip" href="https://www.universal-robots.com/news-and-media/news-center/robotics-transforms-cell-therapy/" target="_blank" rel="noopener">Multiply Labs</a></div>
+            <div class="grp-d"><p class="det"><b>Relling</b>Hybrid cells: classical motion composed with learned primitives. Live in weeks, not quarters. <a href="https://www.ycombinator.com/companies/relling" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Multiply Labs</b>74% cost reduction, peer-reviewed with UCSF, on off-the-shelf Universal Robots arms. <a href="https://www.universal-robots.com/news-and-media/news-center/robotics-transforms-cell-therapy/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">price the robot like a person</p>
+            <div class="grp-c"><a class="chip" href="https://www.figure.ai/news/ramping-figure-03-production" target="_blank" rel="noopener">Figure AI</a></div>
+            <div class="grp-d"><p class="det"><b>Figure AI</b>Roughly $1,000 per robot per month, hardware and support included. <a href="https://www.figure.ai/news/ramping-figure-03-production" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">sell what the fleet sees, not the robot</p>
+            <div class="grp-c"><a class="chip" href="https://www.dexory.com/about-us" target="_blank" rel="noopener">Dexory</a><a class="chip" href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">Ambi Robotics</a></div>
+            <div class="grp-d"><p class="det"><b>Dexory</b>The scan is the product. The fleet is what makes the scan worth buying. <a href="https://www.dexory.com/about-us" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Ambi Robotics</b>A hundred million sorted parcels, and the data that came with them. <a href="https://www.science.org/doi/full/10.1126/scirobotics.aea7390" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div>
+        </div>
+      </details>
+      <details class="ax reveal" id="a-bodies">
+        <summary>
+          <span class="ax-n">06</span>
+          <span class="ax-l">Scale the bodies</span>
+          <span class="ax-bar" style="--w:41.67%" aria-hidden="true"><i></i></span>
+          <span class="ax-c">5</span>
+        </summary>
+        <div class="ax-b">
+          <p class="ax-t">Every extra body multiplies the data and dilutes the tuning. Two of the four routes avoid building one.</p>
+          <div class="grp">
+            <p class="grp-l">one policy, many bodies</p>
+            <div class="grp-c"><a class="chip" href="https://www.therobotreport.com/skild-ai-raises-1-4b-building-omni-bodied-robot-skild-brain/" target="_blank" rel="noopener">Skild AI</a></div>
+            <div class="grp-d"><p class="det"><b>Skild AI</b>One omni-bodied model for quadrupeds, humanoids, tabletop arms and mobile manipulators. <a href="https://www.therobotreport.com/skild-ai-raises-1-4b-building-omni-bodied-robot-skild-brain/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">one body, mass-manufactured</p>
+            <div class="grp-c"><a class="chip" href="https://www.figure.ai/news/botq" target="_blank" rel="noopener">Figure AI</a></div>
+            <div class="grp-d"><p class="det"><b>Figure AI</b>One robot per hour at BotQ, up from one a day in four months. Line rated at 12,000 a year. <a href="https://www.figure.ai/news/botq" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">retrofit what already exists</p>
+            <div class="grp-c"><a class="chip" href="https://www.globenewswire.com/news-release/2026/08/17/3346247/0/en/bedrock-robotics-launches-first-fully-autonomous-excavator-deployments-on-critical-u-s-infrastructure-projects.html" target="_blank" rel="noopener">Bedrock Robotics</a><a class="chip" href="https://www.bonsairobotics.ai/" target="_blank" rel="noopener">Bonsai Robotics</a></div>
+            <div class="grp-d"><p class="det"><b>Bedrock Robotics</b>Autonomy kits onto excavators the contractor already owns. $350M to avoid building machines. <a href="https://www.globenewswire.com/news-release/2026/08/17/3346247/0/en/bedrock-robotics-launches-first-fully-autonomous-excavator-deployments-on-critical-u-s-infrastructure-projects.html" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p><p class="det"><b>Bonsai Robotics</b>Vision-only autonomy fitted to orchard equipment, where GPS and cell both fail. <a href="https://www.bonsairobotics.ai/" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div><div class="grp">
+            <p class="grp-l">make the body cheap enough to stop mattering</p>
+            <div class="grp-c"><a class="chip" href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">Hugging Face</a></div>
+            <div class="grp-d"><p class="det"><b>Hugging Face</b>LeRobot and the SO-101: an open arm and stack a student club can run end to end. Ours does. <a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">source<span aria-hidden="true">&#8599;</span></a></p></div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <section class="in-z">
+    <h2 class="reveal">Every company, and the axes it sits on</h2>
+    <ul class="reveal"><li><b>Ambi Robotics</b><a href="#a-data">data</a><a href="#a-hours">paid hours</a></li><li><b>Antim Labs</b><a href="#a-data">data</a></li><li><b>Applied Intuition</b><a href="#a-measuring">measuring</a></li><li><b>Bedrock Robotics</b><a href="#a-bodies">bodies</a></li><li><b>Bonsai Robotics</b><a href="#a-bodies">bodies</a></li><li><b>Bota Systems</b><a href="#a-senses">senses</a></li><li><b>Contactile</b><a href="#a-senses">senses</a></li><li><b>Dexory</b><a href="#a-data">data</a><a href="#a-hours">paid hours</a></li><li><b>Dyna Robotics</b><a href="#a-data">data</a><a href="#a-tasks">tasks</a></li><li><b>Eka Robotics</b><a href="#a-data">data</a><a href="#a-senses">senses</a><a href="#a-tasks">tasks</a></li><li><b>Figure AI</b><a href="#a-hours">paid hours</a><a href="#a-bodies">bodies</a></li><li><b>Foretellix</b><a href="#a-measuring">measuring</a></li><li><b>Foxglove</b><a href="#a-measuring">measuring</a></li><li><b>GelSight</b><a href="#a-senses">senses</a></li><li><b>Generalist AI</b><a href="#a-tasks">tasks</a></li><li><b>Genesis AI</b><a href="#a-data">data</a></li><li><b>Hugging Face</b><a href="#a-bodies">bodies</a></li><li><b>Multiply Labs</b><a href="#a-hours">paid hours</a></li><li><b>Niantic Spatial</b><a href="#a-senses">senses</a></li><li><b>Physical Intelligence</b><a href="#a-data">data</a><a href="#a-tasks">tasks</a></li><li><b>Proception</b><a href="#a-data">data</a><a href="#a-senses">senses</a></li><li><b>Relling</b><a href="#a-hours">paid hours</a></li><li><b>Roboto</b><a href="#a-measuring">measuring</a></li><li><b>Skild AI</b><a href="#a-data">data</a><a href="#a-tasks">tasks</a><a href="#a-bodies">bodies</a></li><li><b>Sunday Robotics</b><a href="#a-data">data</a></li><li><b>Toyota Research Institute</b><a href="#a-data">data</a></li><li><b>Voxel51</b><a href="#a-measuring">measuring</a></li><li><b>XDOF</b><a href="#a-data">data</a></li></ul>
+  </section>
+
+  <section class="in-foot">
+    <p class="reveal">Eight of these companies sit on more than one axis, and that is usually where the strategy is. <a href="#a-measuring">Measuring</a> is the odd one out: almost none of it was built by robot-learning companies. It came from autonomous vehicles, where somebody had to prove a safety case, and it is only now moving across.</p>
+    <p class="reveal in-fine">A curated board, not a census &#183; public sources only, one per entry &#183; the papers live on <a href="learn.html">Learn</a> &#183; tended 20 Aug 2026 &#183; think a company is on the wrong axis? <a href="index.html#join">tell us</a></p>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="learn.html">Learn</a>
+    <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club.</p>
+</footer>
+
+<script>
+(function(){
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){
+    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
+
+  var map=document.getElementById('map');
+  var axes=[].slice.call(map.querySelectorAll('.ax'));
+
+  axes.forEach(function(a){
+    a.addEventListener('toggle',function(){
+      if(a.open) axes.forEach(function(o){ if(o!==a) o.open=false; });
+      else clear();
+    });
+  });
+
+  function clear(){
+    map.querySelectorAll('.det.on').forEach(function(d){d.classList.remove('on');});
+    map.querySelectorAll('.chip.on').forEach(function(c){
+      c.classList.remove('on');c.setAttribute('aria-expanded','false');});
+  }
+
+  // chips are real links to the source; JS upgrades them to reveal in place.
+  // paired by position inside the group, so entries can be hand-edited safely.
+  map.querySelectorAll('.chip').forEach(function(c){
+    c.setAttribute('aria-expanded','false');
+    c.addEventListener('click',function(e){
+      if(e.metaKey||e.ctrlKey||e.shiftKey||e.button!==0) return;
+      e.preventDefault();
+      var grp=c.closest('.grp');
+      var cs=[].slice.call(grp.querySelectorAll('.chip'));
+      var det=grp.querySelectorAll('.det')[cs.indexOf(c)];
+      var was=c.classList.contains('on');
+      clear();
+      if(!was&&det){c.classList.add('on');c.setAttribute('aria-expanded','true');det.classList.add('on');}
+    });
+  });
+
+  function fromHash(){
+    var el=document.getElementById(location.hash.slice(1));
+    if(el&&el.classList.contains('ax')){el.open=true;el.scrollIntoView({block:'start'});}
+  }
+  window.addEventListener('hashchange',fromHash);fromHash();
+  // the A-Z index drives the same behaviour
+  document.querySelectorAll('.in-z a').forEach(function(a){
+    a.addEventListener('click',function(){setTimeout(fromHash,0);});
+  });
+
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
+  },{threshold:0.1,rootMargin:'0px 0px -6% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+})();
+</script>
+</body>
+</html>
