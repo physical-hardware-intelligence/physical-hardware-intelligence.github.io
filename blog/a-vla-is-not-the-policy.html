@@ -170,7 +170,7 @@
     <text x="574" y="348" class="ax axr">stiffness. all of it</text>
     <text x="574" y="366" class="ax axr">happens down here</text>
   </svg>
-  <figcaption>The learned part of a modern manipulation stack stops at the seam. Below it, a controller with fixed gains does the physics, blind to the task. <a href="https://arxiv.org/abs/2510.17792" target="_blank" rel="noopener">SoftMimic</a> is interesting because it does not remove that controller, it parameterises it.</figcaption>
+  <figcaption>The learned part of a modern manipulation stack stops at the seam. Below it, the controller that does the physics is, almost everywhere, fixed-gain and blind to the task. <a href="https://arxiv.org/abs/2510.17792" target="_blank" rel="noopener">SoftMimic</a> is interesting because it does not remove that controller, it parameterises it.</figcaption>
 </figure>
 
 <h2>Ten hertz of intelligence, a kilohertz of physics</h2>
@@ -190,6 +190,10 @@
 <p>Vision cannot close a kilohertz loop. Cameras do not produce the information, so no amount of model capacity conjures it. Biology is blunt about this too: your spinal reflexes fire long before your visual cortex has an opinion, and that arrangement is not a design flaw.</p>
 
 <p>The hierarchy is not the mistake. <strong>The mistake is that the bottom of the hierarchy is dumb, and the channel between the layers is one number per joint.</strong> A position target cannot express &ldquo;be soft here,&rdquo; or &ldquo;expect contact in two centimetres,&rdquo; or &ldquo;hold three newtons.&rdquo; There is no room in the message.</p>
+
+<p>One company has already done half of this. Figure&rsquo;s <a href="https://www.figure.ai/news/helix-02" target="_blank" rel="noopener">Helix 02</a> runs three layers rather than two: a reasoning model at 7 to 9Hz, a reactive policy at 200Hz, and beneath both of them a 10-million-parameter network they call System 0, emitting joint-level actuator commands at 1kHz. It was trained on over a thousand hours of joint-level retargeted human motion, and by their own account it &ldquo;replaces 109,504 lines of hand-engineered C++ with a single neural prior.&rdquo; So the kilohertz layer is not necessarily dumb, and we should not have implied that it always is.</p>
+
+<p>What Figure has not changed is the channel. Their own description is that System 1 &ldquo;produces full-body joint targets that S0 tracks.&rdquo; The bottom of the hierarchy got smart. The message between the layers is still a list of places to be. Which suggests that of the two complaints above, the narrow interface is the more durable one.</p>
 
 <h2>Widen the interface</h2>
 
