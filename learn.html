@@ -923,6 +923,17 @@
   },
   {
    "y": "2026",
+   "t": "Dyna \u2014 deployment is the eval",
+   "u": "https://www.dyna.co/research/scaling-customer-deployments",
+   "d": "Din Tai Fung is rolling Dyna's robots across its restaurants, the first manipulation pilot taken to scaled deployment. Dyna-1 folded 35 napkins an hour at 75% quality; Dyna-2 does 95 at 93%. Deployment is the eval: a terabyte a day, every episode auto-labelled.",
+   "tag": "deployment \u00b7 read this",
+   "tagClass": "",
+   "now": true,
+   "spine": "deploy",
+   "branch": "layer"
+  },
+  {
+   "y": "2026",
    "t": "Kepler v0.1",
    "u": "https://menlo.ai/research/kepler-v01",
    "d": "A JEPA world encoder trained with SIGReg on 54M frames across four arms. Despite the name it does not predict forward, so you cannot plan with it. Vision-only motor R² 0.304, and zero-shot to unseen robots trails a plain vision baseline.",
@@ -1116,7 +1127,18 @@
    "y": "2026",
    "t": "GEN-1.5 \u2014 one-shot learning of physical skills",
    "u": "https://generalistai.com/blog/gen-1.5",
-   "d": "Show it once and it does the task: 59% one-shot across ten manipulation tasks with no gradient updates at all, 83% after ten steps on five minutes of data. The model was never trained for this, and weights move less than 0.15% during few-shot adaptation, which argues the model is being reminded of something it nearly knew rather than learning it. The authors are explicit that in-context skills stay more brittle than finetuned ones.",
+   "d": "Show it once and it does the task: 59% one-shot across ten tasks, no gradient updates. Weights move under 0.15%, so it is being reminded of something it nearly knew. The authors call it brittler than finetuning.",
+   "tag": "vla \u00b7 read this",
+   "tagClass": "vla",
+   "now": true,
+   "spine": "vla",
+   "branch": "adapt"
+  },
+  {
+   "y": "2026",
+   "t": "S1 \u2014 in-context learning for robotics",
+   "u": "https://www.skild.ai/blogs/s1",
+   "d": "Prompt with a video of the task instead of a sentence, and never touch the weights. 66% on unseen tasks against 9% for language prompting, on horizons up to ten minutes. Post-training still wins, at 2,000 demos.",
    "tag": "vla \u00b7 read this",
    "tagClass": "vla",
    "now": true,
