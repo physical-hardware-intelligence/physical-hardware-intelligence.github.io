@@ -197,6 +197,90 @@
 
 <p>The policy emits a tensor of shape <code>(1, 48, 6)</code>. Forty-eight future timesteps, six joint angles each. At 30 frames per second that is <strong>1.6 seconds of motion committed in one forward pass</strong>. This is action chunking, and it is the reason imitation learning works at all.</p>
 
+<p>Six numbers, on an arm that has <strong>five</strong> degrees of freedom. Both are true, and the gap is worth a minute.</p>
+
+<p><strong>The sixth is the jaw.</strong> Five joints decide where the gripper goes. The sixth decides only whether it is open. Georgia Tech's <a href="https://maegantucker.com/ECE4560/assignment6-so101/" target="_blank" rel="noopener">ECE 4560</a> makes the same cut when it has students build the forward kinematics: the chain is <code>gw1 @ g12 @ g23 @ g34 @ g45 @ g5t</code>, five transforms, and the assignment says outright that the moving jaw does not influence where the object would be, so joint 6 is excluded. Vendor pages and NVIDIA's own SO-101 course both say "6-DOF". They are counting the gripper.</p>
+
+<p>And there is a second reduction hiding inside the remaining five. We composed the URDF origins and found that <code>shoulder_lift</code>, <code>elbow_flex</code> and <code>wrist_flex</code> rotate about axes that are <strong>exactly parallel</strong>, to |axis&#183;axis| = 1.000000 for all three pairs. So the topology is not five arbitrary joints. It is:</p>
+
+<p><code>[base yaw] &#8594; [planar 3R pitch chain] &#8594; [tool roll]</code></p>
+
+<p>There is no wrist yaw anywhere in it. Over 200,000 random configurations the gripper's approach axis never left the vertical plane chosen by <code>shoulder_pan</code>, to within 0.43&#176;. You cannot hold the gripper still and re-aim it; re-aiming means rotating the base, which moves the gripper. The one escape is a straight-down approach, where the plane constraint is vacuous and <code>wrist_roll</code> gives you the full 360&#176; of tool yaw. <strong>Top-down grasps have free yaw. Nothing else does.</strong></p>
+
+<figure class="fig">
+  <svg viewBox="0 0 980 424" role="img" aria-label="The SO-101 arm in side view with its six joints labelled, beside a real action vector of six joint angles. Three of the joints are parallel pitch axes, and the sixth joint only opens the jaw.">
+    <defs>
+      <marker id="aJ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker>
+    </defs>
+    <text x="30" y="26" class="dh">SIDE VIEW &#183; ONE POSE</text>
+
+    <!-- table -->
+    <line x1="46" y1="366" x2="316" y2="366" class="ln"/>
+    <!-- base + shoulder_pan (yaw about vertical) -->
+    <rect x="128" y="332" width="72" height="34" class="box"/>
+    <line x1="164" y1="300" x2="164" y2="340" class="rail"/>
+    <path d="M146 316 A 18 7 0 1 0 182 316" class="ln" fill="none" marker-end="url(#aJ)"/>
+    <text x="112" y="356" class="bn" text-anchor="end">1</text>
+
+    <!-- links -->
+    <line x1="164" y1="332" x2="164" y2="286" class="ln" stroke-width="7"/>
+    <line x1="164" y1="286" x2="236" y2="182" class="ln" stroke-width="7"/>
+    <line x1="236" y1="182" x2="312" y2="222" class="ln" stroke-width="7"/>
+    <line x1="312" y1="222" x2="360" y2="196" class="ln" stroke-width="5"/>
+
+    <!-- pitch joints: identical glyph, and that is the point -->
+    <g>
+      <circle cx="164" cy="286" r="8" class="box fillp"/><path d="M158.5 280.5 l11 11 M169.5 280.5 l-11 11" class="ln"/>
+      <text x="146" y="278" class="bn" text-anchor="end">2</text>
+      <circle cx="236" cy="182" r="8" class="box fillp"/><path d="M230.5 176.5 l11 11 M241.5 176.5 l-11 11" class="ln"/>
+      <text x="228" y="168" class="bn" text-anchor="end">3</text>
+      <circle cx="312" cy="222" r="8" class="box fillp"/><path d="M306.5 216.5 l11 11 M317.5 216.5 l-11 11" class="ln"/>
+      <text x="322" y="242" class="bn">4</text>
+    </g>
+
+    <!-- wrist_roll about the tool axis -->
+    <path d="M344 178 A 12 6 -28 1 0 366 190" class="ln r" fill="none" marker-end="url(#aJ)"/>
+    <text x="352" y="166" class="bn r">5</text>
+
+    <!-- jaw -->
+    <line x1="360" y1="196" x2="386" y2="180" class="ln" stroke-width="3"/>
+    <line x1="360" y1="196" x2="382" y2="208" class="ln" stroke-width="3"/>
+    <text x="394" y="196" class="bn r">6</text>
+
+    <text x="46" y="392" class="bs">joints <tspan class="num">2</tspan>, <tspan class="num">3</tspan> and <tspan class="num">4</tspan> carry the same glyph because their axes are</text>
+    <text x="46" y="410" class="bs"><tspan font-weight="600">exactly parallel</tspan>. that makes them one planar chain, not three freedoms.</text>
+
+    <line x1="440" y1="46" x2="440" y2="398" class="rail"/>
+
+    <!-- the action vector -->
+    <text x="472" y="26" class="dh r">ONE ROW OF THE ACTION CHUNK &#183; MEASURED</text>
+    <text x="472" y="62" class="bn">JOINT</text>
+    <text x="726" y="62" class="bn" text-anchor="end">VALUE</text>
+    <text x="762" y="62" class="bn">LIMIT</text>
+    <text x="846" y="62" class="bn">DOES WHAT</text>
+    <line x1="472" y1="72" x2="950" y2="72" class="ln"/>
+
+    <g>
+      <text x="472" y="98" class="bs">1 &#183; shoulder_pan</text><text x="726" y="98" class="num" text-anchor="end">&#8722;4.0&#176;</text><text x="762" y="98" class="num">&#177;110&#176;</text><text x="846" y="98" class="bs">moves the gripper</text>
+      <text x="472" y="126" class="bs">2 &#183; shoulder_lift</text><text x="726" y="126" class="num" text-anchor="end">&#8722;29.0&#176;</text><text x="762" y="126" class="num">&#177;100&#176;</text><text x="846" y="126" class="bs">moves the gripper</text>
+      <text x="472" y="154" class="bs">3 &#183; elbow_flex</text><text x="726" y="154" class="num" text-anchor="end">+38.2&#176;</text><text x="762" y="154" class="num">&#177;96.8&#176;</text><text x="846" y="154" class="bs">moves the gripper</text>
+      <text x="472" y="182" class="bs">4 &#183; wrist_flex</text><text x="726" y="182" class="num" text-anchor="end">+28.4&#176;</text><text x="762" y="182" class="num">&#177;95&#176;</text><text x="846" y="182" class="bs">moves the gripper</text>
+      <text x="472" y="210" class="bs">5 &#183; wrist_roll</text><text x="726" y="210" class="num" text-anchor="end">&#8722;61.9&#176;</text><text x="762" y="210" class="num">&#8722;157/+163&#176;</text><text x="846" y="210" class="bs">moves the gripper</text>
+    </g>
+    <line x1="472" y1="228" x2="950" y2="228" class="ln r"/>
+    <text x="472" y="254" class="bs">6 &#183; gripper</text><text x="726" y="254" class="num r" text-anchor="end">+1.2&#176;</text><text x="762" y="254" class="num r">&#8722;10/+100&#176;</text><text x="846" y="254" class="bs">opens the jaw</text>
+
+    <rect x="472" y="286" width="478" height="52" class="box hi"/>
+    <text x="492" y="308" class="bt sm">Five joints place the gripper. The sixth only opens it.</text>
+    <text x="492" y="328" class="bs">That is why a 6-number action vector is a 5-DOF arm.</text>
+
+    <text x="472" y="368" class="bs">values are the median action across all 120 episodes of</text>
+    <text x="472" y="386" class="bs">phi_so101_cubes_cylinder_v1. limits are from the URDF.</text>
+  </svg>
+  <figcaption>The three crossed circles are the tell. <code>shoulder_lift</code>, <code>elbow_flex</code> and <code>wrist_flex</code> rotate about axes that are exactly parallel, verified to |axis&#183;axis| = 1.000000, so together they form a planar chain rather than three independent directions.</figcaption>
+</figure>
+
 <p>During training we do not ask the network to produce that trajectory from nothing. We take the real trajectory from a human demonstration, deliberately corrupt it, and ask the network to identify the corruption.</p>
 
 <p>Four lines, and they are the entire training objective:</p>
