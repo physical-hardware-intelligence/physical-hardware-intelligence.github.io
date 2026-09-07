@@ -87,7 +87,7 @@
     background-image:linear-gradient(var(--ink),var(--ink));background-size:0 1px;
     background-repeat:no-repeat;background-position:0 1.1em;transition:background-size .3s var(--ease)}
   .pc-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 18px}
-  .rd{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;
+  .rd{margin:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
     color:var(--ink-3);white-space:nowrap;transition:color .2s var(--ease)}
   .pc-dek{margin:11px 0 0;color:var(--ink-2);font-size:1.01rem;line-height:1.55;max-width:60ch}
   @media (hover:hover){
@@ -108,7 +108,28 @@
     .post-row:hover .rd{color:var(--apple)}
   }
   .post-row:focus-visible{outline:2px solid var(--ink);outline-offset:5px}
-  .post-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:clamp(14px,1.8vw,20px)}
+  /* chronology rail, as on pi.website: a hairline down the left with a dot
+     level with each post's title. The dot sits on the anchor rather than the
+     li, so a card's inner padding and a row's padding can be offset separately
+     and both still land on the rail. */
+  .post-list{list-style:none;margin:0;padding:0 0 0 34px;position:relative;
+    display:flex;flex-direction:column;gap:clamp(14px,1.8vw,20px)}
+  .post-list::before{content:'';position:absolute;left:9px;top:10px;bottom:10px;
+    width:1px;background:var(--line-2)}
+  .post-card,.post-row{position:relative}
+  .post-card::before,.post-row::before{content:'';position:absolute;left:-29px;
+    width:9px;height:9px;border-radius:50%;background:var(--ink);
+    transition:background .2s var(--ease)}
+  .post-card::before{top:calc(clamp(18px,2.2vw,24px) + 11px)}
+  .post-row::before{top:calc(clamp(20px,2.6vw,28px) + 10px)}
+  @media (hover:hover){
+    .post-card:hover::before,.post-row:hover::before{background:var(--apple)}
+  }
+  @media (max-width:620px){
+    .post-list{padding-left:24px}
+    .post-list::before{left:4px}
+    .post-card::before,.post-row::before{left:-24px;width:7px;height:7px}
+  }
   .reveal{opacity:0}
   .reveal.vis{animation:rv .5s var(--ease) both}
   @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
