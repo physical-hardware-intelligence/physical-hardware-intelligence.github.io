@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Everything is an encoder and a decoder · Phi</title>
+<meta name="description" content="A diffusion policy, taken apart one shape at a time. 9,020,934 parameters, and the most important number in it is 64.">
+<meta name="theme-color" content="#ECE7DC">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Everything is an encoder and a decoder · Phi">
+<meta property="og:description" content="A diffusion policy, taken apart one shape at a time. 9,020,934 parameters, and the most important number in it is 64.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/everything-is-an-encoder-and-a-decoder.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .bp{max-width:none;margin:0 auto}
+  .bp-wrap{max-width:720px;margin:0 auto;padding:clamp(86px,11vh,112px) clamp(20px,5vw,44px) 0}
+  .bp-back{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    display:inline-block;margin-bottom:clamp(22px,3vw,32px);border-bottom:1px solid transparent}
+  .bp-back:hover{color:var(--ink);border-color:var(--line-2)}
+  .bp-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 18px}
+  .bp h1{font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0}
+  .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch}
+  .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
+
+  .bp-body{font-size:1.06rem;line-height:1.72}
+  .bp-body p{margin:0 0 1.15em}
+  .bp-body .lede{font-size:1.2rem;line-height:1.62}
+  .bp-body .lede strong{font-family:var(--disp);font-weight:600}
+  .bp-body h2{font-family:var(--disp);font-size:clamp(1.24rem,2.3vw,1.56rem);font-weight:500;letter-spacing:-.012em;
+    line-height:1.2;margin:clamp(34px,4.4vw,52px) 0 .6em}
+  .bp-body strong{font-weight:500;color:var(--ink)}
+  .bp-body em{font-style:italic}
+  .bp-body a{border-bottom:1px solid var(--line-2);transition:border-color .2s}
+  .bp-body a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-body code{font-family:var(--mono);font-size:.88em;background:var(--paper-2);
+    border:1px solid var(--line);border-radius:3px;padding:1px 5px;color:var(--ink)}
+  .bp-body .note{margin-top:clamp(30px,4vw,44px);padding-top:20px;border-top:1px solid var(--line);
+    font-size:.98rem;color:var(--ink-2)}
+
+  /* a small ledger table, used twice */
+  .led{width:100%;border-collapse:collapse;margin:1.4em 0;font-size:.95rem}
+  .led th{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;
+    color:var(--ink-3);text-align:left;font-weight:400;padding:0 14px 8px 0;border-bottom:1px solid var(--ink)}
+  .led td{padding:8px 14px 8px 0;border-bottom:1px solid var(--line);vertical-align:baseline}
+  .led td.n{font-family:var(--mono);font-size:.9rem;white-space:nowrap;color:var(--ink-2)}
+  .led tr.tot td{border-bottom:0;font-weight:500;color:var(--ink)}
+  .led tr.tot td.n{color:var(--ink)}
+
+  /* figures break out past the 720px prose measure so a dense diagram can breathe */
+  .fig{width:min(1060px,94vw);margin:clamp(34px,4.2vw,50px) 0;margin-left:50%;transform:translateX(-50%);padding:0}
+  .fig figcaption{max-width:660px;margin-left:auto;margin-right:auto}
+  .fig svg{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line)}
+  .fig figcaption{margin-top:12px;font-size:.9rem;line-height:1.5;color:var(--ink-3)}
+  .fig figcaption a{border-bottom:1px solid var(--line-2)}
+  .fig .box{fill:none;stroke:var(--ink);stroke-width:1}
+  .fig .box.soft{stroke:var(--line-2)}
+  .fig .box.fixed{stroke:var(--line-2);stroke-dasharray:5 4}
+  .fig .box.hi{stroke:var(--apple);stroke-width:1.4}
+  .fig .fillp{fill:var(--paper)}
+  .fig .dh{font-family:var(--mono);font-size:10px;letter-spacing:.14em;fill:var(--ink-3)}
+  .fig .dh.r{fill:var(--apple)}
+  .fig .bt{font-family:var(--disp);font-size:15px;font-weight:500;fill:var(--ink)}
+  .fig .bt.sm{font-size:13px}
+  .fig .bs{font-family:var(--serif);font-size:12.5px;fill:var(--ink-2)}
+  .fig .bn{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;fill:var(--ink-3)}
+  .fig .bn.r{fill:var(--apple)}
+  .fig .shp{font-family:var(--mono);font-size:11.5px;fill:var(--ink)}
+  .fig .ln{stroke:var(--ink-2);stroke-width:1}
+  .fig .ln.r{stroke:var(--apple)}
+  .fig .rail{stroke:var(--line-2);stroke-width:1;stroke-dasharray:2 4}
+  .fig .ax{font-family:var(--serif);font-size:12px;fill:var(--ink-3)}
+  .fig .ax.r{fill:var(--apple)}
+  .fig .cell{fill:none;stroke:var(--line-2);stroke-width:.8}
+  .fig .kp{fill:var(--apple)}
+  .fig .barb{fill:var(--ink-3)}
+  .fig .barr{fill:var(--apple)}
+
+  .bp-src{max-width:720px;margin:0 auto;padding:clamp(40px,5vw,60px) clamp(20px,5vw,44px) 0}
+  .bp-src h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
+  .bp-src ol{list-style:none;counter-reset:s;margin:0;padding:0}
+  .bp-src li{counter-increment:s;position:relative;padding:0 0 15px 34px;font-size:.95rem;line-height:1.5}
+  .bp-src li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;
+    font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .bp-src a{border-bottom:1px solid var(--line-2)}
+  .bp-src a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-src span{display:block;color:var(--ink-3);font-size:.88rem;margin-top:3px}
+
+  @media (max-width:620px){ .bp-body{font-size:1.02rem} .bp-body .lede{font-size:1.1rem} .led{font-size:.88rem} }
+  @media (prefers-reduced-motion:reduce){ .reveal,.reveal.vis{opacity:1!important;animation:none!important} }
+  .reveal{opacity:0}
+  .reveal.vis{animation:rv .5s var(--ease) both}
+  @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="brand" href="../index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="../assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="index.html" class="active">Blog</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top" class="bp">
+  <article>
+    <div class="bp-wrap">
+      <a class="bp-back" href="index.html">&#8592; Blog</a>
+      <p class="bp-meta"><span>7 September 2026</span><span>12 min read</span><span>Physical Hardware Intelligence</span></p>
+      <h1>Everything is an encoder and a decoder</h1>
+      <p class="dek">A diffusion policy, taken apart one shape at a time. It has 9,020,934 parameters, and the most important number in it is 64.</p>
+      <hr class="bp-rule">
+      <div class="bp-body">
+
+<p class="lede">Here is the belief this post is built on. <strong>Almost every model worth studying is an encoder and a decoder.</strong> The encoder turns the world into a small set of things worth referring to. The decoder produces the answer by asking that set questions.</p>
+
+<p>Which means the ceiling is set by the encoder. If the encoder hands over a good description of the spatial landscape, the decoder's attention has somewhere useful to point. If it hands over mush, no amount of decoder capacity rescues it. Attention can only be as good as the thing it attends to.</p>
+
+<p>We took a diffusion policy apart to see exactly where that boundary sits on our own robot. What follows is the whole model, in order, with the real shapes. Every number here is measured from the checkpoint we trained, not read off a paper.</p>
+
+<p>The punchline, if you want it early: a 33-million-parameter vision stack spends all of its effort producing <strong>64 numbers per camera</strong>, and then a 9-million-parameter decoder does everything else. That ratio is the whole story.</p>
+
+<figure class="fig">
+  <svg viewBox="0 0 820 250" role="img" aria-label="Diagram: an encoder compresses cameras and joint state into a small memory of three tokens, and a decoder of forty-eight action tokens queries that memory through cross attention.">
+    <defs>
+      <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/>
+      </marker>
+    </defs>
+    <text x="26" y="26" class="dh">ENCODER &#183; MAKE THE WORLD SMALL</text>
+    <rect x="26" y="38" width="322" height="150" class="box"/>
+    <text x="46" y="68" class="bt">3 cameras + 6 joint angles</text>
+    <text x="46" y="92" class="bs">921,600 numbers per camera frame</text>
+    <line x1="46" y1="108" x2="328" y2="108" class="rail"/>
+    <text x="46" y="132" class="bt sm">becomes 3 tokens, 256 wide</text>
+    <text x="46" y="155" class="bn">33,591,264 PARAMS OF VISION</text>
+    <text x="46" y="172" class="bn">TO PRODUCE 198 NUMBERS</text>
+
+    <line x1="352" y1="113" x2="432" y2="113" class="ln" marker-end="url(#a1)"/>
+    <text x="392" y="103" class="bn" text-anchor="middle">MEMORY</text>
+
+    <text x="440" y="26" class="dh r">DECODER &#183; ASK IT QUESTIONS</text>
+    <rect x="440" y="38" width="354" height="150" class="box hi"/>
+    <text x="460" y="68" class="bt">48 action tokens</text>
+    <text x="460" y="92" class="bs">one per future timestep, 1.6 seconds of motion</text>
+    <line x1="460" y1="108" x2="774" y2="108" class="rail"/>
+    <text x="460" y="132" class="bt sm">each one queries the 3 memory tokens</text>
+    <text x="460" y="155" class="bn r">8 LAYERS &#183; 8,427,520 PARAMS</text>
+    <text x="460" y="172" class="bn r">48 &#215; 3 ATTENTION SCORES PER LAYER</text>
+
+    <line x1="26" y1="214" x2="794" y2="214" class="rail"/>
+    <text x="410" y="238" class="ax" text-anchor="middle">the decoder can only ask about what the encoder chose to keep</text>
+  </svg>
+  <figcaption>The frame for everything below. The encoder throws away almost all of the input on purpose. What survives is what the decoder is allowed to reason about.</figcaption>
+</figure>
+
+<h2>What is actually being denoised</h2>
+
+<p>Start at the output, because it is the thing the whole model exists to produce.</p>
+
+<p>The policy emits a tensor of shape <code>(1, 48, 6)</code>. Forty-eight future timesteps, six joint angles each. At 30 frames per second that is <strong>1.6 seconds of motion committed in one forward pass</strong>. This is action chunking, and it is the reason imitation learning works at all.</p>
+
+<p>Now the part that surprises people. During training we do not ask the network to produce that trajectory from nothing. We take the real trajectory from a human demonstration, deliberately corrupt it, and ask the network to identify the corruption.</p>
+
+<p>Four lines, and they are the entire training objective:</p>
+
+<table class="led">
+  <tr><td><code>trajectory</code></td><td class="n">the real 48-step chunk from a demo</td></tr>
+  <tr><td><code>eps</code></td><td class="n">Gaussian noise, same shape</td></tr>
+  <tr><td><code>k</code></td><td class="n">a random integer in 0 to 99</td></tr>
+  <tr><td><code>noisy</code></td><td class="n">&#8730;&#257;<sub>k</sub> &#183; trajectory + &#8730;(1&#8722;&#257;<sub>k</sub>) &#183; eps</td></tr>
+</table>
+
+<p>The network sees <code>noisy</code> and <code>k</code>, and predicts <code>eps</code>. That is it. The loss is mean squared error against the noise we added. Input and output have identical shape, because the model is not generating a trajectory, it is <strong>performing a repair operation on one</strong>.</p>
+
+<p>The <code>&#257;<sub>k</sub></code> is a precomputed lookup table. One number per noise level, 100 entries, fixed before training starts. Understanding where it comes from is worth three minutes, because it explains a real problem in our data.</p>
+
+<h2>Why the square roots are there</h2>
+
+<p>The naive way to corrupt something is to keep adding noise: <code>x&#8342; = x&#8342;&#8331;&#8321; + &#8730;&#946;&#8342; &#183; &#949;&#8342;</code>. Do that and the variance grows without bound, one step at a time. After a hundred steps the numbers are enormous and nothing in the network is scaled for them.</p>
+
+<p>So instead you shrink the signal by exactly as much as you grow the noise:</p>
+
+<p><code>x&#8342; = &#8730;&#945;&#8342; &#183; x&#8342;&#8331;&#8321; + &#8730;(1&#8722;&#945;&#8342;) &#183; &#949;&#8342;</code></p>
+
+<p>The square roots are there because variance scales with the <em>square</em> of a multiplier. To shrink variance by a factor <code>&#945;</code>, you multiply the values by <code>&#8730;&#945;</code>. Then the two terms add to</p>
+
+<p><code>Var(x&#8342;) = &#945;&#8342; &#183; Var(x&#8342;&#8331;&#8321;) + (1 &#8722; &#945;&#8342;)</code></p>
+
+<p>and if <code>Var(x&#8342;&#8331;&#8321;) = 1</code>, that is <code>&#945;&#8342; + 1 &#8722; &#945;&#8342; = 1</code>. Variance conserved. This is what "variance preserving" means, and it is why every activation in the network sees roughly the same scale no matter which noise level it is handed.</p>
+
+<p>Chain the recursion and the whole thing collapses into a single jump. Two steps in, you get one <code>x&#8320;</code> term and two independent noise terms, and because independent zero-mean Gaussians combine by adding variances, the two noise terms merge back into one. Repeat, and:</p>
+
+<p><code>x&#8342; = &#8730;&#257;&#8342; &#183; x&#8320; + &#8730;(1&#8722;&#257;&#8342;) &#183; &#949;</code>, where <code>&#257;&#8342; = &#8719;&#945;&#7522;</code></p>
+
+<p>That product is the lookup table. It is why training can sample a random <code>k</code> and jump straight there in one line, instead of simulating a hundred steps.</p>
+
+<h2>The assumption that is not true on our robot</h2>
+
+<p>All of that rests on <code>Var(x&#8320;) = 1</code>. Our actions are normalised min-max to <code>[&#8722;1, 1]</code>, and it is very easy to read that as unit variance.</p>
+
+<p>It is not. We measured it.</p>
+
+<p><code>measured variance of normalised actions: 0.313</code></p>
+
+<p>Min-max puts the <em>extremes</em> at &#177;1. It says nothing about the bulk. On our pick-and-place data the actions cluster hard in the middle and a handful of outlier frames set the range. One joint came out at variance <strong>0.043</strong>, which is a distribution squeezed into a tenth of the interval it was given.</p>
+
+<p>So the schedule is not variance preserving on our data. It is variance <em>ramping</em>: the trajectory starts at 0.313 and climbs to 1.0 as noise takes over.</p>
+
+<figure class="fig">
+  <svg viewBox="0 0 820 300" role="img" aria-label="Chart comparing assumed constant variance of one against measured variance rising from 0.313 to 1.0 across diffusion steps zero to ninety-nine.">
+    <text x="26" y="26" class="dh">VARIANCE OF THE NOISY CHUNK, ACROSS THE SCHEDULE</text>
+
+    <!-- axes -->
+    <line x1="90" y1="60" x2="90" y2="232" class="ln"/>
+    <line x1="90" y1="232" x2="700" y2="232" class="ln"/>
+    <text x="80" y="66" class="bn" text-anchor="end">1.0</text>
+    <text x="80" y="180" class="bn" text-anchor="end">0.313</text>
+    <text x="80" y="236" class="bn" text-anchor="end">0</text>
+
+    <!-- assumed: flat at 1 -->
+    <line x1="90" y1="60" x2="700" y2="60" class="ln" stroke-dasharray="6 5"/>
+    <text x="712" y="58" class="ax">assumed</text>
+    <text x="712" y="74" class="ax">Var(x&#8320;) = 1</text>
+
+    <!-- measured: 0.313 -> 1.0, following abar -->
+    <path d="M90 180 C 250 168, 400 128, 520 96 S 640 64, 700 60" class="ln r" fill="none" stroke-width="1.6"/>
+    <text x="712" y="140" class="ax r">measured</text>
+    <text x="712" y="156" class="ax r">Var(x&#8320;) = 0.313</text>
+
+    <!-- markers -->
+    <circle cx="90" cy="180" r="3.5" class="kp"/>
+    <circle cx="395" cy="130" r="3.5" class="kp"/>
+    <circle cx="700" cy="60" r="3.5" class="kp"/>
+
+    <text x="90" y="252" class="bn" text-anchor="middle">k = 0</text>
+    <text x="395" y="252" class="bn" text-anchor="middle">k = 50</text>
+    <text x="700" y="252" class="bn" text-anchor="middle">k = 99</text>
+
+    <text x="90" y="270" class="bn r" text-anchor="middle">0.313</text>
+    <text x="395" y="270" class="bn r" text-anchor="middle">0.671</text>
+    <text x="700" y="270" class="bn r" text-anchor="middle">1.000</text>
+
+    <text x="395" y="292" class="ax" text-anchor="middle">&#257;&#8342; = 0.99937 &#183; &#183; &#183; 0.47876 &#183; &#183; &#183; 0.000</text>
+  </svg>
+  <figcaption>Var(x<sub>k</sub>) = &#257;<sub>k</sub>&#183;Var(x&#8320;) + (1&#8722;&#257;<sub>k</sub>). With unit-variance data the two curves coincide. With ours they do not meet until the signal is gone entirely.</figcaption>
+</figure>
+
+<p>This is not fatal. LayerNorm inside the network absorbs a constant scale difference, which is most of what this is. But it is a genuine deviation from the assumption the schedule was designed around, and it has a matched pair: <code>clip_sample_range=1.0</code> is only correct <em>because</em> min-max guarantees the data lives in that interval. Change one and you must change the other.</p>
+
+<p>The clean fix is quantile normalisation, mapping the 1st and 99th percentiles to &#177;1 instead of the extremes, so outlier frames stop defining the scale for everyone. It is a knob we have not turned yet.</p>
+
+<h2>Six numbers into 256</h2>
+
+<p>Now the trajectory becomes tokens. A single linear layer, <code>6 &#8594; 256</code>, applied to each of the 48 timesteps independently. 1,792 parameters.</p>
+
+<p>The obvious objection is that this cannot create information. Six numbers projected into 256 dimensions still lie on a 6-dimensional plane inside that space. Nothing was added.</p>
+
+<p>True, and beside the point. The width is not there to hold the input. <strong>It is there to hold everything the token will accumulate later.</strong></p>
+
+<p>Attention scores are dot products. With a 6-dimensional token you can ask roughly six independent questions of it before the directions start colliding. With 256 you have room for hundreds, and more importantly you have room for the eight decoder layers to keep <em>writing context into</em> the same token: where this timestep sits in the chunk, how noisy the input is, what the wrist camera saw, what the neighbouring timesteps are doing. The 6 dimensions are the seed. The other 250 are workspace.</p>
+
+<h2>Why positions have to be told</h2>
+
+<p>Attention is permutation invariant. Shuffle the 48 tokens and self-attention produces the same set of outputs, reordered. It has no idea that token 3 comes before token 4.</p>
+
+<p>For a trajectory that is fatal, so we add a position embedding: a learned table of shape <code>(1, 48, 256)</code>, 12,288 parameters, initialised from a normal with standard deviation 0.02 and trained like everything else.</p>
+
+<p><strong>Learned, not sinusoidal, and the reason is worth stating.</strong> A formula earns its place when you need to generalise to positions you never trained on. Here the horizon is always 48. Every entry in the table is visited in every batch. When the vocabulary is small, fixed, and densely trained, a free lookup table is strictly more expressive than any formula, because it can represent any function of position including ones no sinusoid can. The cost is 0.14% of the model.</p>
+
+<p>That is the action path complete: <code>(1,48,6)</code> to <code>(1,48,256)</code>, 48 tokens carrying a corrupted trajectory and knowing where they sit in it. They are the queries. Now we need something for them to query.</p>
+
+<h2>How a camera becomes 64 numbers</h2>
+
+<p>This is the encoder, and it is where the real compression happens.</p>
+
+<p>Three cameras, wrist and front and top, each with its own ResNet-18. Not shared. 11,197,088 parameters each, <strong>33,591,264 total</strong>, on the bet that a wrist view and an overhead view deserve different filters. ACT bets the opposite and shares one backbone. We have never A/B'd it.</p>
+
+<p>One camera's journey:</p>
+
+<table class="led">
+  <tr><th>step</th><th>shape</th></tr>
+  <tr><td>raw frame</td><td class="n">(3, 480, 640)</td></tr>
+  <tr><td>resize, then crop</td><td class="n">(3, 216, 288)</td></tr>
+  <tr><td>ResNet-18 body, stride 32</td><td class="n">(512, 7, 9)</td></tr>
+  <tr><td>Conv2d 512 &#8594; 32, kernel 1&#215;1</td><td class="n">(32, 7, 9)</td></tr>
+  <tr><td>spatial softmax</td><td class="n">(32, 2)</td></tr>
+  <tr class="tot"><td>flatten, Linear 64 &#8594; 64</td><td class="n">64</td></tr>
+</table>
+
+<p>Look at that fourth row. The feature map is <strong>7 &#215; 9, which is 63 cells</strong>. Each cell summarises a 64 &#215; 64 pixel region of the original frame. That is the entire spatial resolution the policy has to work with.</p>
+
+<p>Then the pivotal operation, and it is a conceptual swap rather than a compression.</p>
+
+<p>The 1&#215;1 convolution mixes across channels only, touching no neighbours. ResNet gave 512 learned detectors at each of 63 cells; this asks <strong>which 32 combinations are worth locating</strong>. Then softmax runs over the 63 cells, so each of the 32 channels independently becomes a probability map over positions. Finally you take the expectation against a fixed coordinate grid: sum of probability times coordinate.</p>
+
+<p>Before: channel <em>k</em> says how strongly feature <em>k</em> fires, at every location. After: channel <em>k</em> says <strong>where feature <em>k</em> is</strong>. The height and width axes are consumed and replaced by an axis of size two.</p>
+
+<p>Because it is a weighted mean and not an argmax, a keypoint can land between cells. Precision comes from how peaked the softmax is, not from the 7&#215;9 spacing. That matters enormously at 63 cells.</p>
+
+<figure class="fig">
+  <svg viewBox="0 0 940 330" role="img" aria-label="Diagram of the spatial softmax: a seven by nine feature grid becomes a probability map per channel, then an expectation against a coordinate grid produces thirty-two keypoint locations, sixty-four numbers.">
+    <defs>
+      <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/>
+      </marker>
+    </defs>
+
+    <text x="26" y="26" class="dh">ONE CAMERA &#183; 921,600 NUMBERS IN, 64 OUT</text>
+
+    <!-- stage 1: feature grid -->
+    <text x="26" y="62" class="bn">512 CHANNELS &#215; 63 CELLS</text>
+    <g transform="translate(26,74)">
+      <rect x="0" y="0" width="162" height="126" class="box"/>
+      <g>
+        <line x1="18" y1="0" x2="18" y2="126" class="cell"/><line x1="36" y1="0" x2="36" y2="126" class="cell"/>
+        <line x1="54" y1="0" x2="54" y2="126" class="cell"/><line x1="72" y1="0" x2="72" y2="126" class="cell"/>
+        <line x1="90" y1="0" x2="90" y2="126" class="cell"/><line x1="108" y1="0" x2="108" y2="126" class="cell"/>
+        <line x1="126" y1="0" x2="126" y2="126" class="cell"/><line x1="144" y1="0" x2="144" y2="126" class="cell"/>
+        <line x1="0" y1="18" x2="162" y2="18" class="cell"/><line x1="0" y1="36" x2="162" y2="36" class="cell"/>
+        <line x1="0" y1="54" x2="162" y2="54" class="cell"/><line x1="0" y1="72" x2="162" y2="72" class="cell"/>
+        <line x1="0" y1="90" x2="162" y2="90" class="cell"/><line x1="0" y1="108" x2="162" y2="108" class="cell"/>
+      </g>
+    </g>
+    <text x="26" y="220" class="bs">7 &#215; 9 grid. one cell = a</text>
+    <text x="26" y="238" class="bs">64&#215;64 pixel region.</text>
+
+    <line x1="204" y1="137" x2="252" y2="137" class="ln" marker-end="url(#a2)"/>
+    <text x="228" y="126" class="bn" text-anchor="middle">1&#215;1</text>
+
+    <!-- stage 2: probability map -->
+    <text x="268" y="62" class="bn">32 PROBABILITY MAPS</text>
+    <g transform="translate(268,74)">
+      <rect x="0" y="0" width="162" height="126" class="box"/>
+      <rect x="72" y="36" width="18" height="18" fill="#B23A2E" opacity="0.62"/>
+      <rect x="54" y="36" width="18" height="18" fill="#B23A2E" opacity="0.28"/>
+      <rect x="90" y="36" width="18" height="18" fill="#B23A2E" opacity="0.26"/>
+      <rect x="72" y="18" width="18" height="18" fill="#B23A2E" opacity="0.24"/>
+      <rect x="72" y="54" width="18" height="18" fill="#B23A2E" opacity="0.22"/>
+      <g>
+        <line x1="18" y1="0" x2="18" y2="126" class="cell"/><line x1="36" y1="0" x2="36" y2="126" class="cell"/>
+        <line x1="54" y1="0" x2="54" y2="126" class="cell"/><line x1="72" y1="0" x2="72" y2="126" class="cell"/>
+        <line x1="90" y1="0" x2="90" y2="126" class="cell"/><line x1="108" y1="0" x2="108" y2="126" class="cell"/>
+        <line x1="126" y1="0" x2="126" y2="126" class="cell"/><line x1="144" y1="0" x2="144" y2="126" class="cell"/>
+        <line x1="0" y1="18" x2="162" y2="18" class="cell"/><line x1="0" y1="36" x2="162" y2="36" class="cell"/>
+        <line x1="0" y1="54" x2="162" y2="54" class="cell"/><line x1="0" y1="72" x2="162" y2="72" class="cell"/>
+        <line x1="0" y1="90" x2="162" y2="90" class="cell"/><line x1="0" y1="108" x2="162" y2="108" class="cell"/>
+      </g>
+    </g>
+    <text x="268" y="220" class="bs">softmax over the 63 cells.</text>
+    <text x="268" y="238" class="bs">sums to 1.000000.</text>
+
+    <line x1="446" y1="137" x2="494" y2="137" class="ln" marker-end="url(#a2)"/>
+    <text x="470" y="126" class="bn" text-anchor="middle">E[&#183;]</text>
+
+    <!-- stage 3: keypoints -->
+    <text x="510" y="62" class="bn">32 KEYPOINT LOCATIONS</text>
+    <g transform="translate(510,74)">
+      <rect x="0" y="0" width="162" height="126" class="box"/>
+      <line x1="81" y1="0" x2="81" y2="126" class="rail"/>
+      <line x1="0" y1="63" x2="162" y2="63" class="rail"/>
+      <circle cx="100" cy="45" r="4" class="kp"/>
+      <circle cx="58" cy="78" r="4" class="kp"/>
+      <circle cx="118" cy="92" r="4" class="kp"/>
+      <circle cx="44" cy="34" r="4" class="kp"/>
+      <circle cx="86" cy="106" r="4" class="kp"/>
+      <circle cx="132" cy="58" r="4" class="kp"/>
+      <text x="108" y="40" class="bn r">(+0.24, &#8722;0.49)</text>
+    </g>
+    <text x="510" y="220" class="bs">a weighted mean, so a point</text>
+    <text x="510" y="238" class="bs">can land between cells.</text>
+
+    <line x1="688" y1="137" x2="736" y2="137" class="ln" marker-end="url(#a2)"/>
+
+    <!-- stage 4: the 64 -->
+    <rect x="752" y="74" width="162" height="126" class="box hi"/>
+    <text x="833" y="122" class="bt" text-anchor="middle">64</text>
+    <text x="833" y="146" class="bs" text-anchor="middle">numbers</text>
+    <text x="833" y="168" class="bn r" text-anchor="middle">2,916&#215; COMPRESSION</text>
+    <text x="752" y="220" class="bs">colour, texture, and which</text>
+    <text x="752" y="238" class="bs">of two similar cubes: gone.</text>
+    <text x="752" y="256" class="bs">only geometry survives.</text>
+
+    <line x1="26" y1="286" x2="914" y2="286" class="rail"/>
+    <text x="470" y="310" class="ax" text-anchor="middle">3 cameras &#215; 64 = 192, plus 6 joint angles = 198 numbers per observation step</text>
+  </svg>
+  <figcaption>The index/value swap. Before the softmax, a channel reports how strongly a feature fires. After it, the channel reports where that feature is. This is the single most consequential operation in the policy, and it is also the tightest bottleneck in it.</figcaption>
+</figure>
+
+<p>Three cameras at 64 each is 192, plus the 6 joint angles, gives <strong>198 numbers per observation step</strong>. We feed two consecutive steps, <code>t&#8722;1</code> and <code>t</code>, so the decoder can infer velocity. That is the <code>(1, 2, 198)</code> the memory block receives.</p>
+
+<p>Sit with the compression for a second. A 33-million-parameter vision stack, running on three cameras, exists to produce 198 numbers. Everything the policy will ever know about the world passes through that gap.</p>
+
+<h2>The memory is three tokens</h2>
+
+<p>Two very different things get assembled into what cross-attention reads.</p>
+
+<p>The observation goes through <code>Linear(198 &#8594; 256)</code>, 50,944 parameters, giving two tokens.</p>
+
+<p>The diffusion step <code>k</code> becomes the third. It is a single integer, and it gets a <strong>sinusoidal</strong> embedding: 128 frequencies swept geometrically from 1.0 down to 1/10000, each dimension oscillating at its own rate, sine and cosine concatenated to 256.</p>
+
+<p>Two measured properties earn the sinusoid here, and neither is the reason usually given. Adjacent noise levels get embeddings with cosine similarity <strong>0.9723</strong>, so the network can interpolate behaviour across <code>k</code> rather than memorising 100 unrelated cases. And every embedding has the same norm, so the conditioning signal never grows or shrinks with <code>k</code>. Smoothness and constant norm. Not, as we originally wrote down and later had to correct, anything to do with sampling non-integer timesteps.</p>
+
+<p>Then the three are concatenated <strong>along the sequence axis, not the feature axis</strong>. <code>(1,1,256)</code> and <code>(1,2,256)</code> become <code>(1,3,256)</code>. Nothing is summed. The widths already match at 256, which is precisely why both branches projected to 256 first. Add a learned position embedding of 768 parameters so the decoder can tell the three apart, and the memory is:</p>
+
+<table class="led">
+  <tr><th>token</th><th>carries</th></tr>
+  <tr><td class="n">0</td><td>how noisy this trajectory is</td></tr>
+  <tr><td class="n">1</td><td>what I saw one step ago</td></tr>
+  <tr><td class="n">2</td><td>what I see now</td></tr>
+</table>
+
+<p>One more detail, and it is a strange one. That block is called the encoder, but at our configuration it is a two-layer MLP, <code>256 &#8594; 1024 &#8594; 256</code>, applied to <strong>each token independently</strong>. There is no attention in it. The noise-level token and the two observation tokens never mix. They only meet inside the decoder's cross-attention, filtered through whatever each action token chooses to ask for.</p>
+
+<p>That MLP costs 525,568 parameters, 5.8% of the model, for a position-wise map that does no mixing. It is the same size as one decoder feed-forward. Turning it into real attention layers is a one-line config change we have not tested.</p>
+
+<h2>The decoder: 48 questions, 3 answers</h2>
+
+<p>Eight identical layers. Each has three sublayers, each wrapped in a residual with the normalisation on the way in rather than the way out, which is the standard cure for deep transformers diverging.</p>
+
+<p><strong>Self-attention</strong> lets the 48 action tokens look at each other. Queries, keys and values all come from the trajectory, packed into one <code>(768, 256)</code> matrix so a single matmul produces all three. Four heads, 64 dimensions each. The score matrix is <strong>48 &#215; 48</strong>. This is where smoothness comes from: timestep 20 can see what timesteps 19 and 21 are doing and avoid proposing a discontinuity.</p>
+
+<p><strong>Cross-attention</strong> is where the world enters. Queries still come from the 48 action tokens, but keys and values come from the 3 memory tokens. The score matrix is <strong>48 &#215; 3</strong>. Every action token, independently, decides how much to weight the noise level against the previous frame against the current frame.</p>
+
+<p>That asymmetry is the whole design. Forty-eight questions, three answers, and each question gets to weight the answers differently.</p>
+
+<p><strong>Feed-forward</strong> is <code>256 &#8594; 1024 &#8594; 256</code> with a GELU between, applied per token with no mixing. It is the largest of the three at 525,568 parameters.</p>
+
+<figure class="fig">
+  <svg viewBox="0 0 900 340" role="img" aria-label="Diagram of one decoder layer: self attention with a forty-eight by forty-eight score matrix, cross attention with a forty-eight by three score matrix reading the memory, and a per token feed forward.">
+    <defs>
+      <marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/>
+      </marker>
+    </defs>
+    <text x="26" y="26" class="dh">ONE DECODER LAYER &#183; 1,053,440 PARAMS &#183; &#215;8</text>
+
+    <!-- self attn -->
+    <rect x="26" y="46" width="250" height="150" class="box"/>
+    <text x="46" y="76" class="bt">Self-attention</text>
+    <text x="46" y="98" class="bs">Q, K, V all from the 48 actions</text>
+    <g transform="translate(46,112)">
+      <rect x="0" y="0" width="62" height="62" class="box soft"/>
+      <line x1="0" y1="15.5" x2="62" y2="15.5" class="cell"/><line x1="0" y1="31" x2="62" y2="31" class="cell"/>
+      <line x1="0" y1="46.5" x2="62" y2="46.5" class="cell"/>
+      <line x1="15.5" y1="0" x2="15.5" y2="62" class="cell"/><line x1="31" y1="0" x2="31" y2="62" class="cell"/>
+      <line x1="46.5" y1="0" x2="46.5" y2="62" class="cell"/>
+    </g>
+    <text x="122" y="140" class="shp">48 &#215; 48</text>
+    <text x="122" y="155" class="bs">the chunk stays</text>
+    <text x="122" y="171" class="bs">smooth with itself</text>
+    <text x="262" y="190" class="bn" text-anchor="end">263,168</text>
+
+    <line x1="286" y1="121" x2="316" y2="121" class="ln" marker-end="url(#a3)"/>
+
+    <!-- cross attn -->
+    <rect x="326" y="46" width="250" height="150" class="box hi"/>
+    <text x="346" y="76" class="bt">Cross-attention</text>
+    <text x="346" y="98" class="bs">Q from actions, K and V from memory</text>
+    <g transform="translate(346,112)">
+      <rect x="0" y="0" width="20" height="62" class="box soft"/>
+      <line x1="0" y1="15.5" x2="20" y2="15.5" class="cell"/><line x1="0" y1="31" x2="20" y2="31" class="cell"/>
+      <line x1="0" y1="46.5" x2="20" y2="46.5" class="cell"/>
+      <line x1="6.6" y1="0" x2="6.6" y2="62" class="cell"/><line x1="13.3" y1="0" x2="13.3" y2="62" class="cell"/>
+    </g>
+    <text x="380" y="140" class="shp">48 &#215; 3</text>
+    <text x="380" y="155" class="bs">the world enters</text>
+    <text x="380" y="171" class="bs">exactly here</text>
+    <text x="562" y="190" class="bn r" text-anchor="end">263,168</text>
+
+    <line x1="586" y1="121" x2="616" y2="121" class="ln" marker-end="url(#a3)"/>
+
+    <!-- ff -->
+    <rect x="626" y="46" width="248" height="150" class="box"/>
+    <text x="646" y="76" class="bt">Feed-forward</text>
+    <text x="646" y="98" class="bs">per token, no mixing</text>
+    <text x="646" y="134" class="shp">256 &#8594; 1024 &#8594; 256</text>
+    <text x="646" y="155" class="bs">the largest of the three</text>
+    <text x="860" y="190" class="bn" text-anchor="end">525,568</text>
+
+    <!-- memory feed -->
+    <rect x="326" y="240" width="250" height="66" class="box fixed"/>
+    <text x="451" y="266" class="bt sm" text-anchor="middle">memory &#183; 3 tokens</text>
+    <text x="451" y="288" class="bs" text-anchor="middle">noise level &#183; frame t&#8722;1 &#183; frame t</text>
+    <line x1="451" y1="240" x2="451" y2="200" class="ln r" marker-end="url(#a3)"/>
+    <text x="596" y="278" class="ax r">computed once,</text>
+    <text x="596" y="294" class="ax r">reused all 16 denoise steps</text>
+  </svg>
+  <figcaption>The shape of the two score matrices is the argument. 48&#215;48 keeps the trajectory coherent with itself. 48&#215;3 is the only doorway the world has into the model, and it is three tokens wide.</figcaption>
+</figure>
+
+<p>After eight of those, a final LayerNorm and a <code>Linear(256 &#8594; 6)</code> project every action token back down to six joint values. Output shape <code>(1, 48, 6)</code>, identical to the input. That is the predicted noise.</p>
+
+<p>At inference we run the decoder 16 times, subtracting a little of the predicted noise each pass. <strong>The memory is computed once</strong> and reused across all 16, which is why the vision cost is paid a single time per chunk rather than sixteen times.</p>
+
+<h2>The whole model, and where the money goes</h2>
+
+<figure class="fig">
+  <svg viewBox="0 0 980 620" role="img" aria-label="Complete flow chart of the diffusion policy: an action path turning a noisy forty-eight step chunk into forty-eight tokens, an observation path turning three cameras and joint state into three memory tokens, both meeting in an eight layer decoder that outputs predicted noise.">
+    <defs>
+      <marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/>
+      </marker>
+      <marker id="a4r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#B23A2E"/>
+      </marker>
+    </defs>
+
+    <!-- ================= ACTION PATH (left) ================= -->
+    <text x="26" y="26" class="dh">THE ACTION PATH &#183; WHAT GETS REPAIRED</text>
+
+    <rect x="26" y="40" width="290" height="54" class="box"/>
+    <text x="44" y="63" class="bt sm">noisy action chunk</text>
+    <text x="44" y="83" class="bn">(1, 48, 6) &#183; 48 STEPS &#215; 6 JOINTS</text>
+    <line x1="171" y1="94" x2="171" y2="122" class="ln" marker-end="url(#a4)"/>
+
+    <rect x="26" y="122" width="290" height="54" class="box"/>
+    <text x="44" y="145" class="bt sm">input embedding &#183; Linear 6 &#8594; 256</text>
+    <text x="44" y="165" class="bn">(1, 48, 256) &#183; 1,792 PARAMS</text>
+    <line x1="171" y1="176" x2="171" y2="204" class="ln" marker-end="url(#a4)"/>
+
+    <rect x="26" y="204" width="290" height="54" class="box"/>
+    <text x="44" y="227" class="bt sm">+ learned position embedding</text>
+    <text x="44" y="247" class="bn">(1, 48, 256) &#183; 12,288 PARAMS</text>
+
+    <text x="332" y="146" class="ax">width is workspace,</text>
+    <text x="332" y="163" class="ax">not storage</text>
+    <text x="332" y="228" class="ax">attention cannot tell</text>
+    <text x="332" y="245" class="ax">order on its own</text>
+
+    <!-- ================= OBSERVATION PATH (right) ================= -->
+    <text x="560" y="26" class="dh r">THE OBSERVATION PATH &#183; WHAT IT REFERS TO</text>
+
+    <rect x="560" y="40" width="140" height="54" class="box"/>
+    <text x="574" y="63" class="bt sm">step k</text>
+    <text x="574" y="83" class="bn">SCALAR, 0&#8211;99</text>
+
+    <rect x="716" y="40" width="238" height="54" class="box"/>
+    <text x="732" y="63" class="bt sm">3 cameras + joint state</text>
+    <text x="732" y="83" class="bn">2 STEPS: t&#8722;1 AND t</text>
+
+    <line x1="630" y1="94" x2="630" y2="122" class="ln" marker-end="url(#a4)"/>
+    <line x1="835" y1="94" x2="835" y2="122" class="ln" marker-end="url(#a4)"/>
+
+    <rect x="560" y="122" width="140" height="54" class="box"/>
+    <text x="574" y="145" class="bt sm">sinusoidal</text>
+    <text x="574" y="165" class="bn">(1,1,256) &#183; NO PARAMS</text>
+
+    <rect x="716" y="122" width="238" height="54" class="box hi"/>
+    <text x="732" y="145" class="bt sm">ResNet-18 &#215;3 &#8594; spatial softmax</text>
+    <text x="732" y="165" class="bn r">(1, 2, 198) &#183; 33,591,264 PARAMS</text>
+
+    <line x1="630" y1="176" x2="630" y2="204" class="ln" marker-end="url(#a4)"/>
+    <line x1="835" y1="176" x2="835" y2="204" class="ln" marker-end="url(#a4)"/>
+    <text x="854" y="196" class="bn">Linear 198&#8594;256</text>
+
+    <!-- concat -->
+    <rect x="560" y="204" width="394" height="54" class="box"/>
+    <text x="757" y="227" class="bt sm" text-anchor="middle">concatenate on the sequence axis</text>
+    <text x="757" y="247" class="bn" text-anchor="middle">1 + 2 = 3 TOKENS &#8594; (1, 3, 256)</text>
+    <line x1="757" y1="258" x2="757" y2="286" class="ln" marker-end="url(#a4)"/>
+
+    <rect x="560" y="286" width="394" height="54" class="box"/>
+    <text x="757" y="309" class="bt sm" text-anchor="middle">+ position embedding, then MLP 256 &#8594; 1024 &#8594; 256</text>
+    <text x="757" y="329" class="bn" text-anchor="middle">PER TOKEN, NO MIXING &#183; 525,568 PARAMS</text>
+
+    <!-- ================= MEETING POINT ================= -->
+    <line x1="171" y1="258" x2="171" y2="392" class="ln" marker-end="url(#a4)"/>
+    <text x="188" y="330" class="ax">48 queries</text>
+
+    <path d="M757 340 C 757 372, 600 372, 512 392" class="ln r" fill="none" marker-end="url(#a4r)"/>
+    <text x="600" y="368" class="ax r">3 keys and values</text>
+
+    <rect x="26" y="392" width="928" height="128" class="box hi"/>
+    <text x="46" y="420" class="dh r">DECODER &#183; 8 IDENTICAL LAYERS &#183; 8,427,520 PARAMS</text>
+
+    <rect x="46" y="434" width="270" height="66" class="box soft"/>
+    <text x="181" y="458" class="bt sm" text-anchor="middle">self-attention</text>
+    <text x="181" y="480" class="bn" text-anchor="middle">SCORES 48 &#215; 48</text>
+
+    <rect x="336" y="434" width="270" height="66" class="box soft"/>
+    <text x="471" y="458" class="bt sm" text-anchor="middle">cross-attention</text>
+    <text x="471" y="480" class="bn r" text-anchor="middle">SCORES 48 &#215; 3</text>
+
+    <rect x="626" y="434" width="308" height="66" class="box soft"/>
+    <text x="780" y="458" class="bt sm" text-anchor="middle">feed-forward</text>
+    <text x="780" y="480" class="bn" text-anchor="middle">256 &#8594; 1024 &#8594; 256</text>
+
+    <!-- output -->
+    <line x1="490" y1="520" x2="490" y2="548" class="ln" marker-end="url(#a4)"/>
+    <rect x="326" y="548" width="330" height="54" class="box"/>
+    <text x="491" y="571" class="bt sm" text-anchor="middle">LayerNorm &#8594; Linear 256 &#8594; 6</text>
+    <text x="491" y="591" class="bn" text-anchor="middle">PREDICTED NOISE (1, 48, 6)</text>
+
+    <text x="690" y="572" class="ax">16 passes per chunk.</text>
+    <text x="690" y="589" class="ax r">memory computed once.</text>
+  </svg>
+  <figcaption>The complete policy. Two paths, one meeting point. The left side is the thing being repaired; the right side is everything the repair is allowed to know about. They touch only at the 48&#215;3 score matrix.</figcaption>
+</figure>
+
+<table class="led">
+  <tr><th>block</th><th>params</th></tr>
+  <tr><td>input embedding, Linear 6 &#8594; 256</td><td class="n">1,792</td></tr>
+  <tr><td>action position embedding, 48 &#215; 256</td><td class="n">12,288</td></tr>
+  <tr><td>observation embedding, Linear 198 &#8594; 256</td><td class="n">50,944</td></tr>
+  <tr><td>memory position embedding, 3 &#215; 256</td><td class="n">768</td></tr>
+  <tr><td>encoder MLP, 256 &#8594; 1024 &#8594; 256</td><td class="n">525,568</td></tr>
+  <tr><td>decoder, 8 &#215; 1,053,440</td><td class="n">8,427,520</td></tr>
+  <tr><td>final norm and head</td><td class="n">2,054</td></tr>
+  <tr class="tot"><td>denoiser total</td><td class="n">9,020,934</td></tr>
+  <tr class="tot"><td>three vision encoders, on top</td><td class="n">33,591,264</td></tr>
+</table>
+
+<p>That ledger closes exactly, which is the strongest evidence we have that the port is wired correctly. It also matches the parameter count in the Diffusion Policy paper's own table, and widening the embedding to 768 gives 80,540,166 which matches their next row.</p>
+
+<p>Now read the last two lines together. <strong>The vision encoders are 3.7&#215; the size of the entire denoiser.</strong> And widening the transformer from 256 to 768, an 8.9&#215; increase in denoiser parameters, cost us <strong>0.5% in wall-clock time</strong>. Vision dominates completely.</p>
+
+<p>Which brings the post back to where it started.</p>
+
+<h2>Why we went looking at the encoder next</h2>
+
+<p>The decoder in this model is, honestly, not doing anything exotic. Forty-eight tokens ask three tokens some questions, eight times. It is well-built and it closes on the paper's numbers and it is not where the ceiling is.</p>
+
+<p>The ceiling is the 64. Three cameras, 33 million parameters, 921,600 numbers per frame, all funnelled into 32 keypoint locations per view. Colour is gone. Texture is gone. Which of two similar cubes you are looking at is gone. If the task needs any of that, no decoder can recover it, because it was never in the memory to attend to.</p>
+
+<p>That is a real bet, not an obvious mistake. Geometry may genuinely be all a pick-and-place policy needs, and 63 cells is a strong inductive bias toward exactly that. But it is a bet, and it is testable, and it is the one part of this architecture where we think the interesting work is.</p>
+
+<p>So that is where we went. <a href="../learn.html">SmolVLA</a> keeps a pretrained vision-language backbone instead of training three ResNets from scratch, so the encoder arrives already knowing what objects are. Patch Policy keeps dense vision-transformer patches rather than pooling them to keypoints at all, and beats a 7.6-billion-parameter model at 0.7% the size.</p>
+
+<p>Different answers to the same question: what should the encoder hand over. Everything downstream is just attention pointed at whatever survived.</p>
+
+<p class="note">Every number in this post is measured from our own trained checkpoint on an <a href="https://github.com/TheRobotStudio/SO-ARM100" target="_blank" rel="noopener">SO-ARM101</a>, not quoted from a paper. The full derivations, the parameter ledger that closes to the digit, and the measurements we got wrong and later corrected are in the <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">phi repo</a> under <code>docs/theory/</code>.</p>
+
+      </div>
+    </div>
+
+    <div class="bp-src">
+      <h2>References</h2>
+      <ol>
+        <li><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy: Visuomotor Policy Learning via Action Diffusion</a>
+          <span>Chi et al., 2023. The transformer backbone and the parameter tables this port reproduces.</span></li>
+        <li><a href="https://arxiv.org/abs/2006.11239" target="_blank" rel="noopener">Denoising Diffusion Probabilistic Models</a>
+          <span>Ho et al., 2020. Where the variance-preserving schedule and the &#257;<sub>k</sub> lookup come from.</span></li>
+        <li><a href="https://arxiv.org/abs/1509.06113" target="_blank" rel="noopener">End-to-End Training of Deep Visuomotor Policies</a>
+          <span>Levine et al., 2016. The origin of the spatial softmax used as the vision bottleneck here.</span></li>
+        <li><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</a>
+          <span>Zhao et al., 2023. ACT, which shares one vision backbone where this shares none.</span></li>
+        <li><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">LeRobot</a>
+          <span>The stack everything here runs on. Our transformer backbone is a port that sits on top of it.</span></li>
+      </ol>
+    </div>
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="../assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club.</p>
+</footer>
+<script>
+(function(){
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){
+    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
+  },{threshold:0.08,rootMargin:'0px 0px -5% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+})();
+</script>
+</body>
+</html>
