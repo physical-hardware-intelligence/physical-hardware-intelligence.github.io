@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Everything is an encoder and a decoder · Phi</title>
-<meta name="description" content="A diffusion policy, taken apart one shape at a time. 9,020,934 parameters, and the most important number in it is 64.">
+<title>Diffusion Policy — Transformer explained · Phi</title>
+<meta name="description" content="The transformer variant, taken apart one shape at a time on our own arm.">
 <meta name="theme-color" content="#ECE7DC">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Everything is an encoder and a decoder · Phi">
-<meta property="og:description" content="A diffusion policy, taken apart one shape at a time. 9,020,934 parameters, and the most important number in it is 64.">
+<meta property="og:title" content="Diffusion Policy — Transformer explained · Phi">
+<meta property="og:description" content="The transformer variant, taken apart one shape at a time on our own arm.">
 <meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
 <meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/everything-is-an-encoder-and-a-decoder.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -30,7 +30,10 @@
   .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch}
   .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
 
-  .bp-body{font-size:1.06rem;line-height:1.72}
+  .bp-body{font-size:1.06rem;line-height:1.72;counter-reset:ch}
+  .bp-body h2{counter-increment:ch}
+  .bp-body h2::before{content:counter(ch,decimal-leading-zero);display:block;font-family:var(--mono);
+    font-size:11px;font-weight:400;letter-spacing:.16em;color:var(--ink-3);margin-bottom:9px}
   .bp-body p{margin:0 0 1.15em}
   .bp-body .lede{font-size:1.2rem;line-height:1.62}
   .bp-body .lede strong{font-family:var(--disp);font-weight:600}
@@ -121,22 +124,19 @@
   <article>
     <div class="bp-wrap">
       <a class="bp-back" href="index.html">&#8592; Blog</a>
-      <p class="bp-meta"><span>7 September 2026</span><span>12 min read</span><span>Physical Hardware Intelligence</span></p>
-      <h1>Everything is an encoder and a decoder</h1>
-      <p class="dek">A diffusion policy, taken apart one shape at a time. It has 9,020,934 parameters, and the most important number in it is 64.</p>
+      <p class="bp-meta"><span>7 September 2026</span><span>11 min read</span><span>Physical Hardware Intelligence</span></p>
+      <h1>Diffusion Policy &#8212; Transformer explained</h1>
       <hr class="bp-rule">
       <div class="bp-body">
 
-<p class="lede">Here is the belief this post is built on. <strong>Almost every model worth studying is an encoder and a decoder.</strong> The encoder turns the world into a small set of things worth referring to. The decoder produces the answer by asking that set questions.</p>
+<p class="lede"><strong>Almost every model worth studying is an encoder and a decoder.</strong> The encoder turns the world into a small set of things worth referring to. The decoder answers by asking that set questions.</p>
 
-<p>Which means the ceiling is set by the encoder. If the encoder hands over a good description of the spatial landscape, the decoder's attention has somewhere useful to point. If it hands over mush, no amount of decoder capacity rescues it. Attention can only be as good as the thing it attends to.</p>
+<p>So the ceiling is the encoder. Attention can only be as good as the thing it attends to.</p>
 
-<p>We took a diffusion policy apart to see exactly where that boundary sits on our own robot. What follows is the whole model, in order, with the real shapes. Every number here is measured from the checkpoint we trained, not read off a paper.</p>
-
-<p>The punchline, if you want it early: a 33-million-parameter vision stack spends all of its effort producing <strong>64 numbers per camera</strong>, and then a 9-million-parameter decoder does everything else. That ratio is the whole story.</p>
+<p>We took apart <a href="https://youtu.be/M03sZFfW-qU" target="_blank" rel="noopener">Cheng Chi's Diffusion Policy</a>, transformer variant, and trained it on our arm. Here it is.</p>
 
 <figure class="fig">
-  <svg viewBox="0 0 820 250" role="img" aria-label="Diagram: an encoder compresses cameras and joint state into a small memory of three tokens, and a decoder of forty-eight action tokens queries that memory through cross attention.">
+  <svg viewBox="0 0 820 208" role="img" aria-label="Diagram: an encoder compresses cameras and joint state into a small memory of three tokens, and a decoder of forty-eight action tokens queries that memory through cross attention.">
     <defs>
       <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
         <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/>
@@ -163,19 +163,15 @@
     <text x="460" y="155" class="bn r">8 LAYERS &#183; 8,427,520 PARAMS</text>
     <text x="460" y="172" class="bn r">48 &#215; 3 ATTENTION SCORES PER LAYER</text>
 
-    <line x1="26" y1="214" x2="794" y2="214" class="rail"/>
-    <text x="410" y="238" class="ax" text-anchor="middle">the decoder can only ask about what the encoder chose to keep</text>
   </svg>
-  <figcaption>The frame for everything below. The encoder throws away almost all of the input on purpose. What survives is what the decoder is allowed to reason about.</figcaption>
+  <figcaption>The decoder can only ask about what the encoder chose to keep.</figcaption>
 </figure>
 
 <h2>What is actually being denoised</h2>
 
-<p>Start at the output, because it is the thing the whole model exists to produce.</p>
-
 <p>The policy emits a tensor of shape <code>(1, 48, 6)</code>. Forty-eight future timesteps, six joint angles each. At 30 frames per second that is <strong>1.6 seconds of motion committed in one forward pass</strong>. This is action chunking, and it is the reason imitation learning works at all.</p>
 
-<p>Now the part that surprises people. During training we do not ask the network to produce that trajectory from nothing. We take the real trajectory from a human demonstration, deliberately corrupt it, and ask the network to identify the corruption.</p>
+<p>During training we do not ask the network to produce that trajectory from nothing. We take the real trajectory from a human demonstration, deliberately corrupt it, and ask the network to identify the corruption.</p>
 
 <p>Four lines, and they are the entire training objective:</p>
 
@@ -188,7 +184,9 @@
 
 <p>The network sees <code>noisy</code> and <code>k</code>, and predicts <code>eps</code>. That is it. The loss is mean squared error against the noise we added. Input and output have identical shape, because the model is not generating a trajectory, it is <strong>performing a repair operation on one</strong>.</p>
 
-<p>The <code>&#257;<sub>k</sub></code> is a precomputed lookup table. One number per noise level, 100 entries, fixed before training starts. Understanding where it comes from is worth three minutes, because it explains a real problem in our data.</p>
+<p>The <code>&#257;<sub>k</sub></code> is a precomputed lookup table. One number per noise level, 100 entries, fixed before training starts. Where it comes from explains a real problem in our data.</p>
+
+<p>If diffusion itself is new to you, stop here and watch <a href="https://youtu.be/iv-5mZ_9CPY" target="_blank" rel="noopener">this explainer</a> first. For the full derivation, Stanford's <a href="https://www.youtube.com/playlist?list=PLoROMvodv4rNdy8rt2rZ4T2xM0OjADnfu" target="_blank" rel="noopener">diffusion lecture series</a> is the best free treatment we have found.</p>
 
 <h2>Why the square roots are there</h2>
 
@@ -277,17 +275,15 @@
 
 <h2>Why positions have to be told</h2>
 
-<p>Attention is permutation invariant. Shuffle the 48 tokens and self-attention produces the same set of outputs, reordered. It has no idea that token 3 comes before token 4.</p>
+<p>Attention is permutation invariant. Shuffle the 48 tokens and self-attention produces the same set of outputs, reordered. It has no idea that token 3 comes before token 4. (<a href="https://youtu.be/dWkm4nFikgM" target="_blank" rel="noopener">This</a> is the clearest explanation of position embeddings we know of.)</p>
 
 <p>For a trajectory that is fatal, so we add a position embedding: a learned table of shape <code>(1, 48, 256)</code>, 12,288 parameters, initialised from a normal with standard deviation 0.02 and trained like everything else.</p>
 
-<p><strong>Learned, not sinusoidal, and the reason is worth stating.</strong> A formula earns its place when you need to generalise to positions you never trained on. Here the horizon is always 48. Every entry in the table is visited in every batch. When the vocabulary is small, fixed, and densely trained, a free lookup table is strictly more expressive than any formula, because it can represent any function of position including ones no sinusoid can. The cost is 0.14% of the model.</p>
+<p><strong>Learned, not sinusoidal.</strong> A formula earns its place when you need to generalise to positions you never trained on. Here the horizon is always 48. Every entry in the table is visited in every batch. When the vocabulary is small, fixed, and densely trained, a free lookup table is strictly more expressive than any formula, because it can represent any function of position including ones no sinusoid can. The cost is 0.14% of the model.</p>
 
 <p>That is the action path complete: <code>(1,48,6)</code> to <code>(1,48,256)</code>, 48 tokens carrying a corrupted trajectory and knowing where they sit in it. They are the queries. Now we need something for them to query.</p>
 
 <h2>How a camera becomes 64 numbers</h2>
-
-<p>This is the encoder, and it is where the real compression happens.</p>
 
 <p>Three cameras, wrist and front and top, each with its own ResNet-18. Not shared. 11,197,088 parameters each, <strong>33,591,264 total</strong>, on the bet that a wrist view and an overhead view deserve different filters. ACT bets the opposite and shares one backbone. We have never A/B'd it.</p>
 
@@ -305,7 +301,7 @@
 
 <p>Look at that fourth row. The feature map is <strong>7 &#215; 9, which is 63 cells</strong>. Each cell summarises a 64 &#215; 64 pixel region of the original frame. That is the entire spatial resolution the policy has to work with.</p>
 
-<p>Then the pivotal operation, and it is a conceptual swap rather than a compression.</p>
+<p>Then the pivotal operation. It is a swap, not a compression.</p>
 
 <p>The 1&#215;1 convolution mixes across channels only, touching no neighbours. ResNet gave 512 learned detectors at each of 63 cells; this asks <strong>which 32 combinations are worth locating</strong>. Then softmax runs over the 63 cells, so each of the 32 channels independently becomes a probability map over positions. Finally you take the expectation against a fixed coordinate grid: sum of probability times coordinate.</p>
 
@@ -404,7 +400,7 @@
 
 <p>Three cameras at 64 each is 192, plus the 6 joint angles, gives <strong>198 numbers per observation step</strong>. We feed two consecutive steps, <code>t&#8722;1</code> and <code>t</code>, so the decoder can infer velocity. That is the <code>(1, 2, 198)</code> the memory block receives.</p>
 
-<p>Sit with the compression for a second. A 33-million-parameter vision stack, running on three cameras, exists to produce 198 numbers. Everything the policy will ever know about the world passes through that gap.</p>
+<p>A 33-million-parameter vision stack, on three cameras, exists to produce 198 numbers. Everything the policy will ever know about the world passes through that gap.</p>
 
 <h2>The memory is three tokens</h2>
 
@@ -425,7 +421,7 @@
   <tr><td class="n">2</td><td>what I see now</td></tr>
 </table>
 
-<p>One more detail, and it is a strange one. That block is called the encoder, but at our configuration it is a two-layer MLP, <code>256 &#8594; 1024 &#8594; 256</code>, applied to <strong>each token independently</strong>. There is no attention in it. The noise-level token and the two observation tokens never mix. They only meet inside the decoder's cross-attention, filtered through whatever each action token chooses to ask for.</p>
+<p>One strange detail. That block is called the encoder, but at our configuration it is a two-layer MLP, <code>256 &#8594; 1024 &#8594; 256</code>, applied to <strong>each token independently</strong>. There is no attention in it. The noise-level token and the two observation tokens never mix. They only meet inside the decoder's cross-attention, filtered through whatever each action token chooses to ask for.</p>
 
 <p>That MLP costs 525,568 parameters, 5.8% of the model, for a position-wise map that does no mixing. It is the same size as one decoder feed-forward. Turning it into real attention layers is a one-line config change we have not tested.</p>
 
@@ -437,7 +433,7 @@
 
 <p><strong>Cross-attention</strong> is where the world enters. Queries still come from the 48 action tokens, but keys and values come from the 3 memory tokens. The score matrix is <strong>48 &#215; 3</strong>. Every action token, independently, decides how much to weight the noise level against the previous frame against the current frame.</p>
 
-<p>That asymmetry is the whole design. Forty-eight questions, three answers, and each question gets to weight the answers differently.</p>
+<p>Forty-eight questions, three answers, each question weighting them differently. That asymmetry is the design.</p>
 
 <p><strong>Feed-forward</strong> is <code>256 &#8594; 1024 &#8594; 256</code> with a GELU between, applied per token with no mixing. It is the largest of the three at 525,568 parameters.</p>
 
@@ -634,11 +630,11 @@
 
 <h2>Why we went looking at the encoder next</h2>
 
-<p>The decoder in this model is, honestly, not doing anything exotic. Forty-eight tokens ask three tokens some questions, eight times. It is well-built and it closes on the paper's numbers and it is not where the ceiling is.</p>
+<p>The decoder is not doing anything exotic. Forty-eight tokens ask three tokens some questions, eight times. It closes on the paper's numbers, and it is not where the ceiling is.</p>
 
 <p>The ceiling is the 64. Three cameras, 33 million parameters, 921,600 numbers per frame, all funnelled into 32 keypoint locations per view. Colour is gone. Texture is gone. Which of two similar cubes you are looking at is gone. If the task needs any of that, no decoder can recover it, because it was never in the memory to attend to.</p>
 
-<p>That is a real bet, not an obvious mistake. Geometry may genuinely be all a pick-and-place policy needs, and 63 cells is a strong inductive bias toward exactly that. But it is a bet, and it is testable, and it is the one part of this architecture where we think the interesting work is.</p>
+<p>That is a bet, not a mistake. Geometry may be all a pick-and-place policy needs, and 63 cells is a strong inductive bias toward exactly that. But it is testable, and it is where we think the interesting work is.</p>
 
 <p>So that is where we went. <a href="../learn.html">SmolVLA</a> keeps a pretrained vision-language backbone instead of training three ResNets from scratch, so the encoder arrives already knowing what objects are. Patch Policy keeps dense vision-transformer patches rather than pooling them to keypoints at all, and beats a 7.6-billion-parameter model at 0.7% the size.</p>
 
@@ -650,7 +646,19 @@
     </div>
 
     <div class="bp-src">
-      <h2>References</h2>
+      <h2>Watch</h2>
+      <ol>
+        <li><a href="https://youtu.be/M03sZFfW-qU" target="_blank" rel="noopener">Diffusion Policy, explained by Cheng Chi</a>
+          <span>The author on his own method. Start here.</span></li>
+        <li><a href="https://youtu.be/iv-5mZ_9CPY" target="_blank" rel="noopener">Diffusion models, explained</a>
+          <span>If chapter 02 moved too fast, watch this and come back.</span></li>
+        <li><a href="https://www.youtube.com/playlist?list=PLoROMvodv4rNdy8rt2rZ4T2xM0OjADnfu" target="_blank" rel="noopener">Stanford CS236, deep generative models</a>
+          <span>The full derivation of the schedule in chapter 02.</span></li>
+        <li><a href="https://youtu.be/dWkm4nFikgM" target="_blank" rel="noopener">Position embeddings, explained</a>
+          <span>The clearest treatment of what chapter 05 is about.</span></li>
+      </ol>
+
+      <h2 style="margin-top:34px">References</h2>
       <ol>
         <li><a href="https://arxiv.org/abs/2303.04137" target="_blank" rel="noopener">Diffusion Policy: Visuomotor Policy Learning via Action Diffusion</a>
           <span>Chi et al., 2023. The transformer backbone and the parameter tables this port reproduces.</span></li>
