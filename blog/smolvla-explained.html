@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.classList.add("js");</script>
+<title>SmolVLA, explained from the ground up · Phi</title>
+<meta name="author" content="Parv Patodia">
+<meta name="description" content="A 450M robot policy that beats a 3.3B one. Only 1.6M of its weights are new. Every part of it, measured, from one red cube.">
+<meta name="theme-color" content="#ECE7DC">
+<meta property="og:type" content="article">
+<meta property="article:author" content="Parv Patodia">
+<meta property="og:title" content="SmolVLA, explained from the ground up">
+<meta property="og:description" content="A 450M robot policy that beats a 3.3B one. Only 1.6M of its weights are new. Every part of it, measured, from one red cube.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/smolvla-explained.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .bp{max-width:none;margin:0 auto}
+  .bp-wrap{max-width:720px;margin:0 auto;padding:clamp(86px,11vh,112px) clamp(20px,5vw,44px) 0}
+  .bp-back{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    display:inline-block;margin-bottom:clamp(22px,3vw,32px);border-bottom:1px solid transparent}
+  .bp-back:hover{color:var(--ink);border-color:var(--line-2)}
+  .bp-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 18px;align-items:center}
+  .bp-meta .rt{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--line-2);
+    border-radius:2px;color:var(--ink);background:var(--paper-2);letter-spacing:.06em}
+  .bp-meta .rt b{font-family:var(--disp);font-size:14px;font-weight:600;letter-spacing:0;color:var(--apple)}
+  .bp h1{font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0}
+  .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:54ch}
+  .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
+
+  .bp-body{font-size:1.06rem;line-height:1.72}
+  .bp-body p{margin:0 0 1.15em}
+  .bp-body .lede{font-size:1.2rem;line-height:1.62}
+  .bp-body h2{font-family:var(--disp);font-size:clamp(1.24rem,2.3vw,1.56rem);font-weight:500;letter-spacing:-.012em;
+    line-height:1.2;margin:clamp(40px,5vw,62px) 0 .6em}
+  .bp-body h2 .hn{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.12em;
+    color:var(--ink-3);display:block;margin-bottom:8px}
+  .bp-body strong{font-weight:500;color:var(--ink)}
+  .bp-body em{font-style:italic}
+  .bp-body a{border-bottom:1px solid var(--line-2);transition:border-color .2s}
+  .bp-body a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-body code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    padding:.1em .34em;border-radius:2px;color:var(--ink)}
+  .bp-body .note{margin-top:clamp(30px,4vw,44px);padding-top:20px;border-top:1px solid var(--line);
+    font-size:.98rem;color:var(--ink-2)}
+  .bp-body .aside{margin:1.4em 0;padding:14px 18px;border-left:2px solid var(--line-2);
+    background:var(--paper-2);font-size:.97rem;line-height:1.62;color:var(--ink-2)}
+  .bp-body .aside b{color:var(--ink);font-weight:500}
+  .bp-body .mono{font-family:var(--mono);font-size:.82rem;line-height:1.85;color:var(--ink-2);
+    background:var(--paper-2);border:1px solid var(--line);padding:14px 16px;margin:1.3em 0;
+    overflow-x:auto;white-space:pre}
+  .bp-body .mono b{color:var(--apple);font-weight:500}
+
+  .gl{border-bottom:1px dotted var(--ink-3);cursor:help;position:relative;
+    background:none;border-left:0;border-right:0;border-top:0;padding:0;font:inherit;color:inherit}
+  .gl::after{content:attr(data-def);position:absolute;left:50%;bottom:calc(100% + 9px);
+    transform:translateX(-50%);width:max-content;max-width:min(300px,70vw);
+    background:var(--ink);color:var(--paper);font-family:var(--serif);font-size:.86rem;
+    font-weight:400;line-height:1.45;letter-spacing:0;text-align:left;text-transform:none;
+    padding:9px 12px;border-radius:3px;z-index:40;
+    opacity:0;visibility:hidden;transition:opacity .16s var(--ease),visibility .16s;pointer-events:none}
+  .gl::before{content:"";position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--ink);z-index:41;
+    opacity:0;visibility:hidden;transition:opacity .16s var(--ease),visibility .16s;pointer-events:none}
+  .gl:hover::after,.gl:hover::before,.gl:focus::after,.gl:focus::before{opacity:1;visibility:visible}
+  .gl:focus{outline:2px solid var(--ink);outline-offset:3px;border-radius:1px}
+
+  .fig{margin:clamp(30px,4vw,46px) 0;padding:0}
+  .fig.wide{margin-left:calc(50% - min(50vw - 22px, 470px));width:min(100vw - 44px,940px)}
+  .fig svg{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line)}
+  .fig figcaption{margin-top:11px;font-size:.9rem;line-height:1.5;color:var(--ink-3);
+    max-width:640px;margin-left:auto;margin-right:auto}
+  .fig .ttl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;fill:var(--ink-3)}
+  .fig .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;fill:var(--ink-3)}
+  .fig .say{font-family:var(--serif);font-size:13px;fill:var(--ink-2)}
+  .fig .big{font-family:var(--disp);font-size:15px;font-weight:500;fill:var(--ink)}
+  .fig .num{font-family:var(--mono);font-size:12px;fill:var(--ink)}
+  .fig .red{font-family:var(--serif);font-size:12.5px;font-style:italic;fill:var(--apple)}
+  .fig .mn{font-family:var(--mono);font-size:11px;fill:var(--ink-2)}
+  .fig .bx{fill:none;stroke:var(--ink);stroke-width:1}
+  .fig .bxd{fill:none;stroke:var(--line-2);stroke-width:1;stroke-dasharray:5 4}
+  .fig .fp{fill:var(--paper)}
+  .fig .fe{fill:var(--paper-2)}
+  .fig .st{stroke:var(--ink-2);stroke-width:1;fill:none}
+  .fig .sl{stroke:var(--line-2);stroke-width:1;fill:none}
+  .fig .sa{stroke:var(--apple);stroke-width:1.5;fill:none}
+  .fig .fa{fill:var(--apple)}
+  .fig .fi{fill:var(--ink)}
+  .fig .fk{fill:var(--ink-3)}
+  .fig .ok{fill:var(--apple);fill-opacity:.16;stroke:var(--apple);stroke-width:.75}
+  .fig .no{fill:none;stroke:var(--line-2);stroke-width:.75}
+
+  .fig .mv{animation-play-state:running}
+  .js .fig .mv{animation-play-state:paused}
+  .js .fig.run .mv{animation-play-state:running}
+  @media (prefers-reduced-motion:reduce){
+    .fig .mv{animation:none!important;opacity:1!important}
+  }
+  @keyframes tickx{from{transform:translateX(0)}to{transform:translateX(600px)}}
+  @keyframes filt{0.00%,9.91%{transform:translate(0px,0px)} 11.11%,21.02%{transform:translate(32px,0px)} 22.22%,32.13%{transform:translate(64px,0px)} 33.33%,43.24%{transform:translate(0px,32px)} 44.44%,54.36%{transform:translate(32px,32px)} 55.56%,65.47%{transform:translate(64px,32px)} 66.67%,76.58%{transform:translate(0px,64px)} 77.78%,87.69%{transform:translate(32px,64px)} 88.89%,98.80%{transform:translate(64px,64px)}}
+  @keyframes drop{0%{transform:translateY(-40px);opacity:0}22%,100%{transform:translateY(0);opacity:1}}
+  @keyframes bandscan{from{transform:translateY(0)}to{transform:translateY(240px)}}
+  @keyframes tokwipe{from{transform:scaleY(1)}to{transform:scaleY(0)}}
+  @keyframes pulseup{0%{transform:translateY(272px);opacity:0}
+    8%{opacity:1}92%{opacity:1}100%{transform:translateY(0);opacity:0}}
+  @keyframes pickL{0%,44%{opacity:1}50%,94%{opacity:.13}100%{opacity:1}}
+  @keyframes pickR{0%,44%{opacity:.13}50%,94%{opacity:1}100%{opacity:.13}}
+  @keyframes walkx{from{transform:translateX(0)}to{transform:translateX(644px)}}
+  @keyframes rollsync{0%{transform:translateX(0)}18%{transform:translateX(88px)}
+    34%{transform:translateX(88px)}52%{transform:translateX(176px)}
+    68%{transform:translateX(176px)}86%,100%{transform:translateX(264px)}}
+  @keyframes rollasync{0%{transform:translateX(0)}100%{transform:translateX(560px)}}
+  @keyframes thinkpip{0%,16%{opacity:0}18%,32%{opacity:1}34%,50%{opacity:0}
+    52%,66%{opacity:1}68%,84%{opacity:0}86%,100%{opacity:1}}
+  @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.2}}
+  @keyframes scanrow{0%{transform:translateY(0)}100%{transform:translateY(280px)}}
+  @keyframes loop10{0%,90%{opacity:1}95%,100%{opacity:.15}}
+  @keyframes rowsweep{from{transform:translateY(0)}to{transform:translateY(157.5px)}}
+  @keyframes lyrx{from{transform:translateX(0)}to{transform:translateX(198px)}}
+  @keyframes pairx{0%,44%{transform:translateX(0)}50%,94%{transform:translateX(144px)}100%{transform:translateX(0)}}
+
+  .a-tick{animation:tickx 3.3s steps(11,jump-none) infinite}
+  .a-filt{animation:filt 5.4s linear infinite}
+  .a-drop{animation:drop 3.2s var(--ease) infinite}
+  .a-band{animation:bandscan 6s steps(8,end) infinite}
+  .a-wipe{transform-box:fill-box;transform-origin:50% 100%;animation:tokwipe 6s steps(8,end) infinite}
+  .a-pulse{animation:pulseup 3.4s linear infinite}
+  .a-blink{animation:blink 1s steps(1,end) infinite}
+  .a-pickl{animation:pickL 4s steps(1,end) infinite}
+  .a-pickr{animation:pickR 4s steps(1,end) infinite}
+  .a-sync{animation:rollsync 4s var(--ease) infinite}
+  .a-think{animation:thinkpip 4s steps(1,end) infinite}
+  .a-async{animation:rollasync 4s linear infinite}
+  .a-walk{animation:walkx 3.3s steps(11,jump-none) infinite}
+  .a-scan{animation:scanrow 5s linear infinite}
+  .a-loop{animation:loop10 1.6s steps(1,end) infinite}
+  .a-row{animation:rowsweep 4.8s steps(16,jump-none) infinite}
+  .a-lyr{animation:lyrx 4.8s steps(12,jump-none) infinite}
+  .a-pair{animation:pairx 4s steps(1,end) infinite}
+
+  .ctl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    margin:14px auto 0;max-width:640px;font-family:var(--mono);font-size:11px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .ctl input[type=range]{flex:1;min-width:190px;accent-color:var(--apple);height:20px}
+  .ctl output{font-size:13px;letter-spacing:0;color:var(--ink);text-transform:none}
+  .ctl output b{font-family:var(--disp);font-size:17px;font-weight:600;color:var(--apple)}
+
+  .tb{width:100%;border-collapse:collapse;margin:clamp(18px,2.4vw,26px) 0;font-size:.93rem}
+  .tb caption{caption-side:bottom;margin-top:10px;font-size:.87rem;line-height:1.5;color:var(--ink-3);text-align:left}
+  .tb th{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:500;text-align:left;padding:0 10px 7px 0;border-bottom:1px solid var(--ink)}
+  .tb td{padding:7px 10px 7px 0;border-bottom:1px solid var(--line);color:var(--ink-2)}
+  .tb td:first-child{color:var(--ink)}
+  .tb .r{text-align:right;font-family:var(--mono);font-size:.9rem}
+  .tb tr.w td{color:var(--ink);font-weight:500}
+  .tb tr.w td:last-child{color:var(--apple)}
+  .tb tr.sec td{border-bottom:0;padding-top:16px;font-family:var(--mono);font-size:10px;
+    letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+
+  .bp-src{max-width:720px;margin:0 auto;padding:clamp(40px,5vw,60px) clamp(20px,5vw,44px) 0}
+  .bp-src h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
+  .bp-src ol{list-style:none;counter-reset:s;margin:0;padding:0}
+  .bp-src li{counter-increment:s;position:relative;padding:0 0 15px 34px;font-size:.95rem;line-height:1.5}
+  .bp-src li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;
+    font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .bp-src a{border-bottom:1px solid var(--line-2)}
+  .bp-src a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-src span{display:block;color:var(--ink-3);font-size:.88rem;margin-top:3px}
+
+  @media (max-width:620px){
+    .bp-body{font-size:1.02rem} .bp-body .lede{font-size:1.1rem}
+    .fig.wide{margin-left:0;width:100%} .tb{font-size:.86rem} .bp-body .mono{font-size:.74rem}
+  }
+  .bp-src .reveal,.bp-src h2,.bp-src ol{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="brand" href="../index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="../assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="index.html" class="active">Blog</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top" class="bp">
+  <article>
+    <div class="bp-wrap">
+      <a class="bp-back" href="index.html">&#8592; Blog</a>
+      <p class="bp-meta"><span class="rt"><b>32 min</b> read</span><span>5 September 2026</span><span>Written by Parv Patodia</span><span>Physical Hardware Intelligence</span></p>
+      <h1>SmolVLA, explained from the ground up</h1>
+      <p class="dek">A 450-million-parameter robot policy that beats a 3.3-billion-parameter one, and only about 1.6 million of its weights are new. We took it apart on our own arms, and this is all of it, starting from one red cube.</p>
+      <hr class="bp-rule">
+      <div class="bp-body">
+
+<p class="lede">There is a red cube on a table in front of the arm, and you type &#8220;pick up the red cube,&#8221; and from that moment six motors need an angle from somebody, thirty times a second, until the cube is in the gripper. Pixels and a sentence in, joint angles out.</p>
+
+<p>Getting that done used to mean writing it out. Find the cube, estimate its pose, plan a path, hand the path to a controller, then rewrite the chain when someone leaves a spoon on the table instead. A <button type="button" class="gl" data-def="Vision-language-action. One network that maps camera frames plus a written instruction straight to motor commands, with no hand-written perception or planning stack in between.">vision-language-action model</button> throws the chain out. One network reads the frames and the sentence and emits joint angles, and everything a person used to specify is learned from recordings of people doing the job.</p>
+
+<p>What makes that work is that the seeing half does not start from scratch. It is a model already trained on internet images and captions, so &#8220;red&#8221; and &#8220;cube&#8221; mean something to it before a robot is involved, and only the half that turns understanding into motion has to be taught. It is also why these models are big. The published ones run to billions of parameters, which <a href="https://arxiv.org/abs/2506.01844" target="_blank" rel="noopener">the SmolVLA paper</a> says brings high training costs and limited real-world deployability, while recordings from people on cheap arms pile up unused.</p>
+
+<p>So it sets a budget instead of a capability target. One GPU to train on, a consumer GPU or even a CPU to run on, no pretraining data beyond what the community had already uploaded, everything released.</p>
+
+<p>It lands at <strong>450 million parameters</strong> and <strong>87.3</strong> on the <button type="button" class="gl" data-def="A standard set of simulated robot arm tasks. The score is the percentage of attempts that finish the task.">LIBERO benchmark</button>, where <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&#960;<sub>0</sub></a> needs 3.3 billion and 10,000 hours of robot pretraining to reach <strong>86.0</strong>. It is smaller on every axis, so every choice inside it is a choice about what to leave out.</p>
+
+<p>Take it apart and almost nothing in it is new. The seeing half is borrowed and frozen, the moving half is a shrunken copy of that same half, and only about <strong>1.6 million</strong> weights have no counterpart in what was copied. 95% of those go on one piece of bookkeeping, and section 09 is why it was worth paying for. The rest is subtraction, and nearly every subtraction has a number behind it.</p>
+
+<p>One convention. Anything marked <em>measured</em> is ours, from forward hooks on the released code. Everything else is the paper&#39;s, and where the two disagree we say so.</p>
+
+<figure class="fig" id="f1">
+  <svg viewBox="0 0 800 236" role="img" aria-label="The task, end to end. Three camera frames of a red cube on a table, plus the written instruction, enter the model. The model outputs fifty time steps of joint angles covering the next 1.7 seconds.">
+    <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="20" y="22" class="ttl">WHAT GOES IN</text>
+    <rect x="32" y="26" width="140" height="96" class="bx fe"/>
+    <rect x="26" y="30" width="140" height="96" class="bx fe"/>
+    <rect x="20" y="34" width="140" height="96" class="bx fp"/>
+    <line x1="20" y1="104" x2="160" y2="104" class="sl"/>
+    <rect x="68" y="84" width="20" height="20" class="fa"/>
+    <path d="M116 58 v22 M108 80 h16" class="st"/>
+    <text x="20" y="148" class="say">three camera frames</text>
+    <text x="20" y="164" class="lbl">512 &#215; 512 EACH</text>
+    <rect x="20" y="178" width="152" height="26" class="bxd"/>
+    <text x="30" y="195" class="say">pick up the red cube</text>
+    <text x="20" y="220" class="lbl">THE WRITTEN INSTRUCTION</text>
+    <line x1="184" y1="112" x2="228" y2="112" class="st" marker-end="url(#ar)"/>
+    <rect x="240" y="70" width="150" height="84" class="bx fe"/>
+    <text x="256" y="102" class="big">SmolVLA</text>
+    <text x="256" y="124" class="say">450M parameters</text>
+    <text x="256" y="142" class="lbl">1.6M OF THEM ARE NEW</text>
+    <line x1="402" y1="112" x2="448" y2="112" class="st" marker-end="url(#ar)"/>
+    <text x="460" y="22" class="ttl">WHAT COMES OUT</text>
+    <g class="fi"><rect x="460" y="52" width="4" height="30"/><rect x="466" y="52" width="4" height="34"/><rect x="472" y="52" width="4" height="41"/><rect x="478" y="52" width="4" height="49"/><rect x="484" y="52" width="4" height="58"/><rect x="490" y="52" width="4" height="66"/><rect x="496" y="52" width="4" height="72"/><rect x="502" y="52" width="4" height="76"/><rect x="508" y="52" width="4" height="78"/><rect x="514" y="52" width="4" height="77"/><rect x="520" y="52" width="4" height="74"/><rect x="526" y="52" width="4" height="70"/><rect x="532" y="52" width="4" height="65"/><rect x="538" y="52" width="4" height="61"/><rect x="544" y="52" width="4" height="58"/><rect x="550" y="52" width="4" height="56"/><rect x="556" y="52" width="4" height="55"/><rect x="562" y="52" width="4" height="56"/><rect x="568" y="52" width="4" height="59"/><rect x="574" y="52" width="4" height="63"/><rect x="580" y="52" width="4" height="68"/><rect x="586" y="52" width="4" height="72"/><rect x="592" y="52" width="4" height="75"/><rect x="598" y="52" width="4" height="76"/><rect x="604" y="52" width="4" height="74"/><rect x="610" y="52" width="4" height="70"/><rect x="616" y="52" width="4" height="64"/><rect x="622" y="52" width="4" height="57"/><rect x="628" y="52" width="4" height="50"/><rect x="634" y="52" width="4" height="44"/><rect x="640" y="52" width="4" height="39"/><rect x="646" y="52" width="4" height="36"/><rect x="652" y="52" width="4" height="34"/><rect x="658" y="52" width="4" height="35"/><rect x="664" y="52" width="4" height="38"/><rect x="670" y="52" width="4" height="43"/><rect x="676" y="52" width="4" height="49"/><rect x="682" y="52" width="4" height="55"/><rect x="688" y="52" width="4" height="60"/><rect x="694" y="52" width="4" height="63"/><rect x="700" y="52" width="4" height="64"/><rect x="706" y="52" width="4" height="63"/><rect x="712" y="52" width="4" height="60"/><rect x="718" y="52" width="4" height="56"/><rect x="724" y="52" width="4" height="51"/><rect x="730" y="52" width="4" height="47"/><rect x="736" y="52" width="4" height="44"/><rect x="742" y="52" width="4" height="42"/><rect x="748" y="52" width="4" height="41"/><rect x="754" y="52" width="4" height="41"/></g>
+    <line x1="460" y1="140" x2="758" y2="140" class="sl"/>
+    <text x="460" y="164" class="say">50 time steps of joint angles</text>
+    <text x="460" y="182" class="lbl">ONE JOINT DRAWN &#183; 1.7 SECONDS AT 30 Hz</text>
+    <text x="460" y="212" class="red">not one action, a whole chunk of them</text>
+  </svg>
+  <figcaption>The model does not emit one action, it emits the next 50 at once, about 1.7 seconds of motion, and almost every choice further down follows from that.</figcaption>
+</figure>
+
+<h2><span class="hn">01</span>Almost none of it is new</h2>
+
+<p>Start with where the weights actually sit, because once you know that, the architecture stops reading like a design and starts reading like a set of consequences.</p>
+
+<p>There are two stacks. The left one is a <button type="button" class="gl" data-def="A model trained on internet images and captions. It can describe a picture, but knows nothing about robots.">vision-language model</button> that has seen enough of the internet to know what &#8220;red&#8221; and &#8220;cube&#8221; mean, and it is <button type="button" class="gl" data-def="Its weights never change during training. It stays exactly as it was pretrained.">frozen</button>, so none of that knowledge moves. The right one is a smaller <button type="button" class="gl" data-def="The new, trainable half of SmolVLA. It turns the frozen model&#39;s view of the scene into joint angles.">action expert</button> that only speaks joint angles, and it is the half that learns.</p>
+
+<p>Counting the model layer by layer, as the released config builds it, gives 450,046,176 parameters, of which 99,880,992 train. But the expert is a copy of the frozen architecture at smaller widths, so if you ask instead how many weights are <em>structurally new</em>, with no counterpart in the borrowed model, the answer is <strong>1,635,152</strong> across five small linear layers. That is 0.36% of the thing.</p>
+
+<figure class="fig wide" id="f2">
+  <svg viewBox="0 0 940 372" role="img" aria-label="Where SmolVLA&#39;s 450 million parameters live, drawn to scale. The bar runs vision tower, connector, text model, dead language head, action expert, and new projections. Brackets mark 350.2 million frozen and 99.9 million trained. Below, the five linear layers that are structurally new total 1,635,152.">
+    <text x="24" y="22" class="ttl">ALL 450,046,176 PARAMETERS, DRAWN TO SCALE</text>
+    <rect x="24"  y="36" width="162" height="44" class="bx fe"/>
+    <rect x="186" y="36" width="22"  height="44" class="bx fe"/>
+    <rect x="208" y="36" width="382" height="44" class="bx fe"/>
+    <rect x="590" y="36" width="88"  height="44" class="bx fp"/>
+    <rect x="678" y="36" width="184" height="44" class="bx fa" fill-opacity=".18"/>
+    <rect x="862" y="36" width="3"   height="44" class="fa"/>
+    <text x="32"  y="63" class="mn">vision</text>
+    <text x="216" y="63" class="mn">text model</text>
+    <text x="598" y="63" class="mn">lm_head</text>
+    <text x="686" y="63" class="mn">action expert</text>
+    <g class="mv a-blink"><rect x="590" y="36" width="88" height="44" class="sa"/></g>
+
+    <text x="32"  y="100" class="mn">86,433,024</text>
+    <text x="216" y="100" class="mn">204,626,880</text>
+    <text x="598" y="100" class="mn">47,308,800</text>
+    <text x="686" y="100" class="mn">98,245,840</text>
+    <text x="598" y="120" class="red">loaded, never called</text>
+
+    <path d="M197 84 v56 h-32" class="sl"/>
+    <text x="24" y="152" class="mn">connector &#183; 11,796,480</text>
+    <path d="M863 84 v56 h-40" class="sl"/>
+    <text x="640" y="152" class="mn">new projections &#183; 1,635,152</text>
+
+    <path d="M24 174 H678" class="st"/>
+    <text x="24" y="196" class="lbl">FROZEN &#183; 350,165,184 &#183; 77.8%</text>
+    <path d="M678 174 H865" class="sa"/>
+    <text x="678" y="196" class="red">trained &#183; 99,880,992</text>
+
+    <line x1="24" y1="222" x2="916" y2="222" class="sl"/>
+    <text x="24" y="246" class="ttl">THE EXPERT IS A COPY OF THE FROZEN ARCHITECTURE. WHAT HAS NO COUNTERPART IN IT</text>
+    <text x="24" y="276" class="mn">state_proj</text><text x="196" y="276" class="mn">Linear(32 &#8594; 960)</text><text x="392" y="276" class="mn">31,680</text>
+    <text x="24" y="294" class="mn">action_in_proj</text><text x="196" y="294" class="mn">Linear(32 &#8594; 720)</text><text x="392" y="294" class="mn">23,760</text>
+    <text x="24" y="312" class="mn">action_out_proj</text><text x="196" y="312" class="mn">Linear(720 &#8594; 32)</text><text x="392" y="312" class="mn">23,072</text>
+    <text x="24" y="330" class="mn">action_time_mlp_in</text><text x="196" y="330" class="mn">Linear(1440 &#8594; 720)</text><text x="392" y="330" class="mn">1,037,520</text>
+    <text x="24" y="348" class="mn">action_time_mlp_out</text><text x="196" y="348" class="mn">Linear(720 &#8594; 720)</text><text x="392" y="348" class="mn">519,120</text>
+    <path d="M392 356 H482" class="st"/>
+    <text x="560" y="290" class="big">1,635,152</text>
+    <text x="560" y="314" class="say">0.36% of the model is</text>
+    <text x="560" y="334" class="say">machinery that did not</text>
+    <text x="560" y="354" class="say">already exist</text>
+  </svg>
+  <figcaption><em>Measured.</em> 350,165,184 frozen plus 99,880,992 trained closes exactly on the released checkpoint. A borrowed describer carrying a small writer that is mostly a copy of it.</figcaption>
+</figure>
+
+<div class="aside"><b>47.3 million dead parameters.</b> The frozen model arrives with <code>lm_head</code> attached, a 49280&#215;960 matrix for turning hidden states back into words, and it is a real second copy rather than a view onto the input embedding table. SmolVLA never generates a word, so the forward pass never calls it. Loaded and moved onto the GPU for nothing, 10.5% of the parameter count, 95 MB at bfloat16 you get back by deleting the module after load. <em>Measured.</em></div>
+
+<h2><span class="hn">02</span>From a 4:3 camera to a square</h2>
+<p>Nothing runs until the frame is square, because the vision tower takes 512&#215;512 and only that. Our cameras give 640 wide by 480 high, so something has to give, and one line of arithmetic decides which.</p>
+<p>The obvious move is to squash 640&#215;480 into 512&#215;512. Nobody does, because the tower doing the looking was never shown a squashed picture. Every resize in the processor SmolVLM ships with keeps the aspect ratio, and a frame that will not fit gets tiled instead of stretched. So squashing would hand a frozen encoder geometry it has never seen, a mug as an ellipse, a cube as a slab, with nothing downstream retrained to undo it.</p>
+<p>Better to keep the shapes honest and waste pixels. That reasoning is ours, read off the preprocessing code, and the paper does not ablate it.</p>
+<p>The code computes both shrink factors, 640/512 = 1.25 and 480/512 = 0.9375, and uses the larger for both axes, which makes this fit-inside rather than fill, so nothing is cropped and the aspect ratio survives exactly. The frame lands at 512 wide and 384 high.</p>
+<p>That leaves 128 rows short of square, and they all go on top rather than being split between the edges, because the padding is passed as (left, right, top, bottom) with the row count in the third slot. We checked the tensor rather than the argument order, and row 0 comes back constant while the last row is real image. <em>Measured.</em></p>
+<p>What that constant is turns an odd-looking number into an obvious one. The code takes frames already scaled to 0 to 1, its own comment says so, and one line maps them onto &#8722;1 to 1 with <code>img * 2.0 - 1.0</code>. The padding is written before that line, as plain zeros, so the doubling and the shift carry them to &#8722;1.</p>
+<p>Which means the padded rows are not a sentinel to be learned around. They are black, in the exact convention the frozen tower already reads black in.</p>
+<figure class="fig wide" id="fR">
+  <svg viewBox="0 0 940 330" role="img" aria-label="Animated, three panels drawn to one scale. A 640 by 480 camera frame shrinks by 1.25 to 512 by 384, then 128 rows of constant minus one drop onto the top edge to make it 512 by 512. A quarter of the finished square is padding.">
+    <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="24" y="22" class="ttl">1 &#183; WHAT THE CAMERA GIVES</text>
+    <rect x="24" y="70" width="160" height="120" class="bx fp"/>
+    <line x1="24" y1="160" x2="184" y2="160" class="sl"/>
+    <rect x="86" y="142" width="18" height="18" class="fa"/>
+    <text x="24" y="212" class="num">640 &#215; 480</text>
+    <text x="24" y="230" class="lbl">4:3</text>
+    <path d="M24 60 H184" class="sl"/><text x="86" y="54" class="lbl">640</text>
+
+    <path d="M200 130 h34" class="st" marker-end="url(#ar5)"/>
+    <text x="196" y="116" class="red">&#247; 1.25</text>
+
+    <text x="252" y="22" class="ttl">2 &#183; BILINEAR SHRINK</text>
+    <rect x="252" y="94" width="128" height="96" class="bx fp"/>
+    <line x1="252" y1="166" x2="380" y2="166" class="sl"/>
+    <rect x="302" y="152" width="14" height="14" class="fa"/>
+    <text x="252" y="212" class="num">512 &#215; 384</text>
+    <text x="252" y="230" class="lbl">STILL 4:3, NOTHING CROPPED</text>
+    <path d="M252 84 H380" class="sa"/><text x="300" y="78" class="red">512</text>
+
+    <path d="M396 130 h34" class="st" marker-end="url(#ar5)"/>
+    <text x="392" y="116" class="red">pad</text>
+
+    <text x="448" y="22" class="ttl">3 &#183; PAD THE SHORT SIDE</text>
+    <rect x="448" y="62" width="128" height="128" class="bx fp"/>
+    <g class="mv a-drop"><rect x="448" y="62" width="128" height="32" class="fk" fill-opacity=".42"/></g>
+    <line x1="448" y1="166" x2="576" y2="166" class="sl"/>
+    <rect x="498" y="152" width="14" height="14" class="fa"/>
+    <rect x="448" y="62" width="128" height="128" class="bx"/>
+    <text x="448" y="212" class="num">512 &#215; 512</text>
+    <text x="448" y="230" class="red">128 rows of &#8722;1, on top</text>
+
+    <line x1="608" y1="34" x2="608" y2="300" class="sl"/>
+    <text x="636" y="22" class="ttl">WHAT THAT COSTS</text>
+    <text x="636" y="54" class="mn">max(640/512, 480/512) = 1.25</text>
+    <text x="636" y="78" class="say">The larger of the two wins, so the</text>
+    <text x="636" y="96" class="say">wide side is what binds.</text>
+    <line x1="636" y1="116" x2="916" y2="116" class="sl"/>
+    <text x="636" y="146" class="num">128 rows</text><text x="740" y="146" class="say">short of square</text>
+    <text x="636" y="182" class="num">25.0%</text><text x="740" y="182" class="say">of every frame, constant</text>
+    <text x="636" y="218" class="num">8 of 32</text><text x="740" y="218" class="say">patch rows are padding</text>
+    <text x="636" y="254" class="num">48 of 192</text><text x="740" y="254" class="say">image tokens carry nothing</text>
+    <line x1="636" y1="274" x2="916" y2="274" class="sl"/>
+    <text x="636" y="296" class="red">and every one is paid for at full attention cost</text>
+  </svg>
+  <figcaption><em>Measured on our SO-101 rig.</em> All three panels are drawn to the same scale, a quarter of a pixel each, so the shrink and the padding band are their true sizes. This is our cameras against this model, not a flaw in either.</figcaption>
+</figure>
+<p>So a quarter of every frame the model looks at is a constant, and nothing downstream throws it away. Those 128 rows are 8 of the 32 patch rows, surviving the vision tower as 16 of the 64 tokens for that camera, which across three cameras is <strong>48 of the 192 image tokens</strong> paying full attention cost while carrying nothing. <em>Measured.</em></p>
+<p>The shrink has an off-by-half almost everyone gets wrong first time. Bilinear resizing answers one question per output pixel, where in the input does this pixel sit, and PyTorch answers it with <code>s = (j + 0.5) &#215; scale &#8722; 0.5</code>.</p>
+<p>Each piece does one job. The +0.5 steps from an index, which names a whole pixel, out to a coordinate, which names the point at its centre. Multiplying by scale finds where that centre lands in the input. The &#8722;0.5 steps back to an index so it can be looked up. Then <code>lo = floor(s)</code>, <code>frac = s &#8722; lo</code>, and the answer is (1 &#8722; frac)&#183;in[lo] + frac&#183;in[lo+1].</p>
+<figure class="fig wide" id="fB">
+  <svg viewBox="0 0 940 360" role="img" aria-label="Two bands. The first shows four input pixels as boxes, with integer indices naming the boxes and half-integer coordinates naming their centres, plus the resizing formula. The second works that formula through a four-to-two shrink, with both output pixels shown and a highlight alternating between the pair of inputs each one reads.">
+    <text x="24" y="22" class="ttl">AN INDEX NAMES A BOX &#183; A COORDINATE NAMES A POINT</text>
+    <rect x="24" y="46" width="84" height="62" class="bx fp"/><rect x="108" y="46" width="84" height="62" class="bx fp"/><rect x="192" y="46" width="84" height="62" class="bx fp"/><rect x="276" y="46" width="84" height="62" class="bx fp"/>
+    <text x="61" y="84" class="num">0</text><text x="145" y="84" class="num">1</text><text x="229" y="84" class="num">2</text><text x="313" y="84" class="num">3</text>
+    <g class="sl"><path d="M66 108 v13 M150 108 v13 M234 108 v13 M318 108 v13"/></g>
+    <text x="55" y="138" class="lbl">0.5</text><text x="139" y="138" class="lbl">1.5</text><text x="223" y="138" class="lbl">2.5</text><text x="307" y="138" class="lbl">3.5</text>
+    <text x="24" y="164" class="say">Integers name the boxes. Halves name their centres.</text>
+
+    <line x1="404" y1="34" x2="404" y2="176" class="sl"/>
+    <text x="432" y="22" class="ttl">THE ONE LINE THAT DOES IT</text>
+    <text x="432" y="56" class="num">s = (j + 0.5) &#215; scale &#8722; 0.5</text>
+    <text x="432" y="84" class="say">+0.5 &#183; step out to the pixel&#39;s centre</text>
+    <text x="432" y="106" class="say">&#215; scale &#183; find that spot in the input</text>
+    <text x="432" y="128" class="say">&#8722;0.5 &#183; step back to an index</text>
+    <text x="432" y="158" class="mn">lo = floor(s) &#183; frac = s &#8722; lo</text>
+
+    <line x1="24" y1="190" x2="916" y2="190" class="sl"/>
+    <text x="24" y="216" class="ttl">FOUR PIXELS DOWN TO TWO &#183; scale = 2</text>
+
+    <rect x="24" y="234" width="72" height="50" class="bx fp"/><rect x="96" y="234" width="72" height="50" class="bx fp"/><rect x="168" y="234" width="72" height="50" class="bx fp"/><rect x="240" y="234" width="72" height="50" class="bx fp"/>
+    <text x="56" y="266" class="num">0</text><text x="128" y="266" class="num">1</text><text x="200" y="266" class="num">2</text><text x="272" y="266" class="num">3</text>
+    <g class="mv a-pair"><rect x="24" y="234" width="144" height="50" class="sa" fill="#B23A2E" fill-opacity=".15"/></g>
+    <text x="24" y="308" class="lbl">THE HIGHLIGHT SHOWS WHICH PAIR</text>
+    <text x="24" y="326" class="lbl">EACH OUTPUT PIXEL READS</text>
+
+    <line x1="352" y1="204" x2="352" y2="344" class="sl"/>
+    <text x="380" y="234" class="mn">j = 0 &#8594; s = 0.5, lo = 0, frac = 0.5</text>
+    <text x="380" y="256" class="num">out[0] = 0.5&#183;in[0] + 0.5&#183;in[1] = 0.5</text>
+    <text x="380" y="296" class="mn">j = 1 &#8594; s = 2.5, lo = 2, frac = 0.5</text>
+    <text x="380" y="318" class="num">out[1] = 0.5&#183;in[2] + 0.5&#183;in[3] = 2.5</text>
+
+    <line x1="712" y1="204" x2="712" y2="344" class="sl"/>
+    <text x="740" y="234" class="ttl">TORCH AGREES</text>
+    <text x="740" y="266" class="mn">[0, 1, 2, 3]</text>
+    <text x="740" y="292" class="red">&#8594; [0.5, 2.5]</text>
+    <text x="740" y="322" class="say">the pairwise means</text>
+  </svg>
+  <figcaption><em>Measured.</em> The half-pixels come from <code>align_corners=False</code>, which treats a pixel as a small area with a centre rather than a point on a grid line. Flip the flag and the formula changes.</figcaption>
+</figure>
+<div class="aside"><b>Bilinear does not average the frame down.</b> Only the four nearest input pixels are read, two per axis, and there is no prefilter in front of the 1.25&#215; reduction to blend in the rest. Pixels get skipped rather than averaged, so fine detail aliases instead of softening away. On a 25 mm cube on a textured table that is not a technicality, because a thin edge can survive or vanish depending on where it landed in the grid.</div>
+<div class="aside"><b>The padding is on the wrong side, sort of.</b> The processor the backbone ships with pads bottom and right. SmolVLA pads top and left. The vision tower is frozen and never gets a gradient here, so it reads padding on an edge its pretraining never put padding on. We have not measured the cost and the paper does not raise it. You only notice it with both pipelines open side by side.</div>
+
+<h2><span class="hn">03</span>One frame becomes 1024 patches</h2>
+<p>A <button type="button" class="gl" data-def="A layer where every item in a list can look at every other item and pull in what it needs.">transformer</button> reads one flat list, so the frame, the sentence and the arm&#39;s pose all have to become entries in that list first. One entry is called a <button type="button" class="gl" data-def="One item in the list the model reads. A patch of image, a word, or the arm&#39;s pose, as a row of numbers.">token</button>.</p>
+<p>The square frame is cut into 16&#215;16 patches, and 512 / 16 = 32, so there are 32 &#215; 32 = <strong>1024</strong> of them. What turns a patch into numbers is one convolution with a 16&#215;16 kernel and a stride of 16. Because those are equal the windows never overlap, which makes it exactly the same operation as flattening each patch and multiplying by a matrix.</p>
+<p>There are <strong>768 filters</strong>, each holding 3 channels &#215; 16 &#215; 16 = 768 weights, so the bank is 768 &#215; 768 = 589,824 numbers. Each filter reads the whole patch and returns one number, so a patch leaves as 768 responses, which is the (1024, 768) block feeding the rest of the tower.</p>
+<p>Line those two counts up, because most explanations skip it. A patch <em>arrives</em> as 3 &#215; 16 &#215; 16 = 768 raw values and <em>leaves</em> as 768 filter responses, so the patch embedding compresses nothing. One learned change of basis, and every reduction happens after it.</p>
+<p>Scale that to the whole frame and it stops looking like a per-patch coincidence. A 512&#215;512 colour frame is 3 &#215; 512 &#215; 512 = <strong>786,432</strong> numbers, and out comes a 32 &#215; 32 grid of 768-number descriptions, 32 &#215; 32 &#215; 768 = <strong>786,432</strong>. The same total, to the digit. The model is not carrying a summary of the picture here, it is carrying the whole picture rewritten into learned features.</p>
+<figure class="fig wide" id="fC">
+  <svg viewBox="0 0 940 300" role="img" aria-label="Animated. One 16 by 16 patch with three colour channels, 768 raw numbers, is read by a bank of 768 filters that each also hold 768 weights. A highlighted filter steps through the bank. Out comes one response per filter, so 768 numbers, the same count that went in.">
+    <defs><marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="24" y="22" class="ttl">ONE PATCH GOES IN</text>
+    <rect x="44" y="40" width="96" height="96" class="bx fe"/>
+    <rect x="34" y="50" width="96" height="96" class="bx fe"/>
+    <rect x="24" y="60" width="96" height="96" class="bx fp"/>
+    <g class="sl" opacity=".4"><path d="M24 60 h96 M24 66 h96 M24 72 h96 M24 78 h96 M24 84 h96 M24 90 h96 M24 96 h96 M24 102 h96 M24 108 h96 M24 114 h96 M24 120 h96 M24 126 h96 M24 132 h96 M24 138 h96 M24 144 h96 M24 150 h96 M24 156 h96 M24 60 v96 M30 60 v96 M36 60 v96 M42 60 v96 M48 60 v96 M54 60 v96 M60 60 v96 M66 60 v96 M72 60 v96 M78 60 v96 M84 60 v96 M90 60 v96 M96 60 v96 M102 60 v96 M108 60 v96 M114 60 v96 M120 60 v96"/></g>
+    <rect x="24" y="60" width="96" height="96" class="bx"/>
+    <text x="24" y="180" class="num">3 &#215; 16 &#215; 16</text>
+    <text x="24" y="200" class="say">= 768 raw numbers</text>
+    <text x="24" y="222" class="lbl">RED, GREEN, BLUE</text>
+
+    <path d="M152 96 h34" class="st" marker-end="url(#ar6)"/>
+
+    <text x="206" y="22" class="ttl">768 FILTERS</text>
+    <rect x="206" y="40" width="28" height="28" class="bx fp"/><rect x="238" y="40" width="28" height="28" class="bx fp"/><rect x="270" y="40" width="28" height="28" class="bx fp"/><rect x="206" y="72" width="28" height="28" class="bx fp"/><rect x="238" y="72" width="28" height="28" class="bx fp"/><rect x="270" y="72" width="28" height="28" class="bx fp"/><rect x="206" y="104" width="28" height="28" class="bx fp"/><rect x="238" y="104" width="28" height="28" class="bx fp"/><rect x="270" y="104" width="28" height="28" class="bx fp"/>
+    <g class="mv a-filt"><rect x="206" y="40" width="28" height="28" class="sa" fill="#B23A2E" fill-opacity=".16"/></g>
+    <text x="206" y="152" class="say">each filter is also</text>
+    <text x="206" y="172" class="num">3 &#215; 16 &#215; 16</text>
+    <text x="206" y="192" class="say">and returns one number</text>
+    <text x="206" y="222" class="lbl">9 OF 768 DRAWN</text>
+
+    <path d="M330 96 h34" class="st" marker-end="url(#ar6)"/>
+
+    <text x="380" y="22" class="ttl">768 COME OUT</text>
+    <rect x="380" y="40" width="26" height="5" class="fa" fill-opacity="0.90"/><rect x="380" y="45" width="26" height="5" class="fa" fill-opacity="0.31"/><rect x="380" y="50" width="26" height="5" class="fa" fill-opacity="0.65"/><rect x="380" y="55" width="26" height="5" class="fa" fill-opacity="0.56"/><rect x="380" y="60" width="26" height="5" class="fa" fill-opacity="0.39"/><rect x="380" y="65" width="26" height="5" class="fa" fill-opacity="0.82"/><rect x="380" y="70" width="26" height="5" class="fa" fill-opacity="0.22"/><rect x="380" y="75" width="26" height="5" class="fa" fill-opacity="0.73"/><rect x="380" y="80" width="26" height="5" class="fa" fill-opacity="0.48"/><rect x="380" y="85" width="26" height="5" class="fa" fill-opacity="0.48"/><rect x="380" y="90" width="26" height="5" class="fa" fill-opacity="0.73"/><rect x="380" y="95" width="26" height="5" class="fa" fill-opacity="0.22"/><rect x="380" y="100" width="26" height="5" class="fa" fill-opacity="0.82"/><rect x="380" y="105" width="26" height="5" class="fa" fill-opacity="0.39"/><rect x="380" y="110" width="26" height="5" class="fa" fill-opacity="0.56"/><rect x="380" y="115" width="26" height="5" class="fa" fill-opacity="0.65"/><rect x="380" y="120" width="26" height="5" class="fa" fill-opacity="0.31"/><rect x="380" y="125" width="26" height="5" class="fa" fill-opacity="0.90"/><rect x="380" y="130" width="26" height="5" class="fa" fill-opacity="0.31"/><rect x="380" y="135" width="26" height="5" class="fa" fill-opacity="0.65"/><rect x="380" y="140" width="26" height="5" class="fa" fill-opacity="0.56"/><rect x="380" y="145" width="26" height="5" class="fa" fill-opacity="0.39"/><rect x="380" y="150" width="26" height="5" class="fa" fill-opacity="0.82"/><rect x="380" y="155" width="26" height="5" class="fa" fill-opacity="0.22"/>
+    <rect x="380" y="40" width="26" height="120" class="bx"/>
+    <text x="380" y="182" class="say">one response</text>
+    <text x="380" y="202" class="say">per filter</text>
+    <text x="380" y="232" class="lbl">24 OF 768 DRAWN</text>
+
+    <line x1="452" y1="34" x2="452" y2="266" class="sl"/>
+    <text x="484" y="22" class="ttl">WHY THE SHAPES MATTER</text>
+    <text x="484" y="56" class="mn">filter bank = 768 &#215; 768 = 589,824 weights</text>
+    <text x="484" y="82" class="say">Stride is 16 and the kernel is 16, so the windows never</text>
+    <text x="484" y="102" class="say">overlap. This convolution is exactly &#8220;flatten each patch</text>
+    <text x="484" y="122" class="say">and multiply by a matrix.&#8221;</text>
+    <line x1="484" y1="142" x2="916" y2="142" class="sl"/>
+    <text x="484" y="168" class="red">768 numbers in, 768 numbers out.</text>
+    <text x="484" y="188" class="say">The patch embedding compresses nothing. It is one learned</text>
+    <text x="484" y="208" class="say">change of basis, and every reduction happens later.</text>
+    <line x1="484" y1="228" x2="916" y2="228" class="sl"/>
+    <text x="484" y="254" class="mn">position table = (1024, 768), one row per patch</text>
+    <text x="484" y="276" class="red">exactly 1024 rows, so 512&#215;512 is not a setting, it is a parameter shape</text>
+  </svg>
+  <figcaption>512 / 16 = 32, so a square frame holds 32 &#215; 32 = 1024 patches, and the learned position table has exactly 1024 rows to match. No interpolation, no room to grow.</figcaption>
+</figure>
+<p>The tensor is turned sideways before a transformer will take it. The convolution hands back <strong>(B, 768, 32, 32)</strong>, channels first with the grid still a grid. <code>flatten(2)</code> collapses it to <strong>(B, 768, 1024)</strong> and <code>transpose(1, 2)</code> gives <strong>(B, 1024, 768)</strong>, 1024 items of 768 numbers, with no value changed.</p>
+<p>Worth watching once anyway, because the convolution is the only part of this model that thinks in pictures. From here to the motors everything is a list.</p>
+<p>Then a learned position table is added on, one row per patch, shape (1024, 768). <strong>Added</strong>, element by element, the position row landing on top of the patch row. Hold onto that, because the expert faces the same problem later and solves it the other way, at more cost than anything else new in the model.</p>
+<p>The other thing about that table is the number 1024. Not 1024-and-interpolate, exactly 1024, so the tower cannot take another resolution. A good example of a habit in these models, where a decision that reads like a configuration flag is frozen into the shape of a weight. The 512&#215;512 above cannot change without retraining.</p>
+
+
+
+<h2><span class="hn">04</span>Twelve layers where every patch sees every patch</h2>
+<p>Those 1024 tokens go through the vision tower proper, a plain ViT twelve layers deep, and its attention is bidirectional. No causal mask, no ordering, so patch 900 reads patch 3 as freely as patch 3 reads patch 900. The right call for a picture, which has no reading direction.</p>
+<p>By the twelfth layer no token describes its own 16&#215;16 square any more. Each one describes that square <em>in the context of the whole frame</em>.</p>
+<p>The shapes inside one layer are worth learning once, because they come back in the action expert with different numbers. Width 768 splits into 12 heads of 64, so Q, K and V each come out as <strong>(B, 12, 1024, 64)</strong>.</p>
+<p>Inside one head, Q times K transposed is a <strong>1024 &#215; 1024</strong> table, one number per ordered pair of patches. Divide by &#8730;64 = 8, softmax each row, multiply by V, and (1024&#215;1024) against (1024&#215;64) returns (1024&#215;64). Each patch leaves with 64 numbers blended from every patch in the frame, and twelve heads concatenate back to 768.</p>
+<figure class="fig wide" id="fV">
+  <svg viewBox="0 0 940 430" role="img" aria-label="Animated, two bands. The first shows the patch tokens and an identically shaped learned position table added element by element, then a 1024 by 1024 attention table with one query row sweeping down it, then the shapes and the cost inside one head. The second shows the pre-norm block, layer norm then attention then a residual add then layer norm then MLP then another residual add, and a strip of twelve layers with a highlight stepping through them.">
+    <defs><marker id="ar8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="24" y="22" class="ttl">WHAT GOES IN</text>
+    <rect x="24" y="44" width="64" height="150" class="bx fp"/>
+    <g class="sl" opacity=".3"><path d="M24 59 h64 M24 74 h64 M24 89 h64 M24 104 h64 M24 119 h64 M24 134 h64 M24 149 h64 M24 164 h64 M24 179 h64"/></g>
+    <rect x="24" y="44" width="64" height="150" class="bx"/>
+    <circle cx="110" cy="119" r="14" class="bx"/><text x="105" y="125" class="num">+</text>
+    <rect x="132" y="44" width="64" height="150" class="bx fe"/>
+    <g class="sl" opacity=".3"><path d="M132 59 h64 M132 74 h64 M132 89 h64 M132 104 h64 M132 119 h64 M132 134 h64 M132 149 h64 M132 164 h64 M132 179 h64"/></g>
+    <rect x="132" y="44" width="64" height="150" class="bx"/>
+    <text x="24" y="212" class="lbl">PATCHES</text><text x="132" y="212" class="lbl">POSITIONS</text>
+    <text x="24" y="232" class="mn">(1024, 768)</text><text x="132" y="232" class="mn">(1024, 768)</text>
+    <text x="24" y="258" class="red">added element by element</text>
+
+    <line x1="268" y1="30" x2="268" y2="266" class="sl"/>
+    <text x="292" y="22" class="ttl">EVERY PATCH READS EVERY PATCH</text>
+    <text x="300" y="38" class="lbl">1024 KEYS</text>
+    <rect x="300" y="46" width="168" height="168" class="fp"/>
+    <g class="sl" opacity=".3"><path d="M321 46 v168 M342 46 v168 M363 46 v168 M384 46 v168 M405 46 v168 M426 46 v168 M447 46 v168 M300 67 h168 M300 88 h168 M300 109 h168 M300 130 h168 M300 151 h168 M300 172 h168 M300 193 h168"/></g>
+    <g class="mv a-row"><rect x="300" y="46" width="168" height="10.5" class="fa" fill-opacity=".3" stroke="#B23A2E" stroke-width="1.2"/></g>
+    <rect x="300" y="46" width="168" height="168" class="bx"/>
+    <text x="300" y="234" class="mn">one row per patch, one column per patch</text>
+    <text x="300" y="256" class="say">no mask, so order does not exist here</text>
+
+    <line x1="568" y1="30" x2="568" y2="266" class="sl"/>
+    <text x="592" y="22" class="ttl">INSIDE ONE HEAD</text>
+    <text x="592" y="48" class="mn">width 768 splits into 12 heads of 64</text>
+    <text x="592" y="70" class="mn">Q, K, V      (B, 12, 1024, 64)</text>
+    <text x="592" y="92" class="mn">Q @ K^T      (1024&#215;64)(64&#215;1024) = (1024&#215;1024)</text>
+    <text x="592" y="114" class="mn">&#247; &#8730;64 = 8, then softmax across each row</text>
+    <text x="592" y="136" class="mn">probs @ V    (1024&#215;1024)(1024&#215;64) = (1024&#215;64)</text>
+    <text x="592" y="158" class="mn">merge 12 heads &#8594; (B, 1024, 768)</text>
+    <line x1="592" y1="176" x2="916" y2="176" class="sl"/>
+    <text x="592" y="200" class="num">1,048,576 attention weights</text>
+    <text x="592" y="220" class="say">per head, per layer</text>
+    <text x="592" y="248" class="red">12 heads &#215; 12 layers = 151 million, one camera</text>
+
+    <line x1="24" y1="278" x2="916" y2="278" class="sl"/>
+    <text x="24" y="300" class="ttl">ONE LAYER, TWELVE TIMES</text>
+    <path d="M70 335 C 70 306, 288 306, 288 319" class="st"/>
+    <path d="M314 335 C 314 306, 492 306, 492 319" class="st"/>
+    <text x="24" y="340" class="mn">in</text>
+    <path d="M46 335 h40" class="st" marker-end="url(#ar8)"/>
+    <rect x="90" y="318" width="40" height="34" class="bx fp"/><text x="99" y="340" class="num">LN</text>
+    <path d="M134 335 h20" class="st" marker-end="url(#ar8)"/>
+    <rect x="158" y="318" width="92" height="34" class="bx fp"/><text x="166" y="340" class="mn">self-attn</text>
+    <path d="M254 335 h20" class="st" marker-end="url(#ar8)"/>
+    <circle cx="288" cy="335" r="14" class="bx"/><text x="283" y="341" class="num">+</text>
+    <path d="M306 335 h20" class="st" marker-end="url(#ar8)"/>
+    <rect x="330" y="318" width="40" height="34" class="bx fp"/><text x="339" y="340" class="num">LN</text>
+    <path d="M374 335 h20" class="st" marker-end="url(#ar8)"/>
+    <rect x="398" y="318" width="56" height="34" class="bx fp"/><text x="407" y="340" class="num">MLP</text>
+    <path d="M458 335 h20" class="st" marker-end="url(#ar8)"/>
+    <circle cx="492" cy="335" r="14" class="bx"/><text x="487" y="341" class="num">+</text>
+    <path d="M510 335 h20" class="st" marker-end="url(#ar8)"/>
+    <text x="534" y="340" class="mn">out</text>
+    <text x="24" y="382" class="say">The two curved wires are the residuals, so a token can pass through a layer</text>
+    <text x="24" y="402" class="say">untouched if that layer has nothing to add to it, which is what lets twelve</text>
+    <text x="24" y="422" class="say">of these stack without the signal drifting away from what came in.</text>
+
+    <line x1="596" y1="290" x2="596" y2="414" class="sl"/>
+    <text x="620" y="300" class="ttl">12 LAYERS</text>
+    <rect x="620" y="316" width="14" height="40" class="bx fp"/><rect x="638" y="316" width="14" height="40" class="bx fp"/><rect x="656" y="316" width="14" height="40" class="bx fp"/><rect x="674" y="316" width="14" height="40" class="bx fp"/><rect x="692" y="316" width="14" height="40" class="bx fp"/><rect x="710" y="316" width="14" height="40" class="bx fp"/><rect x="728" y="316" width="14" height="40" class="bx fp"/><rect x="746" y="316" width="14" height="40" class="bx fp"/><rect x="764" y="316" width="14" height="40" class="bx fp"/><rect x="782" y="316" width="14" height="40" class="bx fp"/><rect x="800" y="316" width="14" height="40" class="bx fp"/><rect x="818" y="316" width="14" height="40" class="bx fp"/>
+    <g class="mv a-lyr"><rect x="620" y="316" width="14" height="40" class="fa" fill-opacity=".55" stroke="#B23A2E" stroke-width="1.2"/></g>
+    <text x="620" y="374" class="lbl">0</text><text x="822" y="374" class="lbl">11</text>
+    <text x="620" y="400" class="say">all twelve are frozen. Not one</text>
+    <text x="620" y="420" class="say">of them gets a gradient here.</text>
+  </svg>
+  <figcaption><em>Measured</em> from the installed config, 12 layers and 12 heads at width 768. The 151 million is attention weights per frame, three times over for three cameras, every one thrown away as soon as its layer is done.</figcaption>
+</figure>
+<p>That table is 1,048,576 numbers, per head, per layer. Twelve heads across twelve layers is about <strong>151 million</strong> attention weights to look at one frame, none of it stored, for a picture the arm glances at for 33 milliseconds. Part of what the async trick in section 13 buys back is this bill. We have not profiled the split, so read that as the shape of the argument.</p>
+<p>Around the attention sits the standard pre-norm block, and the order is what people misremember. Normalise <em>first</em>, attend, add the original token back. Normalise again, through the MLP, add back again. Those two additions let a token come out unchanged if the layer had nothing to contribute, which makes stacking twelve safe.</p>
+
+<h2><span class="hn">05</span>A thousand patches become sixty-four</h2>
+<p>Something the backbone was trained with is switched off here. SmolVLM-2 uses image tiling, processing several crops of a frame alongside the whole frame, which helps a describer see small things. SmolVLA keeps the global image only, so the 64 tokens below are the whole visual budget for that camera rather than 64 per crop. Detail traded for speed, before the model sees a robot.</p>
+<p>Carrying 1024 tokens per camera is not affordable, so the next step folds them. Every 4&#215;4 block of patches is stacked end to end into one vector of 16 &#215; 768 = <strong>12,288</strong> features, and a single <code>Linear(12288 &#8594; 960)</code> with no bias decides what survives, leaving <strong>64 tokens per camera</strong>, each covering a 64&#215;64 region. That matrix is 11,796,480 weights, seven times everything structurally new put together.</p>
+
+<p>The part to hold onto is that this is not pooling. Nothing is averaged and nothing is discarded before the projection sees it. Spatial detail folds into the channels first and a learned matrix picks from it, so the model can in principle keep a thin red edge an average over sixteen patches would have washed flat.</p>
+<p>After that the counting is short. Three cameras give <strong>192</strong> image tokens, the whole arm gives <strong>1</strong>, and the sentence gives up to <strong>48</strong>, which puts the prefix at <strong>241</strong> and the full list at <strong>291</strong> once the <strong>50</strong> actions being written are counted.</p>
+
+<p>Both are ceilings. The sentence is padded only to the longest in the batch, and &#8220;pick up the red cube&#8221; is 6 tokens, so that instruction alone gives a 199-token prefix. We padded language to its 48-token cap for every measurement below so the shapes stay comparable. <em>Measured.</em></p>
+
+<figure class="fig wide" id="f3">
+  <svg viewBox="0 0 940 350" role="img" aria-label="Animated. One camera frame is cut into a 32 by 32 grid of 1024 patches. A band four patch rows tall sweeps down it, and each band becomes one row of the 8 by 8 grid of 64 output tokens on the right. The ledger reads 192 image tokens from three cameras, 48 language, 1 pose, giving 241, plus 50 action tokens for 291 in total.">
+    <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="24" y="22" class="ttl">ONE CAMERA FRAME</text>
+    <rect x="24" y="40" width="240" height="240" class="fp"/>
+    <g class="sl" opacity=".28"><path d="M31.5 40 v240 M39 40 v240 M46.5 40 v240 M54 40 v240 M61.5 40 v240 M69 40 v240 M76.5 40 v240 M84 40 v240 M91.5 40 v240 M99 40 v240 M106.5 40 v240 M114 40 v240 M121.5 40 v240 M129 40 v240 M136.5 40 v240 M144 40 v240 M151.5 40 v240 M159 40 v240 M166.5 40 v240 M174 40 v240 M181.5 40 v240 M189 40 v240 M196.5 40 v240 M204 40 v240 M211.5 40 v240 M219 40 v240 M226.5 40 v240 M234 40 v240 M241.5 40 v240 M249 40 v240 M256.5 40 v240 M24 47.5 h240 M24 55 h240 M24 62.5 h240 M24 70 h240 M24 77.5 h240 M24 85 h240 M24 92.5 h240 M24 100 h240 M24 107.5 h240 M24 115 h240 M24 122.5 h240 M24 130 h240 M24 137.5 h240 M24 145 h240 M24 152.5 h240 M24 160 h240 M24 167.5 h240 M24 175 h240 M24 182.5 h240 M24 190 h240 M24 197.5 h240 M24 205 h240 M24 212.5 h240 M24 220 h240 M24 227.5 h240 M24 235 h240 M24 242.5 h240 M24 250 h240 M24 257.5 h240 M24 265 h240 M24 272.5 h240"/></g>
+    <g class="sl" opacity=".9"><path d="M54 40 v240 M84 40 v240 M114 40 v240 M144 40 v240 M174 40 v240 M204 40 v240 M234 40 v240 M24 70 h240 M24 100 h240 M24 130 h240 M24 160 h240 M24 190 h240 M24 220 h240 M24 250 h240"/></g>
+    <rect x="24" y="40" width="240" height="60" class="fk" fill-opacity=".28"/>
+    <text x="30" y="76" class="lbl" style="fill:var(--ink)">PADDING, ALL &#8722;1</text>
+    <rect x="24" y="40" width="240" height="240" class="bx"/>
+    <g class="mv a-band"><rect x="24" y="40" width="240" height="30" class="fa" fill-opacity=".22" stroke="#B23A2E" stroke-width="1.5"/></g>
+    <text x="24" y="300" class="say">32 &#215; 32 = 1024 patches, swept 4 rows at a time.</text>
+    <text x="24" y="320" class="red">Our cameras are 4:3 and the model is 1:1, so the top</text>
+    <text x="24" y="338" class="red">quarter of every frame is padding carrying nothing.</text>
+
+    <path d="M282 154 h34" class="st" marker-end="url(#ar2)"/>
+    <text x="276" y="140" class="red">fold</text>
+    <text x="272" y="182" class="lbl">4&#215;4 PATCHES</text>
+    <text x="286" y="198" class="lbl">&#8594; 1 TOKEN</text>
+
+    <text x="350" y="22" class="ttl">TOKENS OUT</text>
+    <g><rect x="350" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="40" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="350" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="58" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="350" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="76" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="350" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="94" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="350" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="112" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="350" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="130" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="350" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="148" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="350" y="166" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="368" y="166" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="386" y="166" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="404" y="166" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="422" y="166" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="440" y="166" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="458" y="166" width="16" height="16" class="fa" fill-opacity=".55"/><rect x="476" y="166" width="16" height="16" class="fa" fill-opacity=".55"/></g>
+    <rect x="350" y="40" width="142" height="142" class="bx"/>
+    <g class="mv a-wipe"><rect x="349" y="39" width="144" height="144" class="fp"/></g>
+    <text x="350" y="206" class="say">8 &#215; 8 = 64 per camera,</text>
+    <text x="350" y="226" class="say">each covering 64&#215;64 pixels</text>
+    <text x="350" y="252" class="red">nothing is averaged away</text>
+
+    <line x1="522" y1="30" x2="522" y2="300" class="sl"/>
+    <text x="552" y="22" class="ttl">WHAT THE MODEL ACTUALLY READS</text>
+    <rect x="552" y="36" width="364" height="40" class="bx fp"/>
+    <text x="566" y="61" class="say">3 cameras &#215; 64 &#183; <tspan class="num">192</tspan> image tokens</text>
+    <rect x="552" y="82" width="364" height="40" class="bx fp"/>
+    <text x="566" y="107" class="say">the sentence &#183; <tspan class="num">48</tspan> language tokens</text>
+    <rect x="552" y="128" width="364" height="40" class="bx fp"/>
+    <text x="566" y="153" class="say">the arm&#39;s pose &#183; <tspan class="num">1</tspan> token</text>
+    <line x1="552" y1="182" x2="916" y2="182" class="st"/>
+    <text x="552" y="208" class="num">241 tokens describe the world</text>
+    <rect x="552" y="224" width="364" height="40" class="bx fe"/>
+    <text x="566" y="249" class="say">what it is writing &#183; <tspan class="num">50</tspan> action tokens</text>
+    <line x1="552" y1="274" x2="916" y2="274" class="st"/>
+    <text x="552" y="300" class="num">291 in one list, every layer</text>
+  </svg>
+  <figcaption><em>Measured on our SO-101 rig.</em> The pose is six joint angles zero-padded to 32 before its projection, and those 26 empty columns are the cross-embodiment slot, sized for arms with more joints than ours.</figcaption>
+</figure>
+
+<div class="aside"><b>There is no time axis.</b> The policy sees one frame. Not a stack of the last few, not a hidden state carried over from the last decision, one frame, and whatever it knows about how things are moving has to come out of that image plus the current joint angles. Which is why the length of the action chunk turns into such an expensive decision further down.</div>
+
+<h2><span class="hn">06</span>Who is allowed to look at whom</h2>
+
+<p>All 291 tokens sit in one sequence but they are not all allowed to see each other, and the rule deciding who sees whom explains more of the architecture than anything else in the model.</p>
+
+<p>Every token gets a block number. Images and language share block 0, the pose token gets block 1, and each action token gets its own, 2 through 51. A token may attend to another only when that other one&#39;s block number is less than or equal to its own.</p>
+
+<figure class="fig wide" id="f4">
+  <svg viewBox="0 0 940 390" role="img" aria-label="Animated. The 291 by 291 attention mask drawn to scale. Rows are the token doing the looking, columns the token being looked at. Image and language rows see only image and language columns, leaving a large white rectangle over the action columns. The pose row also sees itself. Action rows see the whole prefix plus earlier actions, forming a staircase.">
+    <text x="24" y="22" class="ttl">ROWS LOOK &#183; COLUMNS ARE LOOKED AT &#183; SHADED MEANS ALLOWED</text>
+    <text x="240" y="46" class="lbl">IMAGES 0&#8211;191</text>
+    <text x="446" y="50" class="lbl">LANG 192&#8211;239</text>
+    <text x="498" y="28" class="lbl">POSE</text>
+    <path d="M524 32 v20" class="sl"/>
+    <text x="540" y="50" class="lbl">ACTIONS 241&#8211;290</text>
+    <g>
+      <rect x="120" y="56" width="320" height="222" class="ok"/>
+      <rect x="440" y="56" width="80"  height="222" class="ok"/>
+      <rect x="520" y="56" width="12"  height="222" class="no"/>
+      <rect x="532" y="56" width="84"  height="222" class="no"/>
+      <rect x="120" y="278" width="320" height="12" class="ok"/>
+      <rect x="440" y="278" width="80"  height="12" class="ok"/>
+      <rect x="520" y="278" width="12"  height="12" class="ok"/>
+      <rect x="532" y="278" width="84"  height="12" class="no"/>
+      <rect x="120" y="290" width="320" height="46" class="ok"/>
+      <rect x="440" y="290" width="80"  height="46" class="ok"/>
+      <rect x="520" y="290" width="12"  height="46" class="ok"/>
+      <path d="M532 290 L616 336 L532 336 Z" class="ok"/>
+      <path d="M532 290 L616 290 L616 336 Z" class="no"/>
+    </g>
+    <rect x="120" y="56" width="496" height="280" class="bx"/>
+    <path d="M120 278 H616 M120 290 H616 M440 56 V336 M520 56 V336 M532 56 V336" class="sl"/>
+    <text x="24" y="160" class="lbl">IMAGES</text><text x="24" y="178" class="lbl">+ LANGUAGE</text>
+    <text x="24" y="288" class="lbl">POSE</text>
+    <text x="24" y="316" class="lbl">ACTIONS</text>
+    <g class="mv a-scan"><rect x="120" y="56" width="496" height="3" class="fa"/></g>
+    <text x="646" y="74" class="say">Read one row across and you</text>
+    <text x="646" y="92" class="say">have everything that token is</text>
+    <text x="646" y="110" class="say">allowed to use.</text>
+    <text x="646" y="146" class="say">The prefix cannot see the</text>
+    <text x="646" y="164" class="say">actions at all. That empty</text>
+    <text x="646" y="182" class="say">rectangle top right is why its</text>
+    <text x="646" y="200" class="say">keys can be computed once</text>
+    <text x="646" y="218" class="say">and cached for the whole chunk.</text>
+    <text x="646" y="254" class="say">The staircase is the actions</text>
+    <text x="646" y="272" class="say">being strictly causal among</text>
+    <text x="646" y="290" class="say">themselves. Action 0 cannot</text>
+    <text x="646" y="308" class="say">see action 1.</text>
+    <line x1="120" y1="356" x2="916" y2="356" class="sl"/>
+    <text x="120" y="374" class="red">Drawn to scale, 291 rows and 291 columns, except the single pose row and column, widened to 12 px so they are visible at all.</text>
+  </svg>
+  <figcaption><em>Measured.</em> Block-causal, not causal end to end. The prefix is one bidirectional blob and the actions run causally after it. We built the mask and read it rather than trusting the comment, and the action block comes back exactly lower-triangular including the diagonal.</figcaption>
+</figure>
+
+
+
+<p>Two things fall out of that picture and both come back later. The first is that the prefix never looks at the actions, so its <button type="button" class="gl" data-def="What a token offers so others can find it, and what they take once they do. Recomputed at every layer.">keys and values</button> do not depend on them, which makes it legal to compute the prefix once and reuse it across all ten denoising passes.</p>
+<p>The second is that the actions are strictly causal among themselves, so action 30 sees action 29 and not the reverse. The paper says this outright and Table 7 prices it, 74.5 for causal against 67.5 for looking both ways. Read the small print, because both numbers come from a self-attention-only variant, not the model that shipped.</p>
+
+<h2><span class="hn">07</span>Two towers, sixteen floors, twenty-four attentions</h2>
+
+<p>The two stacks walk forward together, and what passes between them depends on which floor you are standing on. This is the part described wrongly most often, including by the paper, so it is worth being slow about.</p>
+
+<p>On <strong>even floors</strong> there is no separate expert attention. Each tower runs its own tokens through its own query, key and value projections, the two sets are <em>concatenated on the token axis</em>, and one attention runs over the whole thing. One matrix, one softmax, scene and action tokens side by side, then the rows split apart and each tower keeps its half. We hooked the call, and in training it comes through as a (291, 291) map on every even floor. <em>Measured.</em></p>
+
+<p>The paper calls those the floors where &#8220;action tokens attend to each other&#8221;, true but leaving out the more interesting half, because in that same call the action tokens also attend over all 241 scene tokens. Nothing fetches the scene here. It is already in the matrix.</p>
+
+<p>On <strong>odd floors</strong> they come apart. The frozen tower attends over its own 241 tokens and the expert runs a separate 50&#215;241 attention against the frozen side. The detail we only found by hooking it is that the expert does not re-read the frozen hidden states. It takes the keys and values the frozen tower <em>already computed</em> and pushes each through its own <code>Linear(320 &#8594; 320)</code>, so it cannot change what the frozen model saw, only how it reads it.</p>
+
+
+<p>Same walk on the expert side at other widths. An action token arrives 720 wide and <code>q_proj</code> takes it <em>up</em> to <strong>960</strong>, because 960 is what splits into the frozen tower&#39;s 15 heads of 64 and both sides have to meet in the same head space. So Q is <strong>(B, 15, 50, 64)</strong>.</p>
+<p>On an odd floor the keys are not the expert&#39;s. They are the frozen tower&#39;s, 5 key-value heads of 64 over 241 positions, each read by 3 query heads once expanded, so K is <strong>(B, 15, 241, 64)</strong>. Q times K transposed gives a 50 &#215; 241 table with no column for any action token, which is why actions cannot see each other here.</p>
+<p>Softmax, multiply by V, and (50&#215;241) against (241&#215;64) returns (50&#215;64). The heads merge to 960 and <code>o_proj</code> drops it back to 720. Both towers divide by &#8730;64 = 8 first, because the scaling follows the head width, never the model width. <em>Measured.</em></p>
+<p>The 15-against-5 split is grouped-query attention. Fifteen people asking questions of five filing cabinets, each cabinet consulted by three of them.</p>
+<p>What it saves is commonly overstated. Expand the 5 key-value heads back out to 15 and the attention arithmetic costs what 15 real ones would. The saving is in the smaller <code>k_proj</code> and <code>v_proj</code>, a third off the four attention projections but only about an eighth off a whole layer once the feed-forward is counted, and in the cache, 14.8 MB down to 4.9 MB in bfloat16. The cache is the half that matters, because the denoising loop is bound by memory reads. <em>Measured.</em></p>
+<p>The arithmetic is worth doing once. Eight even floors are one call each. Eight odd floors are two, because the frozen tower still does its own 241&#215;241 pass before the expert reads it. Counting real calls on a training step gives eight at (291, 291), eight at (241, 241) and eight at (50, 241), which is 24. <em>Measured by wrapping the attention function.</em></p>
+<div class="aside"><b>At inference the same sixteen floors behave differently.</b> Nothing is concatenated, because the two halves no longer run together. The prefix goes up all sixteen floors alone, sixteen calls at (241, 241), and its keys and values are cached. Each of the ten denoising passes then sends only the 50 action tokens, so even floors become (50, 291), 50 queries against 241 cached keys plus their own 50, and odd floors stay at (50, 241). That is 16 + 10 &#215; 16 = <strong>176</strong> calls per chunk. <em>Measured.</em> Same weights, same masks, same answer, different shape.</div>
+<figure class="fig" id="f5">
+  <svg viewBox="0 0 800 430" role="img" aria-label="Animated. Two towers side by side across sixteen floors. On even floors both towers join into one attention over all 291 tokens. On odd floors they split, and the expert reads the frozen tower&#39;s cached keys through a 50 by 241 attention. A pulse travels up the floors.">
+    <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="20" y="22" class="ttl">FROZEN &#183; WIDTH 960 &#183; 16 OF ITS 32 LAYERS KEPT</text>
+    <text x="628" y="22" class="ttl">TRAINED &#183; WIDTH 720</text>
+    <rect x="20" y="34" width="150" height="272" class="bxd"/>
+    <rect x="668" y="34" width="112" height="272" class="bx"/>
+    <text x="34" y="58" class="big">the scene</text><text x="34" y="78" class="lbl">241 TOKENS</text>
+    <text x="682" y="58" class="big">actions</text><text x="682" y="78" class="lbl">50 TOKENS</text>
+    <text x="682" y="292" class="lbl">DRAWN AT ITS</text>
+    <text x="682" y="306" class="lbl">0.75 WIDTH</text>
+    <g class="st"><path d="M170 100 h498"/><path d="M170 168 h498"/><path d="M170 236 h498"/></g>
+    <g class="sa">
+      <path d="M668 134 H180" marker-end="url(#ar3)"/><path d="M668 202 H180" marker-end="url(#ar3)"/>
+      <path d="M668 270 H180" marker-end="url(#ar3)"/>
+    </g>
+    <text x="196" y="94" class="say">floor 0 &#183; join, attend over 291, split</text>
+    <text x="196" y="128" class="red">floor 1 &#183; 241&#215;241 alone, then 50&#215;241</text>
+    <text x="196" y="162" class="say">floor 2 &#183; join, attend over 291, split</text>
+    <text x="196" y="196" class="red">floor 3 &#183; the expert re-reads cached keys</text>
+    <text x="196" y="230" class="say">floor 4 &#183; &#8230; alternating, up to floor 15</text>
+    <text x="196" y="264" class="red">8 floors each way &#183; 24 attentions, not 16</text>
+    <g class="mv a-pulse"><circle cx="420" cy="286" r="5" class="fa"/></g>
+    <line x1="20" y1="326" x2="780" y2="326" class="sl"/>
+    <path d="M20 348 h44" class="st"/>
+    <text x="76" y="352" class="say">even floor &#183; both towers become one list and one attention runs over all 291</text>
+    <path d="M64 376 H20" class="sa" marker-end="url(#ar3)"/>
+    <text x="76" y="380" class="say">odd floor &#183; they separate, and the expert reads the frozen tower one way only</text>
+    <line x1="20" y1="396" x2="780" y2="396" class="sl"/>
+    <text x="20" y="418" class="mn">expert q_proj 720 &#8594; 960 &#183; attend in the shared 15&#215;64 head space &#183; o_proj 960 &#8594; 720</text>
+  </svg>
+  <figcaption><em>Measured.</em> The width multiplier shrinks the expert&#39;s residual stream from 960 to 720 and its feed-forward from 2560 to 2048, and leaves the head count and head width alone, because the even floors concatenate both towers&#39; heads.</figcaption>
+</figure>
+
+<div class="aside"><b>One scale factor, applied to two of the four inputs.</b> Image and language tokens get multiplied by &#8730;960 = 30.9839 on the way into the list. The pose token and the action tokens do not. <em>Measured</em>, and the paper never mentions it. Our reading is that image and language come out of frozen matrices trained under that convention, so dropping the factor would hand those layers vectors at the wrong magnitude, while the pose projection and the action MLP train from nothing and can learn whatever scale they need.</div>
+<div class="aside"><b>The position index skips the padding.</b> Rotary embeddings need each token&#39;s position, and SmolVLA computes it as <code>cumsum(pad_masks) - 1</code>, so a padded slot never advances the counter. With &#8220;pick up the red cube&#8221; filling 6 of the 48 language slots, the pose token sits in slot 240 but carries rotary position 198, putting the arm&#39;s state right after the last real word instead of 42 dead slots past it. <em>Measured.</em> A shorter sentence gives the same rig a different position layout, which matters when you compare two runs.</div>
+<div class="aside"><b>Why half the layers.</b> The argument is efficiency. Dropping the top half halves the cost of both the language model and the expert reading it, and the paper cites prior work showing layers can go without much loss and that the last layer is not always best. Table 8 prices depth at 75.0 for 8 layers, 78.5 for 16, 79.5 for 24 and 80.3 for all 32, so half the depth costs 1.8 points. It never claims the lower half handles language and the upper half something else, and no such split is measured, so the honest reading is that half was cheap and nearly as good.</div>
+<p>Alternating beats either alone, 85.5 against 79.0 for cross-attention only and 74.5 for self-attention only, because they do different jobs. Cross-attention is how the expert gets a cheap look at the scene. Self-attention is how action 30 finds out what action 29 committed to, and without it you hold 50 independent guesses rather than one motion.</p>
+
+<h2><span class="hn">08</span>Why it starts from noise</h2>
+
+<p>The objective is easier to follow if you first look at the particular way a simpler model fails.</p>
+
+<p>Put a mug on the table between the gripper and the cube. Going left around it works and going right works, and if you train a model to predict the one correct trajectory under a loss that averages, what it takes from having seen both is the average of left and right, which goes straight through the mug. It learned exactly what was asked, and what was asked was wrong.</p>
+
+<figure class="fig wide" id="f6">
+  <svg viewBox="0 0 940 300" role="img" aria-label="Animated, three panels. First, two demonstrations reach the cube, one passing above the mug and one below it, symmetric about the straight line. Second, their average drives straight into the mug. Third, flow matching samples one whole route at a time, alternating between the two.">
+    <text x="24" y="22" class="ttl">TWO GOOD DEMONSTRATIONS</text>
+    <rect x="24" y="34" width="272" height="200" class="bx fp"/>
+    <rect x="140" y="128" width="32" height="44" class="bx fe"/><text x="138" y="120" class="lbl">MUG</text>
+    <path d="M60 150 C 96 96, 128 82, 156 82 C 186 82, 216 104, 252 150" class="st"/>
+    <path d="M60 150 C 96 204, 128 218, 156 218 C 186 218, 216 196, 252 150" class="st"/>
+    <circle cx="60" cy="150" r="6" class="fi"/><text x="30" y="134" class="lbl">START</text>
+    <rect x="242" y="140" width="20" height="20" class="fa"/><text x="266" y="154" class="lbl">CUBE</text>
+    <text x="34" y="256" class="say">both reach the cube, neither</text>
+    <text x="34" y="276" class="say">touches the mug, both are correct</text>
+
+    <text x="334" y="22" class="ttl">AVERAGE THEM</text>
+    <rect x="334" y="34" width="272" height="200" class="bx fp"/>
+    <rect x="450" y="128" width="32" height="44" class="bx fe"/>
+    <path d="M60 150 C 96 96, 128 82, 156 82 C 186 82, 216 104, 252 150" class="sl" transform="translate(310,0)"/>
+    <path d="M60 150 C 96 204, 128 218, 156 218 C 186 218, 216 196, 252 150" class="sl" transform="translate(310,0)"/>
+    <path d="M370 150 H562" class="sa"/>
+    <circle cx="370" cy="150" r="6" class="fi"/>
+    <rect x="552" y="140" width="20" height="20" class="fa"/>
+    <g class="mv a-blink"><path d="M457 140 l18 20 M475 140 l-18 20" stroke="#B23A2E" stroke-width="2.6" fill="none"/></g>
+    <text x="344" y="256" class="red">halfway between above and below</text>
+    <text x="344" y="276" class="say">is exactly where the mug is</text>
+
+    <text x="644" y="22" class="ttl">SAMPLE INSTEAD</text>
+    <rect x="644" y="34" width="272" height="200" class="bx fp"/>
+    <rect x="760" y="128" width="32" height="44" class="bx fe"/>
+    <g class="mv a-pickl"><path d="M60 150 C 96 96, 128 82, 156 82 C 186 82, 216 104, 252 150" class="sa" transform="translate(620,0)"/></g>
+    <g class="mv a-pickr"><path d="M60 150 C 96 204, 128 218, 156 218 C 186 218, 216 196, 252 150" class="sa" transform="translate(620,0)"/></g>
+    <circle cx="680" cy="150" r="6" class="fi"/>
+    <rect x="862" y="140" width="20" height="20" class="fa"/>
+    <text x="654" y="256" class="say">one whole route at a time,</text>
+    <text x="654" y="276" class="say">committed to from end to end</text>
+  </svg>
+  <figcaption>The average of two safe routes is an unsafe route, so being able to say &#8220;either of these, pick one&#8221; is the difference between a working model and a broken one. Swapping the averaging loss for <button type="button" class="gl" data-def="Train a model to point from noise towards the answer along a straight line, then walk that line.">flow matching</button> is worth 5 points on LIBERO, 80.25 against 75.25.</figcaption>
+</figure>
+
+<p>So the expert never predicts the answer directly. Training mixes the true actions with noise, stands at a random point on the line between them, and asks only which direction the answer lies in from there.</p>
+
+<div class="mono">time = Beta(1.5, 1.0).sample() * 0.999 + 0.001
+x_t  = time&#183;noise + (1 - time)&#183;actions
+u_t  = <b>noise - actions</b>
+loss = mse(u_t, model(x_t, time))</div>
+
+<div class="aside"><b>A convention trap.</b> The paper writes the noisy point as <code>&#964;A + (1&#8722;&#964;)&#949;</code>, with &#964; = 1 meaning the clean action. The released code writes <code>time&#183;noise + (1&#8722;time)&#183;actions</code>, with <code>time</code> = 1 meaning pure noise. Those run in opposite directions. The maths agrees either way, but reading one while holding the other in your head makes the sampler look like it is running backwards, and it is an easy way to lose an hour.</div>
+
+<p>That target line carries more weight than it looks. Because the thing predicted is <code>noise &#8722; actions</code>, <strong>the action term never drops out</strong>. Hold that against a plain denoiser trained to predict the noise alone. At the noisy end the input very nearly <em>is</em> the noise, so predicting it collapses into copying the input and the loss stops measuring anything. Here the error at that end floors at the action-prediction error instead.</p>
+
+<p>And the sampling is deliberately tilted that way. <code>Beta(1.5, 1.0)</code> has density proportional to &#8730;t and a mean of 0.601, with <strong>28.5% of draws in the top fifth of the range</strong>, so most of the training budget goes where the loss still has something to say.</p>
+
+<h2><span class="hn">09</span>The clock the expert reads</h2>
+<p>The expert cannot point anywhere useful without knowing how far along it is, because the right direction from a nearly-clean chunk is not the right direction from pure noise. That number is the clock. Everything below is measured off the code, so it is the code&#39;s <code>time</code>, 1 at pure noise down to 0 at the answer.</p>
+<p>One number is not much for a transformer to condition on, so it is widened first. <code>time</code> becomes <strong>720</strong> values, 360 sines and 360 cosines, with periods running 0.004 up to 4.000 and each exactly 1.0194 times the one before, so the spacing is geometric rather than even.</p>
+<figure class="fig wide" id="fT">
+  <svg viewBox="0 0 940 330" role="img" aria-label="Animated. The clock value runs from 0 to 1 along the top with the ten sampling steps ticked. Below it three of the 360 sine components are drawn: the slowest completes only a quarter of a cycle across the whole range, the middle one two and a half cycles, and a fast one twenty-five cycles. A readout line steps across all three together.">
+    <text x="24" y="22" class="ttl">time &#183; ONE NUMBER, 0 AT THE ANSWER TO 1 AT PURE NOISE</text>
+    <path d="M96 56 H696" class="sa"/>
+    <g class="sl"><path d="M96.0 46 v10 M156.0 46 v10 M216.0 46 v10 M276.0 46 v10 M336.0 46 v10 M396.0 46 v10 M456.0 46 v10 M516.0 46 v10 M576.0 46 v10 M636.0 46 v10 M696.0 46 v10"/></g>
+    <text x="88" y="40" class="lbl">0</text><text x="688" y="40" class="lbl">1</text>
+    <text x="330" y="40" class="lbl">THE 10 SAMPLING STEPS</text>
+
+    <path d="M96.0 104.0 L98.0 103.9 L100.0 103.7 L102.0 103.6 L104.0 103.5 L106.0 103.4 L108.0 103.2 L110.0 103.1 L112.0 103.0 L114.0 102.9 L116.0 102.7 L118.0 102.6 L120.0 102.5 L122.0 102.4 L124.0 102.2 L126.0 102.1 L128.0 102.0 L130.0 101.9 L132.0 101.7 L134.0 101.6 L136.0 101.5 L138.0 101.4 L140.0 101.2 L142.0 101.1 L144.0 101.0 L146.0 100.9 L148.0 100.7 L150.0 100.6 L152.0 100.5 L154.0 100.4 L156.0 100.2 L158.0 100.1 L160.0 100.0 L162.0 99.9 L164.0 99.7 L166.0 99.6 L168.0 99.5 L170.0 99.4 L172.0 99.3 L174.0 99.1 L176.0 99.0 L178.0 98.9 L180.0 98.8 L182.0 98.6 L184.0 98.5 L186.0 98.4 L188.0 98.3 L190.0 98.2 L192.0 98.0 L194.0 97.9 L196.0 97.8 L198.0 97.7 L200.0 97.5 L202.0 97.4 L204.0 97.3 L206.0 97.2 L208.0 97.1 L210.0 96.9 L212.0 96.8 L214.0 96.7 L216.0 96.6 L218.0 96.5 L220.0 96.3 L222.0 96.2 L224.0 96.1 L226.0 96.0 L228.0 95.9 L230.0 95.8 L232.0 95.6 L234.0 95.5 L236.0 95.4 L238.0 95.3 L240.0 95.2 L242.0 95.0 L244.0 94.9 L246.0 94.8 L248.0 94.7 L250.0 94.6 L252.0 94.5 L254.0 94.4 L256.0 94.2 L258.0 94.1 L260.0 94.0 L262.0 93.9 L264.0 93.8 L266.0 93.7 L268.0 93.6 L270.0 93.4 L272.0 93.3 L274.0 93.2 L276.0 93.1 L278.0 93.0 L280.0 92.9 L282.0 92.8 L284.0 92.7 L286.0 92.5 L288.0 92.4 L290.0 92.3 L292.0 92.2 L294.0 92.1 L296.0 92.0 L298.0 91.9 L300.0 91.8 L302.0 91.7 L304.0 91.6 L306.0 91.5 L308.0 91.4 L310.0 91.2 L312.0 91.1 L314.0 91.0 L316.0 90.9 L318.0 90.8 L320.0 90.7 L322.0 90.6 L324.0 90.5 L326.0 90.4 L328.0 90.3 L330.0 90.2 L332.0 90.1 L334.0 90.0 L336.0 89.9 L338.0 89.8 L340.0 89.7 L342.0 89.6 L344.0 89.5 L346.0 89.4 L348.0 89.3 L350.0 89.2 L352.0 89.1 L354.0 89.0 L356.0 88.9 L358.0 88.8 L360.0 88.7 L362.0 88.6 L364.0 88.5 L366.0 88.4 L368.0 88.3 L370.0 88.2 L372.0 88.1 L374.0 88.0 L376.0 87.9 L378.0 87.8 L380.0 87.8 L382.0 87.7 L384.0 87.6 L386.0 87.5 L388.0 87.4 L390.0 87.3 L392.0 87.2 L394.0 87.1 L396.0 87.0 L398.0 86.9 L400.0 86.9 L402.0 86.8 L404.0 86.7 L406.0 86.6 L408.0 86.5 L410.0 86.4 L412.0 86.3 L414.0 86.2 L416.0 86.2 L418.0 86.1 L420.0 86.0 L422.0 85.9 L424.0 85.8 L426.0 85.8 L428.0 85.7 L430.0 85.6 L432.0 85.5 L434.0 85.4 L436.0 85.3 L438.0 85.3 L440.0 85.2 L442.0 85.1 L444.0 85.0 L446.0 85.0 L448.0 84.9 L450.0 84.8 L452.0 84.7 L454.0 84.7 L456.0 84.6 L458.0 84.5 L460.0 84.4 L462.0 84.4 L464.0 84.3 L466.0 84.2 L468.0 84.2 L470.0 84.1 L472.0 84.0 L474.0 83.9 L476.0 83.9 L478.0 83.8 L480.0 83.7 L482.0 83.7 L484.0 83.6 L486.0 83.5 L488.0 83.5 L490.0 83.4 L492.0 83.3 L494.0 83.3 L496.0 83.2 L498.0 83.2 L500.0 83.1 L502.0 83.0 L504.0 83.0 L506.0 82.9 L508.0 82.8 L510.0 82.8 L512.0 82.7 L514.0 82.7 L516.0 82.6 L518.0 82.6 L520.0 82.5 L522.0 82.4 L524.0 82.4 L526.0 82.3 L528.0 82.3 L530.0 82.2 L532.0 82.2 L534.0 82.1 L536.0 82.1 L538.0 82.0 L540.0 82.0 L542.0 81.9 L544.0 81.9 L546.0 81.8 L548.0 81.8 L550.0 81.7 L552.0 81.7 L554.0 81.6 L556.0 81.6 L558.0 81.5 L560.0 81.5 L562.0 81.5 L564.0 81.4 L566.0 81.4 L568.0 81.3 L570.0 81.3 L572.0 81.3 L574.0 81.2 L576.0 81.2 L578.0 81.1 L580.0 81.1 L582.0 81.1 L584.0 81.0 L586.0 81.0 L588.0 81.0 L590.0 80.9 L592.0 80.9 L594.0 80.9 L596.0 80.8 L598.0 80.8 L600.0 80.8 L602.0 80.7 L604.0 80.7 L606.0 80.7 L608.0 80.6 L610.0 80.6 L612.0 80.6 L614.0 80.6 L616.0 80.5 L618.0 80.5 L620.0 80.5 L622.0 80.4 L624.0 80.4 L626.0 80.4 L628.0 80.4 L630.0 80.4 L632.0 80.3 L634.0 80.3 L636.0 80.3 L638.0 80.3 L640.0 80.3 L642.0 80.2 L644.0 80.2 L646.0 80.2 L648.0 80.2 L650.0 80.2 L652.0 80.2 L654.0 80.1 L656.0 80.1 L658.0 80.1 L660.0 80.1 L662.0 80.1 L664.0 80.1 L666.0 80.1 L668.0 80.1 L670.0 80.1 L672.0 80.0 L674.0 80.0 L676.0 80.0 L678.0 80.0 L680.0 80.0 L682.0 80.0 L684.0 80.0 L686.0 80.0 L688.0 80.0 L690.0 80.0 L692.0 80.0 L694.0 80.0 L696.0 80.0" class="st"/>
+    <text x="24" y="100" class="mn">period 4.0</text><text x="24" y="118" class="lbl">SLOWEST OF 360</text>
+    <text x="712" y="100" class="red">a quarter of a cycle</text>
+    <text x="712" y="118" class="say">never wraps, so it reads</text>
+    <text x="712" y="136" class="say">as a coarse hand</text>
+
+    <path d="M96.0 180.0 L98.0 178.7 L100.0 177.5 L102.0 176.2 L104.0 175.0 L106.0 173.8 L108.0 172.6 L110.0 171.4 L112.0 170.2 L114.0 169.1 L116.0 168.0 L118.0 166.9 L120.0 165.9 L122.0 164.9 L124.0 163.9 L126.0 163.0 L128.0 162.2 L130.0 161.3 L132.0 160.6 L134.0 159.9 L136.0 159.2 L138.0 158.6 L140.0 158.1 L142.0 157.6 L144.0 157.2 L146.0 156.8 L148.0 156.5 L150.0 156.3 L152.0 156.1 L154.0 156.0 L156.0 156.0 L158.0 156.0 L160.0 156.1 L162.0 156.3 L164.0 156.5 L166.0 156.8 L168.0 157.2 L170.0 157.6 L172.0 158.1 L174.0 158.6 L176.0 159.2 L178.0 159.9 L180.0 160.6 L182.0 161.3 L184.0 162.2 L186.0 163.0 L188.0 163.9 L190.0 164.9 L192.0 165.9 L194.0 166.9 L196.0 168.0 L198.0 169.1 L200.0 170.2 L202.0 171.4 L204.0 172.6 L206.0 173.8 L208.0 175.0 L210.0 176.2 L212.0 177.5 L214.0 178.7 L216.0 180.0 L218.0 181.3 L220.0 182.5 L222.0 183.8 L224.0 185.0 L226.0 186.2 L228.0 187.4 L230.0 188.6 L232.0 189.8 L234.0 190.9 L236.0 192.0 L238.0 193.1 L240.0 194.1 L242.0 195.1 L244.0 196.1 L246.0 197.0 L248.0 197.8 L250.0 198.7 L252.0 199.4 L254.0 200.1 L256.0 200.8 L258.0 201.4 L260.0 201.9 L262.0 202.4 L264.0 202.8 L266.0 203.2 L268.0 203.5 L270.0 203.7 L272.0 203.9 L274.0 204.0 L276.0 204.0 L278.0 204.0 L280.0 203.9 L282.0 203.7 L284.0 203.5 L286.0 203.2 L288.0 202.8 L290.0 202.4 L292.0 201.9 L294.0 201.4 L296.0 200.8 L298.0 200.1 L300.0 199.4 L302.0 198.7 L304.0 197.8 L306.0 197.0 L308.0 196.1 L310.0 195.1 L312.0 194.1 L314.0 193.1 L316.0 192.0 L318.0 190.9 L320.0 189.8 L322.0 188.6 L324.0 187.4 L326.0 186.2 L328.0 185.0 L330.0 183.8 L332.0 182.5 L334.0 181.3 L336.0 180.0 L338.0 178.7 L340.0 177.5 L342.0 176.2 L344.0 175.0 L346.0 173.8 L348.0 172.6 L350.0 171.4 L352.0 170.2 L354.0 169.1 L356.0 168.0 L358.0 166.9 L360.0 165.9 L362.0 164.9 L364.0 163.9 L366.0 163.0 L368.0 162.2 L370.0 161.3 L372.0 160.6 L374.0 159.9 L376.0 159.2 L378.0 158.6 L380.0 158.1 L382.0 157.6 L384.0 157.2 L386.0 156.8 L388.0 156.5 L390.0 156.3 L392.0 156.1 L394.0 156.0 L396.0 156.0 L398.0 156.0 L400.0 156.1 L402.0 156.3 L404.0 156.5 L406.0 156.8 L408.0 157.2 L410.0 157.6 L412.0 158.1 L414.0 158.6 L416.0 159.2 L418.0 159.9 L420.0 160.6 L422.0 161.3 L424.0 162.2 L426.0 163.0 L428.0 163.9 L430.0 164.9 L432.0 165.9 L434.0 166.9 L436.0 168.0 L438.0 169.1 L440.0 170.2 L442.0 171.4 L444.0 172.6 L446.0 173.8 L448.0 175.0 L450.0 176.2 L452.0 177.5 L454.0 178.7 L456.0 180.0 L458.0 181.3 L460.0 182.5 L462.0 183.8 L464.0 185.0 L466.0 186.2 L468.0 187.4 L470.0 188.6 L472.0 189.8 L474.0 190.9 L476.0 192.0 L478.0 193.1 L480.0 194.1 L482.0 195.1 L484.0 196.1 L486.0 197.0 L488.0 197.8 L490.0 198.7 L492.0 199.4 L494.0 200.1 L496.0 200.8 L498.0 201.4 L500.0 201.9 L502.0 202.4 L504.0 202.8 L506.0 203.2 L508.0 203.5 L510.0 203.7 L512.0 203.9 L514.0 204.0 L516.0 204.0 L518.0 204.0 L520.0 203.9 L522.0 203.7 L524.0 203.5 L526.0 203.2 L528.0 202.8 L530.0 202.4 L532.0 201.9 L534.0 201.4 L536.0 200.8 L538.0 200.1 L540.0 199.4 L542.0 198.7 L544.0 197.8 L546.0 197.0 L548.0 196.1 L550.0 195.1 L552.0 194.1 L554.0 193.1 L556.0 192.0 L558.0 190.9 L560.0 189.8 L562.0 188.6 L564.0 187.4 L566.0 186.2 L568.0 185.0 L570.0 183.8 L572.0 182.5 L574.0 181.3 L576.0 180.0 L578.0 178.7 L580.0 177.5 L582.0 176.2 L584.0 175.0 L586.0 173.8 L588.0 172.6 L590.0 171.4 L592.0 170.2 L594.0 169.1 L596.0 168.0 L598.0 166.9 L600.0 165.9 L602.0 164.9 L604.0 163.9 L606.0 163.0 L608.0 162.2 L610.0 161.3 L612.0 160.6 L614.0 159.9 L616.0 159.2 L618.0 158.6 L620.0 158.1 L622.0 157.6 L624.0 157.2 L626.0 156.8 L628.0 156.5 L630.0 156.3 L632.0 156.1 L634.0 156.0 L636.0 156.0 L638.0 156.0 L640.0 156.1 L642.0 156.3 L644.0 156.5 L646.0 156.8 L648.0 157.2 L650.0 157.6 L652.0 158.1 L654.0 158.6 L656.0 159.2 L658.0 159.9 L660.0 160.6 L662.0 161.3 L664.0 162.2 L666.0 163.0 L668.0 163.9 L670.0 164.9 L672.0 165.9 L674.0 166.9 L676.0 168.0 L678.0 169.1 L680.0 170.2 L682.0 171.4 L684.0 172.6 L686.0 173.8 L688.0 175.0 L690.0 176.2 L692.0 177.5 L694.0 178.7 L696.0 180.0" class="st"/>
+    <text x="24" y="176" class="mn">period 0.4</text><text x="24" y="194" class="lbl">MIDDLE</text>
+    <text x="712" y="180" class="say">2.5 cycles</text>
+
+    <path d="M96.0 256.0 L98.0 244.0 L100.0 235.2 L102.0 232.0 L104.0 235.2 L106.0 244.0 L108.0 256.0 L110.0 268.0 L112.0 276.8 L114.0 280.0 L116.0 276.8 L118.0 268.0 L120.0 256.0 L122.0 244.0 L124.0 235.2 L126.0 232.0 L128.0 235.2 L130.0 244.0 L132.0 256.0 L134.0 268.0 L136.0 276.8 L138.0 280.0 L140.0 276.8 L142.0 268.0 L144.0 256.0 L146.0 244.0 L148.0 235.2 L150.0 232.0 L152.0 235.2 L154.0 244.0 L156.0 256.0 L158.0 268.0 L160.0 276.8 L162.0 280.0 L164.0 276.8 L166.0 268.0 L168.0 256.0 L170.0 244.0 L172.0 235.2 L174.0 232.0 L176.0 235.2 L178.0 244.0 L180.0 256.0 L182.0 268.0 L184.0 276.8 L186.0 280.0 L188.0 276.8 L190.0 268.0 L192.0 256.0 L194.0 244.0 L196.0 235.2 L198.0 232.0 L200.0 235.2 L202.0 244.0 L204.0 256.0 L206.0 268.0 L208.0 276.8 L210.0 280.0 L212.0 276.8 L214.0 268.0 L216.0 256.0 L218.0 244.0 L220.0 235.2 L222.0 232.0 L224.0 235.2 L226.0 244.0 L228.0 256.0 L230.0 268.0 L232.0 276.8 L234.0 280.0 L236.0 276.8 L238.0 268.0 L240.0 256.0 L242.0 244.0 L244.0 235.2 L246.0 232.0 L248.0 235.2 L250.0 244.0 L252.0 256.0 L254.0 268.0 L256.0 276.8 L258.0 280.0 L260.0 276.8 L262.0 268.0 L264.0 256.0 L266.0 244.0 L268.0 235.2 L270.0 232.0 L272.0 235.2 L274.0 244.0 L276.0 256.0 L278.0 268.0 L280.0 276.8 L282.0 280.0 L284.0 276.8 L286.0 268.0 L288.0 256.0 L290.0 244.0 L292.0 235.2 L294.0 232.0 L296.0 235.2 L298.0 244.0 L300.0 256.0 L302.0 268.0 L304.0 276.8 L306.0 280.0 L308.0 276.8 L310.0 268.0 L312.0 256.0 L314.0 244.0 L316.0 235.2 L318.0 232.0 L320.0 235.2 L322.0 244.0 L324.0 256.0 L326.0 268.0 L328.0 276.8 L330.0 280.0 L332.0 276.8 L334.0 268.0 L336.0 256.0 L338.0 244.0 L340.0 235.2 L342.0 232.0 L344.0 235.2 L346.0 244.0 L348.0 256.0 L350.0 268.0 L352.0 276.8 L354.0 280.0 L356.0 276.8 L358.0 268.0 L360.0 256.0 L362.0 244.0 L364.0 235.2 L366.0 232.0 L368.0 235.2 L370.0 244.0 L372.0 256.0 L374.0 268.0 L376.0 276.8 L378.0 280.0 L380.0 276.8 L382.0 268.0 L384.0 256.0 L386.0 244.0 L388.0 235.2 L390.0 232.0 L392.0 235.2 L394.0 244.0 L396.0 256.0 L398.0 268.0 L400.0 276.8 L402.0 280.0 L404.0 276.8 L406.0 268.0 L408.0 256.0 L410.0 244.0 L412.0 235.2 L414.0 232.0 L416.0 235.2 L418.0 244.0 L420.0 256.0 L422.0 268.0 L424.0 276.8 L426.0 280.0 L428.0 276.8 L430.0 268.0 L432.0 256.0 L434.0 244.0 L436.0 235.2 L438.0 232.0 L440.0 235.2 L442.0 244.0 L444.0 256.0 L446.0 268.0 L448.0 276.8 L450.0 280.0 L452.0 276.8 L454.0 268.0 L456.0 256.0 L458.0 244.0 L460.0 235.2 L462.0 232.0 L464.0 235.2 L466.0 244.0 L468.0 256.0 L470.0 268.0 L472.0 276.8 L474.0 280.0 L476.0 276.8 L478.0 268.0 L480.0 256.0 L482.0 244.0 L484.0 235.2 L486.0 232.0 L488.0 235.2 L490.0 244.0 L492.0 256.0 L494.0 268.0 L496.0 276.8 L498.0 280.0 L500.0 276.8 L502.0 268.0 L504.0 256.0 L506.0 244.0 L508.0 235.2 L510.0 232.0 L512.0 235.2 L514.0 244.0 L516.0 256.0 L518.0 268.0 L520.0 276.8 L522.0 280.0 L524.0 276.8 L526.0 268.0 L528.0 256.0 L530.0 244.0 L532.0 235.2 L534.0 232.0 L536.0 235.2 L538.0 244.0 L540.0 256.0 L542.0 268.0 L544.0 276.8 L546.0 280.0 L548.0 276.8 L550.0 268.0 L552.0 256.0 L554.0 244.0 L556.0 235.2 L558.0 232.0 L560.0 235.2 L562.0 244.0 L564.0 256.0 L566.0 268.0 L568.0 276.8 L570.0 280.0 L572.0 276.8 L574.0 268.0 L576.0 256.0 L578.0 244.0 L580.0 235.2 L582.0 232.0 L584.0 235.2 L586.0 244.0 L588.0 256.0 L590.0 268.0 L592.0 276.8 L594.0 280.0 L596.0 276.8 L598.0 268.0 L600.0 256.0 L602.0 244.0 L604.0 235.2 L606.0 232.0 L608.0 235.2 L610.0 244.0 L612.0 256.0 L614.0 268.0 L616.0 276.8 L618.0 280.0 L620.0 276.8 L622.0 268.0 L624.0 256.0 L626.0 244.0 L628.0 235.2 L630.0 232.0 L632.0 235.2 L634.0 244.0 L636.0 256.0 L638.0 268.0 L640.0 276.8 L642.0 280.0 L644.0 276.8 L646.0 268.0 L648.0 256.0 L650.0 244.0 L652.0 235.2 L654.0 232.0 L656.0 235.2 L658.0 244.0 L660.0 256.0 L662.0 268.0 L664.0 276.8 L666.0 280.0 L668.0 276.8 L670.0 268.0 L672.0 256.0 L674.0 244.0 L676.0 235.2 L678.0 232.0 L680.0 235.2 L682.0 244.0 L684.0 256.0 L686.0 268.0 L688.0 276.8 L690.0 280.0 L692.0 276.8 L694.0 268.0 L696.0 256.0" class="sl"/>
+    <text x="24" y="252" class="mn">period 0.04</text><text x="24" y="270" class="lbl">NEAR THE FAST END</text>
+    <text x="712" y="248" class="say">25 cycles. The true</text>
+    <text x="712" y="266" class="say">fastest is 0.004, which</text>
+    <text x="712" y="284" class="say">is 250 and undrawable.</text>
+
+    <g class="mv a-tick"><path d="M96 68 V284" class="sa"/></g>
+    <line x1="24" y1="300" x2="916" y2="300" class="sl"/>
+    <text x="24" y="322" class="mn">360 sines + 360 cosines = 720 &#183; periods 0.004 &#8594; 4.000, each 1.0194&#215; the last &#183; &#8214;emb&#8214; = &#8730;360 = 18.9737 at every time</text>
+  </svg>
+  <figcaption><em>Measured.</em> The slowest period is 4.0, longer than the whole range of <code>time</code>, so it sweeps a quarter of a cycle and never comes back on itself. The fastest is 0.004, separating values about 0.4% apart, far finer than the 0.1 spacing of the ten steps. Every component is a fixed sine.</figcaption>
+</figure>
+
+<p>Both ends are chosen, not inherited, and the result is sharper than you would guess. <em>Measured</em>, the clock at 0.50 and 0.51 has cosine similarity 0.5169, and by 0.55 that has fallen to 0.2842, so neighbouring steps do not look alike to the expert. The whole vector has length &#8730;360 = 18.9737 at every value, so the clock only changes direction, never magnitude, which stops it acting as a gain on the tokens it joins.</p>
+<p>Now the part that is easy to read past, because it is the one place where the same problem gets solved two ways. In section 03 the vision tower told 1024 patch tokens where they sat by <strong>adding</strong> a position row onto each patch row, element by element, free. Here the expert has to tell 50 action tokens what time it is, and it does the opposite. The 720-number clock is <strong>concatenated</strong>, not added.</p>
+<p>The shapes are short. <code>action_in_proj</code> takes the noisy chunk from (B, 50, 32) up to <strong>(B, 50, 720)</strong>. The clock comes out as (B, 720), one vector for the whole chunk.</p>
+<p>It is stretched across all fifty positions with <code>expand_as</code>, a view rather than a copy, so those 720 numbers are read fifty times and never duplicated. Then <code>cat(dim=2)</code> makes <strong>(B, 50, 1440)</strong> and two layers with a SiLU between them bring it back to <strong>(B, 50, 720)</strong>. Every token carries the same clock and its own content, side by side rather than mixed.</p>
+<figure class="fig wide" id="fA">
+  <svg viewBox="0 0 940 300" role="img" aria-label="Two wiring diagrams. Above, what SmolVLA does: the 720-number action token and the 720-number clock are concatenated into 1440 and fused by a two-layer MLP costing 1,556,640 weights. Below, the cheaper alternative: adding them element by element, which costs nothing but forces both facts into one shared space.">
+    <defs><marker id="ar7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="24" y="22" class="ttl">WHAT IT DOES &#183; CONCATENATE, THEN FUSE</text>
+    <rect x="24" y="38" width="128" height="40" class="bx fp"/><text x="36" y="63" class="say">action &#183; 720</text>
+    <rect x="24" y="84" width="128" height="40" class="bx fe"/><text x="36" y="109" class="say">clock &#183; 720</text>
+    <path d="M158 58 h20 v20 h14" class="st"/><path d="M158 104 h20 v-20 h14" class="st" marker-end="url(#ar7)"/>
+    <rect x="208" y="58" width="96" height="46" class="bx fa" fill-opacity=".16"/><text x="220" y="87" class="num">1440</text>
+    <path d="M312 81 h30" class="st" marker-end="url(#ar7)"/>
+    <rect x="350" y="58" width="176" height="46" class="bx fp"/><text x="362" y="80" class="mn">Linear(1440&#8594;720)</text><text x="362" y="98" class="mn">SiLU, Linear(720&#8594;720)</text>
+    <path d="M534 81 h30" class="st" marker-end="url(#ar7)"/>
+    <rect x="572" y="58" width="96" height="46" class="bx fp"/><text x="584" y="87" class="say">fused &#183; 720</text>
+    <text x="700" y="70" class="num">1,556,640 weights</text>
+    <text x="700" y="94" class="red">95.2% of everything new</text>
+    <text x="700" y="114" class="say">in the whole model</text>
+
+    <line x1="24" y1="146" x2="916" y2="146" class="sl"/>
+    <text x="24" y="176" class="ttl">WHAT ADDING WOULD HAVE DONE</text>
+    <rect x="24" y="192" width="128" height="40" class="bx fp"/><text x="36" y="217" class="say">action &#183; 720</text>
+    <rect x="24" y="238" width="128" height="40" class="bx fe"/><text x="36" y="263" class="say">clock &#183; 720</text>
+    <path d="M158 212 h20 v23 h14" class="sl"/><path d="M158 258 h20 v-23 h14" class="sl" marker-end="url(#ar7)"/>
+    <circle cx="222" cy="235" r="14" class="bx"/><text x="216" y="240" class="num">+</text>
+    <path d="M240 235 h30" class="sl" marker-end="url(#ar7)"/>
+    <rect x="278" y="212" width="96" height="46" class="bx fp"/><text x="290" y="241" class="say">sum &#183; 720</text>
+    <text x="404" y="228" class="num">0 extra weights</text>
+    <text x="404" y="252" class="say">but which step a token is and how noisy the chunk is</text>
+    <text x="404" y="272" class="say">now have to share the same 720 directions</text>
+  </svg>
+  <figcaption><em>Measured.</em> The two fusion layers come to 1,556,640 of the 1,635,152 structurally new weights, and the other three projections are the remaining 78,512. Almost the whole new part of SmolVLA keeps &#8220;where in the chunk&#8221; and &#8220;how noisy&#8221; separable.</figcaption>
+</figure>
+<p>Adding would have been free. Concatenating costs <code>Linear(1440 &#8594; 720)</code> and <code>Linear(720 &#8594; 720)</code>, which is 1,556,640 weights, and that is the number that reframes the whole model. Those two layers are <strong>95.2% of everything structurally new in SmolVLA</strong>, out of a five-module total of 1,635,152. <em>Measured.</em></p>
+<p>What the money buys is separability. Side by side, the MLP can learn any interaction between which step of the chunk a token is and how noisy the chunk is. Added, both facts fold into the same 720 directions, and a late step in a clean chunk becomes hard to tell from an early step in a noisy one.</p>
+<p>So the most expensive new decision in a 450-million-parameter model is keeping those two questions apart.</p>
+<p>Why the tower gets away with adding comes down to how much the two things vary. A patch&#39;s position never changes, so the tower can bake it into the same directions the content lives in and let twelve layers sort out the interference. The clock changes on every one of the ten steps, and the right direction to move a chunk depends on the clock and the chunk <em>jointly</em>, so folding them together throws away the distinction the expert has to make.</p>
+<p>Coming back out is cheaper. <code>action_out_proj</code> takes each token&#39;s 720 numbers down to 32, and on our arm only the first 6 columns mean anything, because 32 is the cross-embodiment slot and the SO-101 has six joints.</p>
+<p>The other 26 are computed on every token of every step and dropped, because the loss is sliced to the real action dimension before anything is averaged, so they never see a gradient. <em>Measured.</em> The price of a model meant to run on somebody else&#39;s arm too.</p>
+
+<h2><span class="hn">10</span>Ten steps, and why ten is exact</h2>
+
+<p>At generation time the expert starts from pure noise and takes ten equal Euler steps down to the actions.</p>
+
+<figure class="fig" id="f7">
+  <svg viewBox="0 0 800 322" role="img" aria-label="Animated. Above, a straight path from noise to actions divided into ten equal steps, with a dot jumping one step at a time and landing exactly on the answer. Below, a curved path with the same ten steps drawn as straight chords, which cut every corner and leave the path.">
+    <text x="20" y="22" class="ttl">FLOW MATCHING &#183; THE PATH IS STRAIGHT BY CONSTRUCTION</text>
+    <text x="46" y="62" class="lbl">NOISE</text><text x="664" y="62" class="lbl">ACTIONS</text>
+    <path d="M70 86 H714" class="sa"/>
+    <g class="sl"><path d="M134.4 78 v16 M198.8 78 v16 M263.2 78 v16 M327.6 78 v16 M392 78 v16 M456.4 78 v16 M520.8 78 v16 M585.2 78 v16 M649.6 78 v16"/></g>
+    <circle cx="70" cy="86" r="6" class="fi"/>
+    <circle cx="714" cy="86" r="6" class="fa"/>
+    <g class="mv a-walk"><circle cx="70" cy="86" r="7.5" class="fa"/></g>
+    <text x="70" y="124" class="red">the direction never changes, so ten equal steps land exactly on the answer</text>
+    <text x="70" y="142" class="say">two steps would land there too, which is why the step count is close to free</text>
+    <line x1="20" y1="162" x2="780" y2="162" class="sl"/>
+
+    <text x="20" y="190" class="ttl">A CURVED PATH &#183; WHAT DIFFUSION MODELS WALK</text>
+    <path d="M70 244 C 168 178, 286 306, 392 244 C 498 182, 614 308, 714 236" class="sl"/>
+    <polyline points="70.0,244.0 128.8,204.4 191.6,202.1 257.0,218.8 323.2,235.9 389.0,235.1 452.6,197.9 517.9,196.6 583.8,212.6 649.0,227.3 712.2,222.4" fill="none" stroke="#B23A2E" stroke-width="1.6"/>
+    <circle cx="70.0" cy="244.0" r="3.4" class="fa"/><circle cx="128.8" cy="204.4" r="3.4" class="fa"/><circle cx="191.6" cy="202.1" r="3.4" class="fa"/><circle cx="257.0" cy="218.8" r="3.4" class="fa"/><circle cx="323.2" cy="235.9" r="3.4" class="fa"/><circle cx="389.0" cy="235.1" r="3.4" class="fa"/><circle cx="452.6" cy="197.9" r="3.4" class="fa"/><circle cx="517.9" cy="196.6" r="3.4" class="fa"/><circle cx="583.8" cy="212.6" r="3.4" class="fa"/><circle cx="649.0" cy="227.3" r="3.4" class="fa"/><circle cx="712.2" cy="222.4" r="3.4" class="fa"/>
+    <circle cx="70" cy="244" r="6" class="fi"/>
+    <circle cx="714" cy="236" r="6" class="fa"/>
+    <text x="600" y="262" class="lbl">TRUE END</text>
+    <text x="612" y="212" class="red">lands here</text>
+    <path d="M712 230 v-8" class="sa"/>
+    <text x="70" y="290" class="say">Each step is a straight line, so on a curve it cuts the corner, and the next step starts</text>
+    <text x="70" y="306" class="say">from the wrong place. Staying on the path means taking more steps, each one smaller.</text>
+  </svg>
+  <figcaption>Feed the true velocity field into the sampler and measure the distance left to the answer. Halfway sits at exactly half the starting distance, the end lands on zero to floating-point precision, and two steps arrive where ten do to within 6e&#8722;06. <em>Measured</em>, and all three hold for any starting noise. The curved path is drawn for contrast.</figcaption>
+</figure>
+
+<p>This is what the straight path buys. With a constant velocity, ten steps and two steps land in the same place, so the step count neither buys nor costs accuracy, and any error in a real run is the model pointing the wrong way rather than the integrator. A curved path does not get that, because a straight step across a curve cuts the corner by an amount that depends on the step count. We have not benchmarked other policies, so that is why the property is worth having, not a claim about anyone else&#39;s step counts.</p>
+
+<h2><span class="hn">11</span>Where the speed actually comes from</h2>
+
+<p>Inference is two passes that look almost nothing like each other, and pulling them apart is the whole efficiency argument.</p>
+
+<figure class="fig wide" id="f8">
+  <svg viewBox="0 0 940 260" role="img" aria-label="Animated. Pass one runs the 241-token prefix through all sixteen layers once and stores a key-value cache of 4.9 megabytes. Pass two runs ten denoising steps, each forwarding only the 50 action tokens against the cached prefix.">
+    <defs><marker id="ar4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <text x="24" y="22" class="ttl">PASS 1 &#183; RUNS ONCE PER CHUNK</text>
+    <rect x="24" y="36" width="380" height="86" class="bx fp"/>
+    <text x="40" y="62" class="big">241 prefix tokens &#8594; 16 layers</text>
+    <text x="40" y="84" class="say">every layer self-attends, 241&#215;241</text>
+    <text x="40" y="104" class="mn">the vision tower runs here, exactly once</text>
+    <path d="M204 122 v22" class="st" marker-end="url(#ar4)"/>
+    <rect x="24" y="148" width="380" height="56" class="bx fe"/>
+    <text x="40" y="172" class="big">key/value cache</text>
+    <text x="40" y="192" class="mn">16 layers &#215; 2 &#215; (241, 5, 64) = 4.9 MB bf16</text>
+    <text x="24" y="230" class="red">this is what the white rectangle in the mask bought</text>
+    <line x1="436" y1="30" x2="436" y2="240" class="sl"/>
+    <text x="468" y="22" class="ttl">PASS 2 &#183; RUNS TEN TIMES</text>
+    <g class="mv a-loop">
+      <rect x="468" y="36" width="380" height="86" class="bx fp"/>
+      <text x="484" y="62" class="big">50 action tokens &#8594; 16 layers</text>
+      <text x="484" y="84" class="say">8 layers 50&#215;291, 8 layers 50&#215;241</text>
+      <text x="484" y="104" class="mn">the prefix is read from cache, never recomputed</text>
+    </g>
+    <text x="862" y="66" class="big">&#215;10</text>
+    <rect x="468" y="148" width="380" height="56" class="bx fe"/>
+    <text x="484" y="172" class="big">only 50 tokens ever move</text>
+    <text x="484" y="192" class="mn">50 of 291 &#183; 17% of the sequence, ten times over</text>
+    <text x="468" y="230" class="say">ten denoising steps cost far less than ten forward passes</text>
+  </svg>
+  <figcaption><em>Measured.</em> The expensive parts, the vision tower and the 241-token prefix, run once for the whole chunk. Only the small side of the model runs ten times over.</figcaption>
+</figure>
+<p>To put a size on it, the prefix is 241 of the 291 tokens, and after the sixteen floors it is kept as 16 layers of two tensors of shape (241, 5, 64), 4.9 MB in bfloat16, sitting there for the rest of the chunk. Everything after reads from it instead of recomputing, so the ten sampling passes each move 50 tokens rather than 291. <em>Measured.</em></p>
+
+<h2><span class="hn">12</span>How long can it act blind</h2>
+
+<p>Predicting 50 actions is cheap. Executing all 50 before you look again is not, and this is where the missing time axis bites, because a frame from 49 steps ago is all the model has to go on. Drag the slider.</p>
+
+<figure class="fig" id="f9">
+  <svg viewBox="0 0 800 190" role="img" aria-label="Interactive. A 50-step chunk. The slider sets how many steps are executed before the model takes a fresh camera frame, and the measured LIBERO success rate updates.">
+    <text x="20" y="22" class="ttl">ONE PREDICTED CHUNK &#183; 50 STEPS</text>
+    <g id="cells"><rect x="20" y="40" width="13" height="46" fill="#B23A2E" fill-opacity="0.18" stroke="#D3C9B4"/><rect x="35.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="50.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="65.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="80.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="96" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="111.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="126.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="141.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="156.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="172" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="187.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="202.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="217.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="232.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="248" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="263.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="278.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="293.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="308.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="324" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="339.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="354.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="369.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="384.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="400" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="415.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="430.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="445.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="460.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="476" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="491.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="506.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="521.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="536.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="552" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="567.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="582.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="597.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="612.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="628" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="643.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="658.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="673.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="688.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="704" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="719.2" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="734.4" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="749.6" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/><rect x="764.8" y="40" width="13" height="46" fill="#ECE7DC" fill-opacity="1" stroke="#D3C9B4"/></g>
+    <line x1="20" y1="104" x2="780" y2="104" class="sl"/>
+    <text x="20" y="128" class="say">acted on a fresh look</text>
+    <text x="20" y="148" class="red" id="blindtxt">acted blind, on a frame this many steps old</text>
+    <rect x="500" y="112" width="280" height="56" class="bx fp"/>
+    <text x="516" y="136" class="lbl">LIBERO AVERAGE, FROM THE PAPER</text>
+    <text x="516" y="160" class="num" id="ratetxt">80.3</text>
+  </svg>
+  <div class="ctl">
+    <label for="sl">Steps before looking again</label>
+    <input id="sl" type="range" min="0" max="3" step="1" value="0" aria-describedby="out">
+    <output id="out" for="sl"><b>1</b> step &#183; 80.3</output>
+  </div>
+  <figcaption>Only the four settings the paper measured are selectable, so nothing here is interpolated. Going from 1 to 50 costs 28.5 points. How far ahead the model predicts and how far ahead you let it act are separate dials.</figcaption>
+</figure>
+
+<h2><span class="hn">13</span>So stop making it wait</h2>
+
+<p>If acting blind is expensive and thinking is slow, the obvious compromise is to act, then stop, then think, then act again, and the stopping is where all of the waste is.</p>
+
+<p>SmolVLA separates the robot from the model. The arm holds a queue of actions and drains it, and when the queue runs low it ships the current frame to a server and keeps moving while the server thinks, so the thinking happens underneath the motion rather than in the gaps.</p>
+
+<figure class="fig wide" id="f10">
+  <svg viewBox="0 0 940 262" role="img" aria-label="Animated. Two gripper glyphs travel along a track. The synchronous one stops each time the model thinks. The asynchronous one never stops, and finishes far more cycles in the same window.">
+    <text x="24" y="24" class="ttl">SYNCHRONOUS &#183; THE ARM WAITS</text>
+    <line x1="24" y1="76" x2="584" y2="76" class="sl"/>
+    <g class="mv a-sync"><path d="M24 60 v22 M14 82 h20" class="st" transform="translate(10,0)"/></g>
+    <g class="mv a-think"><text x="24" y="110" class="red">thinking, arm stopped</text></g>
+    <rect x="624" y="44" width="292" height="46" class="bx fp"/>
+    <text x="638" y="64" class="lbl">SAME TASK, AVERAGE OF 10 TRIALS</text>
+    <text x="638" y="82" class="num">13.75 s &#183; 9 cycles in 60 s</text>
+    <line x1="24" y1="140" x2="916" y2="140" class="sl"/>
+    <text x="24" y="172" class="ttl">ASYNCHRONOUS &#183; THE ARM NEVER STOPS</text>
+    <line x1="24" y1="212" x2="584" y2="212" class="sl"/>
+    <g class="mv a-async"><path d="M24 196 v22 M14 218 h20" class="st" transform="translate(10,0)"/></g>
+    <text x="24" y="244" class="say">the server thinks while the queue keeps draining</text>
+    <text x="624" y="244" class="red">both tracks run for the same 60 seconds</text>
+    <rect x="624" y="180" width="292" height="46" class="bx fe"/>
+    <text x="638" y="200" class="lbl">SAME MODEL, SAME SUCCESS RATE</text>
+    <text x="638" y="218" class="num">9.7 s &#183; 19 cycles in 60 s</text>
+  </svg>
+  <figcaption>Success rates came out comparable in both modes. What changed was throughput, roughly 30% faster per task and more than twice the cycles inside a fixed minute, and the server does not have to sit on the robot either.</figcaption>
+</figure>
+
+<h2><span class="hn">14</span>What it was trained on</h2>
+
+<p>481 community datasets from Hugging Face, 22,900 episodes, 10.6 million frames. OpenVLA trained on roughly a million trajectories, so this is around forty times smaller, and it is the paper itself that says so, in its own limitations.</p>
+
+<p>The data was messy the way community data always is. Task descriptions were missing or wrong, so a vision-language model rewrote them, and camera names disagreed between datasets, so viewpoints had to be mapped onto a shared scheme. Neither is a research contribution and both had to happen first.</p>
+
+<h2><span class="hn">15</span>Read the tables, not the captions</h2>
+
+<p>Four things in the paper do not line up with themselves, and noticing that is better practice than trusting any summary of a paper, this one included.</p>
+
+<p>The expert that shipped is 0.75 times the width of the frozen tower. Table 9 tests four widths and its caption says a wider expert does better, while its own rows say <strong>&#215;0.50 is smaller and scores 2.8 points higher</strong> than the &#215;0.75 that shipped. Table 11 claims the frozen tower is the better home for the pose token under both attention variants, when its own self-attention rows go the other way, 53.3 against 74.8.</p>
+
+<p>Table 8 is milder. Its text says sampling every second layer beats a smaller backbone, and its rows put every-second-layer at 75.5 against the smaller 256M model at 75.8, a gap of 0.3 points that means nothing either way.</p>
+<p>The plainest one is not an ablation. Table 1 counts the pretraining set at 481 datasets, 22.9K episodes and 10.6M frames, and its own caption says the set stands &#8220;at ~10M episodes&#8221;. The caption took the frame count and put the wrong noun on it, overstating the scale by a factor of several hundred while the table above it is right. It is what happens to captions.</p>
+
+<p>The shipped choices might still be right. Every one of these ablations is trained from scratch on LIBERO with no robotics pretraining, and the released model is a different setting where the ordering could flip. The paper does not show that, and anyone who reads the captions and skips the tables gets a tidier story than the numbers support.</p>
+
+<table class="tb">
+  <caption>Every ablation in the paper, LIBERO average, trained from scratch with the backbone frozen. Shipped choice in red. Tables 6 to 13.</caption>
+  <thead><tr><th scope="col">Decision</th><th scope="col">Option</th><th scope="col" class="r">Avg</th></tr></thead>
+  <tbody>
+    <tr class="sec"><td colspan="3">How the towers talk</td></tr>
+    <tr><td></td><td>cross-attention only</td><td class="r">79.0</td></tr>
+    <tr><td></td><td>self-attention only</td><td class="r">74.5</td></tr>
+    <tr class="w"><td></td><td>alternating</td><td class="r">85.5</td></tr>
+    <tr class="sec"><td colspan="3">Action tokens may see</td></tr>
+    <tr><td></td><td>all actions, both ways</td><td class="r">67.5</td></tr>
+    <tr class="w"><td></td><td>earlier actions only</td><td class="r">74.5</td></tr>
+    <tr class="sec"><td colspan="3">Layers kept from the language model</td></tr>
+    <tr><td></td><td>8</td><td class="r">75.0</td></tr>
+    <tr class="w"><td></td><td>16</td><td class="r">78.5</td></tr>
+    <tr><td></td><td>24</td><td class="r">79.5</td></tr>
+    <tr><td></td><td>32, all of them</td><td class="r">80.3</td></tr>
+    <tr><td></td><td>every second layer</td><td class="r">75.5</td></tr>
+    <tr><td></td><td>a smaller 256M model</td><td class="r">75.8</td></tr>
+    <tr class="sec"><td colspan="3">Expert width</td></tr>
+    <tr><td></td><td>&#215; 1.00</td><td class="r">82.3</td></tr>
+    <tr class="w"><td></td><td>&#215; 0.75</td><td class="r">77.5</td></tr>
+    <tr><td></td><td>&#215; 0.50</td><td class="r">80.3</td></tr>
+    <tr><td></td><td>&#215; 0.25</td><td class="r">73.8</td></tr>
+    <tr class="sec"><td colspan="3">Training objective</td></tr>
+    <tr class="w"><td></td><td>flow matching</td><td class="r">80.25</td></tr>
+    <tr><td></td><td>regression, L1</td><td class="r">75.25</td></tr>
+    <tr class="sec"><td colspan="3">Pose token goes to</td></tr>
+    <tr class="w"><td></td><td>frozen tower, cross-attn</td><td class="r">80.3</td></tr>
+    <tr><td></td><td>action expert, cross-attn</td><td class="r">73.3</td></tr>
+    <tr><td></td><td>frozen tower, self-attn</td><td class="r">53.3</td></tr>
+    <tr><td></td><td>action expert, self-attn</td><td class="r">74.8</td></tr>
+    <tr class="sec"><td colspan="3">Chunk size predicted</td></tr>
+    <tr><td></td><td>1</td><td class="r">50.0</td></tr>
+    <tr><td></td><td>10</td><td class="r">84.0</td></tr>
+    <tr><td></td><td>30</td><td class="r">78.5</td></tr>
+    <tr class="w"><td></td><td>50</td><td class="r">80.3</td></tr>
+    <tr><td></td><td>100</td><td class="r">74.5</td></tr>
+    <tr class="sec"><td colspan="3">Steps executed before looking again</td></tr>
+    <tr class="w"><td></td><td>1</td><td class="r">80.3</td></tr>
+    <tr><td></td><td>10</td><td class="r">82.8</td></tr>
+    <tr><td></td><td>30</td><td class="r">70.8</td></tr>
+    <tr><td></td><td>50</td><td class="r">51.8</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="hn">16</span>The whole thing on one page</h2>
+
+<p>This is everything above, in the order it happens, with the numbers that decide the cost.</p>
+
+<figure class="fig wide" id="fZ">
+  <svg viewBox="0 0 940 726" role="img" aria-label="The whole of SmolVLA in five bands read top to bottom. One, what goes in: three 640 by 480 cameras, a written instruction and the arm pose. Two, everything becomes one flat list of at most 241 tokens. Three, a frozen vision-language model and a trainable action expert walk up sixteen shared floors, joined into one attention on even floors and split on odd ones. Four, ten Euler steps turn noise into a chunk of actions while the cached prefix is left alone. Five, fifty six-dimensional joint angles drain out of a queue that refills before it empties.">
+    <defs><marker id="arZ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
+    <line x1="706" y1="16" x2="706" y2="710" class="sl"/>
+    <line x1="20" y1="150" x2="920" y2="150" class="sl"/>
+    <line x1="20" y1="306" x2="920" y2="306" class="sl"/>
+    <line x1="20" y1="486" x2="920" y2="486" class="sl"/>
+    <line x1="20" y1="600" x2="920" y2="600" class="sl"/>
+    <text x="22" y="44" class="big" style="font-size:23px;fill:var(--apple)">1</text>
+    <text x="46" y="44" class="big">SEE</text>
+    <text x="22" y="64" class="lbl">WHAT THE ARM IS GIVEN</text>
+    <rect x="212" y="22" width="78" height="58" class="bx fe"/>
+    <rect x="206" y="26" width="78" height="58" class="bx fe"/>
+    <rect x="200" y="30" width="78" height="58" class="bx fp"/>
+    <line x1="200" y1="72" x2="278" y2="72" class="sl"/>
+    <rect x="226" y="58" width="14" height="14" class="fa"/>
+    <text x="200" y="108" class="say">three cameras</text>
+    <text x="200" y="126" class="lbl">640 &#215; 480 AT 30 Hz</text>
+    <rect x="344" y="42" width="176" height="30" class="bxd"/>
+    <text x="354" y="62" class="say">pick up the red cube</text>
+    <text x="344" y="108" class="say">the instruction</text>
+    <text x="344" y="126" class="lbl">6 TOKENS FOR THIS ONE</text>
+    <g class="fi"><rect x="560" y="62" width="6" height="16"/><rect x="572" y="52" width="6" height="26"/><rect x="584" y="67" width="6" height="11"/><rect x="596" y="48" width="6" height="30"/><rect x="608" y="58" width="6" height="20"/><rect x="620" y="54" width="6" height="24"/></g>
+    <line x1="558" y1="80" x2="634" y2="80" class="sl"/>
+    <text x="558" y="108" class="say">the arm&#39;s own pose</text>
+    <text x="558" y="126" class="lbl">6 JOINT ANGLES</text>
+    <text x="722" y="46" class="big" style="font-size:21px;fill:var(--apple)">25.0%</text>
+    <text x="722" y="68" class="say">of every frame is padding</text>
+    <text x="722" y="85" class="say">once 4:3 is made square</text>
+    <text x="22" y="186" class="big" style="font-size:23px;fill:var(--apple)">2</text>
+    <text x="46" y="186" class="big">TOKENISE</text>
+    <text x="22" y="206" class="lbl">ONE FLAT LIST OF TOKENS</text>
+    <rect x="200" y="204" width="78" height="28" class="bx fp"/>
+    <text x="239" y="222" class="mn" text-anchor="middle">512 &#215; 512</text>
+    <text x="200" y="250" class="lbl">THE SQUARED</text>
+    <text x="200" y="264" class="lbl">FRAME</text>
+    <line x1="280" y1="218" x2="294" y2="218" class="st" marker-end="url(#arZ)"/>
+    <rect x="296" y="204" width="78" height="28" class="bx fp"/>
+    <text x="335" y="222" class="mn" text-anchor="middle">1024</text>
+    <text x="296" y="250" class="lbl">PATCHES, ONE</text>
+    <text x="296" y="264" class="lbl">16&#215;16 CONV</text>
+    <line x1="376" y1="218" x2="390" y2="218" class="st" marker-end="url(#arZ)"/>
+    <rect x="392" y="204" width="78" height="28" class="bx fp"/>
+    <text x="431" y="222" class="mn" text-anchor="middle">1024</text>
+    <text x="392" y="250" class="lbl">AFTER 12 ViT</text>
+    <text x="392" y="264" class="lbl">LAYERS</text>
+    <line x1="472" y1="218" x2="486" y2="218" class="st" marker-end="url(#arZ)"/>
+    <rect x="488" y="204" width="78" height="28" class="bx fp"/>
+    <text x="527" y="222" class="mn" text-anchor="middle">64</text>
+    <text x="488" y="250" class="lbl">FOLDED 4&#215;4,</text>
+    <text x="488" y="264" class="lbl">PER CAMERA</text>
+    <line x1="584" y1="218" x2="600" y2="218" class="st" marker-end="url(#arZ)"/>
+    <text x="608" y="222" class="mn">&#215; 3 = 192</text>
+    <text x="608" y="250" class="lbl">IMAGE TOKENS</text>
+    <text x="200" y="284" class="mn">192 image + up to 48 language + 1 pose</text>
+    <text x="200" y="300" class="lbl">IMAGES AND LANGUAGE ARE BOTH SCALED BY &#8730;960, THE POSE IS NOT</text>
+    <text x="722" y="196" class="big" style="font-size:21px;fill:var(--apple)">241</text>
+    <text x="722" y="218" class="say">tokens at most in the</text>
+    <text x="722" y="235" class="say">prefix, and 291 once the</text>
+    <text x="722" y="252" class="say">50 being written are added</text>
+    <text x="22" y="334" class="big" style="font-size:23px;fill:var(--apple)">3</text>
+    <text x="46" y="334" class="big">THINK</text>
+    <text x="22" y="354" class="lbl">SIXTEEN SHARED FLOORS</text>
+    <text x="200" y="336" class="big">frozen VLM</text>
+    <text x="200" y="354" class="lbl">960 WIDE &#183; 16 OF ITS 32 LAYERS</text>
+    <text x="200" y="368" class="lbl">350,165,184 WEIGHTS, 0 TRAINED</text>
+    <text x="430" y="336" class="big">action expert</text>
+    <text x="430" y="354" class="lbl">720 WIDE &#183; 16 LAYERS</text>
+    <text x="430" y="368" class="lbl">99,880,992 TRAINED</text>
+    <rect x="200" y="382" width="410" height="30" class="ok"/>
+    <text x="210" y="401" class="mn">8 even floors &#183; one attention, both towers in one matrix</text>
+    <rect x="200" y="422" width="190" height="30" class="bx fp"/>
+    <text x="295" y="441" class="mn" text-anchor="middle">frozen &#183; 241 &#215; 241</text>
+    <rect x="420" y="422" width="190" height="30" class="bx fp"/>
+    <text x="515" y="441" class="mn" text-anchor="middle">expert &#183; 50 &#215; 241</text>
+    <line x1="392" y1="437" x2="418" y2="437" class="st" marker-end="url(#arZ)"/>
+    <text x="200" y="470" class="lbl">8 ODD FLOORS &#183; THE EXPERT READS THE FROZEN CACHE VIA Linear(320 &#8594; 320)</text>
+    <text x="722" y="336" class="big" style="font-size:21px;fill:var(--apple)">24</text>
+    <text x="722" y="358" class="say">attention calls on a</text>
+    <text x="722" y="375" class="say">training step, and 176</text>
+    <text x="722" y="392" class="say">across a whole chunk</text>
+    <text x="722" y="409" class="say">at inference</text>
+    <text x="22" y="514" class="big" style="font-size:23px;fill:var(--apple)">4</text>
+    <text x="46" y="514" class="big">DENOISE</text>
+    <text x="22" y="534" class="lbl">NOISE TO ACTIONS IN TEN</text>
+    <text x="200" y="516" class="mn">clock &#183; 720 numbers concatenated onto every action token</text>
+    <path d="M204 552 H556" class="sa"/>
+    <g class="sl"><path d="M204.0 546 v12 M243.1 546 v12 M282.2 546 v12 M321.3 546 v12 M360.4 546 v12 M399.6 546 v12 M438.7 546 v12 M477.8 546 v12 M516.9 546 v12 M556.0 546 v12"/></g>
+    <circle cx="204" cy="552" r="4.5" class="fi"/>
+    <circle cx="556" cy="552" r="4.5" class="fa"/>
+    <text x="196" y="538" class="lbl">NOISE</text>
+    <text x="522" y="538" class="lbl">ACTIONS</text>
+    <text x="200" y="578" class="say">ten equal steps, and two steps land where ten do</text>
+    <text x="200" y="594" class="lbl">PREFIX BUILT ONCE AND CACHED AT 4.9 MB, ONLY THESE 50 TOKENS REPEAT</text>
+    <text x="722" y="516" class="big" style="font-size:21px;fill:var(--apple)">10</text>
+    <text x="722" y="538" class="say">Euler steps, and only the</text>
+    <text x="722" y="555" class="say">small half of the model</text>
+    <text x="722" y="572" class="say">walks them</text>
+    <text x="22" y="628" class="big" style="font-size:23px;fill:var(--apple)">5</text>
+    <text x="46" y="628" class="big">ACT</text>
+    <text x="22" y="648" class="lbl">DRAIN, THEN REFILL</text>
+    <g class="fi"><rect x="200" y="654.0" width="5" height="10.0"/><rect x="208" y="653.4" width="5" height="10.6"/><rect x="216" y="652.7" width="5" height="11.3"/><rect x="224" y="651.9" width="5" height="12.1"/><rect x="232" y="651.1" width="5" height="12.9"/><rect x="240" y="650.2" width="5" height="13.8"/><rect x="248" y="649.3" width="5" height="14.7"/><rect x="256" y="648.5" width="5" height="15.5"/><rect x="264" y="647.6" width="5" height="16.4"/><rect x="272" y="646.7" width="5" height="17.3"/><rect x="280" y="645.9" width="5" height="18.1"/><rect x="288" y="645.0" width="5" height="19.0"/><rect x="296" y="644.2" width="5" height="19.8"/><rect x="304" y="643.3" width="5" height="20.7"/><rect x="312" y="642.4" width="5" height="21.6"/><rect x="320" y="641.5" width="5" height="22.5"/><rect x="328" y="640.6" width="5" height="23.4"/><rect x="336" y="639.5" width="5" height="24.5"/><rect x="344" y="638.4" width="5" height="25.6"/><rect x="352" y="637.2" width="5" height="26.8"/><rect x="360" y="635.9" width="5" height="28.1"/><rect x="368" y="634.6" width="5" height="29.4"/><rect x="376" y="633.1" width="5" height="30.9"/><rect x="384" y="631.5" width="5" height="32.5"/><rect x="392" y="629.9" width="5" height="34.1"/><rect x="400" y="628.2" width="5" height="35.8"/><rect x="408" y="626.5" width="5" height="37.5"/><rect x="416" y="624.8" width="5" height="39.2"/><rect x="424" y="623.1" width="5" height="40.9"/><rect x="432" y="621.4" width="5" height="42.6"/><rect x="440" y="619.9" width="5" height="44.1"/><rect x="448" y="618.4" width="5" height="45.6"/><rect x="456" y="617.1" width="5" height="46.9"/><rect x="464" y="616.0" width="5" height="48.0"/><rect x="472" y="615.1" width="5" height="48.9"/><rect x="480" y="614.3" width="5" height="49.7"/><rect x="488" y="613.9" width="5" height="50.1"/><rect x="496" y="613.6" width="5" height="50.4"/><rect x="504" y="613.6" width="5" height="50.4"/><rect x="512" y="613.8" width="5" height="50.2"/><rect x="520" y="614.1" width="5" height="49.9"/><rect x="528" y="614.5" width="5" height="49.5"/><rect x="536" y="615.0" width="5" height="49.0"/><rect x="544" y="615.5" width="5" height="48.5"/><rect x="552" y="616.0" width="5" height="48.0"/><rect x="560" y="616.5" width="5" height="47.5"/><rect x="568" y="617.0" width="5" height="47.0"/><rect x="576" y="617.5" width="5" height="46.5"/><rect x="584" y="617.9" width="5" height="46.1"/><rect x="592" y="618.2" width="5" height="45.8"/></g>
+    <line x1="200" y1="666" x2="600" y2="666" class="sl"/>
+    <text x="200" y="688" class="say">50 &#215; 6 joint angles, 1.7 seconds of motion at 30 Hz</text>
+    <text x="200" y="704" class="lbl">THE ARM REFILLS THE QUEUE BEFORE IT EMPTIES, SO IT NEVER STOPS TO THINK</text>
+    <text x="722" y="630" class="big" style="font-size:21px;fill:var(--apple)">50 &#215; 6</text>
+    <text x="722" y="652" class="say">numbers, then it looks</text>
+    <text x="722" y="669" class="say">at the world again</text>
+  </svg>
+  <figcaption>Read top to bottom. Bands one to three run once per observation. Band four runs ten times and moves 50 tokens rather than 291. Every number here has its working somewhere above.</figcaption>
+</figure>
+
+<p>Taking it apart mostly taught us how little of it is new. Flow matching and the action expert come from <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&#960;<sub>0</sub></a>, the frozen backbone is <a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">SmolVLM-2</a> off the shelf, and action chunking goes back to <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT</a> in 2023. What SmolVLA adds is decisions about what to leave out, half the language model&#39;s layers, 64 visual tokens per camera rather than 1024, an expert three quarters the width of the tower it copied. None is interesting alone, and together they are most of the distance from 3.3 billion parameters to 450 million.</p>
+
+<p class="note">We run <a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">SO-101</a> arms, the hardware SmolVLA is evaluated on in Table 4. Everything marked <em>measured</em> came out of hooking the released model on our own rig, and the full teardown, with shapes and file references, sits in <a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">our repo</a>. For what a VLA still leaves undone, there is <a href="a-vla-is-not-the-policy.html">the other post</a>.</p>
+</div>
+    </div>
+
+    <section class="bp-src">
+      <h2>Sources</h2>
+      <ol><li><a href="https://arxiv.org/abs/2506.01844" target="_blank" rel="noopener">Shukor, Aubakirova, Capuano et al., <em>SmolVLA: A vision-language-action model for affordable and efficient robotics</em>, arXiv:2506.01844v1, June 2025</a><span>the paper's own figures, including 450M parameters with ~100M in the action expert, the first 16 of the language model's layers, 64 visual tokens per frame, chunk size 50, 10 flow-matching steps, expert width 0.75&#215;d, Tables 6 to 13, and the async timings of 9.7 s against 13.75 s</span></li><li><a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">Phi, <em>SmolVLA: a frozen VLM with an action expert bolted on</em></a><span>every number marked <em>measured</em>: the ledger closing at 450,046,176 with 99,880,992 trainable and 1,635,152 structurally new; the 47.3M dead <code>lm_head</code>; the 480&#215;640 resize landing at 512&#215;384 with 128 padded rows and 25.0% dead pixels; the (768, 3, 16, 16) patch convolution at 589,824 weights; the (1024, 768) position table; the 241-token prefix and 291-token sequence at the 48-token language cap, and the 199-token prefix our own instruction really gives; the block-causal mask; the 720-number clock with periods 0.004 to 4.000 and norm &#8730;360; the 1,556,640-weight time-fusion MLP at 95.2% of all new weights; 24 attention calls across 16 layers; the expert re-projecting cached keys through <code>Linear(320&#8594;320)</code>; the 4.9 MB bf16 cache; and Euler integration landing at 0.0000</span></li><li><a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">Black et al., <em>&#960;<sub>0</sub>: A Vision-Language-Action Flow Model for General Robot Control</em>, 2024</a><span>the 3.3B model SmolVLA is measured against, pretrained on 10,000 hours of robot data; origin of the flow-matching action expert and the Beta-distributed noise level</span></li><li><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al., <em>Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</em> (ACT), RSS 2023</a><span>action chunking, and the single-task baseline in the paper's real-world tables</span></li><li><a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">Marafioti et al., <em>SmolVLM2</em>, Hugging Face, 2025</a><span>the frozen backbone, a SigLIP vision encoder feeding a SmolLM2 decoder</span></li><li><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">Cadene et al., <em>LeRobot</em></a><span>the implementation everything was measured against, <code>lerobot/policies/smolvla/</code> at version 0.6.0</span></li></ol>
+    </section>
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="../assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="../index.html">Home</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="https://github.com/physical-hardware-intelligence/phi" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club.</p>
+</footer>
+<script>
+(function(){
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){
+    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
+  var fo=new IntersectionObserver(function(es){
+    es.forEach(function(e){e.target.classList.toggle('run',e.isIntersecting);});
+  },{threshold:0.15});
+  document.querySelectorAll('.fig').forEach(function(el){fo.observe(el);});
+  // the 50 slider cells ship in the markup, so the figure still reads with scripts off
+  var cells=document.getElementById('cells');
+  var STEPS=[1,10,30,50], RATE=['80.3','82.8','70.8','51.8'];
+  var sl=document.getElementById('sl'), out=document.getElementById('out'),
+      rate=document.getElementById('ratetxt'), blind=document.getElementById('blindtxt');
+  function paint(){
+    var n=STEPS[+sl.value];
+    [].forEach.call(cells.children,function(c,i){
+      c.setAttribute('fill', i<n ? '#B23A2E' : '#ECE7DC');
+      c.setAttribute('fill-opacity', i<n ? (0.18+0.8*(i/Math.max(n-1,1))) : 1);
+      c.setAttribute('stroke','#D3C9B4');
+    });
+    out.innerHTML='<b>'+n+'</b> step'+(n===1?'':'s')+' &#183; '+RATE[+sl.value];
+    rate.textContent=RATE[+sl.value];
+    blind.textContent = n===1 ? 'every step acts on a fresh frame'
+      : 'the last of these '+n+' steps acts on a frame '+(n-1)+' steps old';
+  }
+  if(sl){ sl.addEventListener('input',paint); paint(); }
+  document.addEventListener('click',function(e){
+    var g=e.target.closest?e.target.closest('.gl'):null;
+    if(!g)document.querySelectorAll('.gl').forEach(function(el){el.blur();});
+  });
+})();
+</script>
+</body>
+</html>
