@@ -126,7 +126,8 @@
   @media (max-width:620px){ .bp-body{font-size:1.02rem} .bp-body .lede{font-size:1.1rem} .led{font-size:.88rem} }
   @media (prefers-reduced-motion:reduce){ .reveal,.reveal.vis{opacity:1!important;animation:none!important} }
   .reveal{opacity:0}
-  .reveal.vis{animation:rv .5s var(--ease) both}
+  .reveal.vis,.reveal.in{animation:rv .5s var(--ease) both}
+  .mono{font-family:var(--mono);font-size:.92em}
   @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 </style>
 </head>
@@ -279,6 +280,12 @@
     <text x="472" y="386" class="bs">phi_so101_cubes_cylinder_v1. limits are from the URDF.</text>
   </svg>
   <figcaption>The three crossed circles are the tell. <code>shoulder_lift</code>, <code>elbow_flex</code> and <code>wrist_flex</code> rotate about axes that are exactly parallel, verified to |axis&#183;axis| = 1.000000, so together they form a planar chain rather than three independent directions.</figcaption>
+</figure>
+
+<figure class="fig">
+  <canvas id="armCanvas" role="img" aria-label="Interactive SO-ARM101 robot arm. Drag to move it, tap a numbered joint to read what that joint does."></canvas>
+  <p class="arm-readout" id="armReadout" aria-live="polite"><span class="ar-hint">Drag to move the arm &middot; tap a joint to learn what it does</span></p>
+  <figcaption>The same arm, posed by you. Drag the gripper and watch which joints have to move to get it there. Try holding the gripper in one place and re-aiming it: you cannot, and joints <span class="mono">2</span>, <span class="mono">3</span> and <span class="mono">4</span> being parallel is the reason.</figcaption>
 </figure>
 
 <p>During training we do not ask the network to produce that trajectory from nothing. We take the real trajectory from a human demonstration, deliberately corrupt it, and ask the network to identify the corruption.</p>
@@ -1001,19 +1008,6 @@
   </div>
   <p class="footer-fine">Open source · built by the club.</p>
 </footer>
-<script>
-(function(){
-  var nav=document.getElementById('nav'),t=false;
-  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
-  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
-  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
-  if(tg&&lk)tg.addEventListener('click',function(){
-    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
-  var io=new IntersectionObserver(function(es){
-    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
-  },{threshold:0.08,rootMargin:'0px 0px -5% 0px'});
-  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
-})();
-</script>
+<script src="../main.js"></script>
 </body>
 </html>
