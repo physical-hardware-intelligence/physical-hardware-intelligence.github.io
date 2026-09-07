@@ -112,6 +112,27 @@
     .fig .a-sweep,.fig .a-pulse,.fig .a-drift{animation:none;opacity:1}
   }
 
+  /* interactive arm sits beside its own data */
+  .armfig{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);
+    gap:clamp(16px,2.4vw,36px);align-items:center}
+  .armfig #armCanvas{height:clamp(300px,38vh,400px);margin-top:0}
+  .armfig .arm-readout{max-width:none;margin-top:6px;font-size:.97rem}
+  .jtab .jt-h{margin:0 0 10px;font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-3)}
+  .jtab table{width:100%;border-collapse:collapse;font-size:.93rem}
+  .jtab th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:400;text-align:left;padding:0 8px 7px 0;border-bottom:1px solid var(--ink)}
+  .jtab td{padding:7px 8px 7px 0;border-bottom:1px solid var(--line);transition:background .18s var(--ease)}
+  .jtab td.n{font-family:var(--mono);font-size:11px;color:var(--ink-3);width:1.4em}
+  .jtab td.v,.jtab th.v{font-family:var(--mono);font-size:.86rem;text-align:right;white-space:nowrap}
+  .jtab td.l{font-family:var(--mono);font-size:.78rem;color:var(--ink-3);white-space:nowrap;text-align:right}
+  .jtab tr.jaw td{border-top:1px solid var(--apple)}
+  .jtab tr.on td{background:rgba(178,58,46,.09)}
+  .jtab tr.on td.n{color:var(--apple)}
+  .jtab .jt-f{margin:12px 0 0;font-size:.84rem;line-height:1.5;color:var(--ink-3)}
+  .jtab .jt-f b{color:var(--ink);font-weight:500}
+  @media (max-width:760px){ .armfig{grid-template-columns:1fr} }
+
   .bp-src{max-width:720px;margin:0 auto;padding:clamp(40px,5vw,60px) clamp(20px,5vw,44px) 0}
   .bp-src h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
     color:var(--ink-3);border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
@@ -198,94 +219,102 @@
 
 <p>The policy emits a tensor of shape <code>(1, 48, 6)</code>. Forty-eight future timesteps, six joint angles each. At 30 frames per second that is <strong>1.6 seconds of motion committed in one forward pass</strong>. This is action chunking, and it is the reason imitation learning works at all.</p>
 
-<p>Six numbers, on an arm that has <strong>five</strong> degrees of freedom. Both are true, and the gap is worth a minute.</p>
-
-<p><strong>The sixth is the jaw.</strong> Five joints decide where the gripper goes. The sixth decides only whether it is open. Georgia Tech's <a href="https://maegantucker.com/ECE4560/assignment6-so101/" target="_blank" rel="noopener">ECE 4560</a> makes the same cut when it has students build the forward kinematics: the chain is <code>gw1 @ g12 @ g23 @ g34 @ g45 @ g5t</code>, five transforms, and the assignment says outright that the moving jaw does not influence where the object would be, so joint 6 is excluded. Vendor pages and NVIDIA's own SO-101 course both say "6-DOF". They are counting the gripper.</p>
-
-<p>And there is a second reduction hiding inside the remaining five. We composed the URDF origins and found that <code>shoulder_lift</code>, <code>elbow_flex</code> and <code>wrist_flex</code> rotate about axes that are <strong>exactly parallel</strong>, to |axis&#183;axis| = 1.000000 for all three pairs. So the topology is not five arbitrary joints. It is:</p>
-
-<p><code>[base yaw] &#8594; [planar 3R pitch chain] &#8594; [tool roll]</code></p>
-
-<p>There is no wrist yaw anywhere in it. Over 200,000 random configurations the gripper's approach axis never left the vertical plane chosen by <code>shoulder_pan</code>, to within 0.43&#176;. You cannot hold the gripper still and re-aim it; re-aiming means rotating the base, which moves the gripper. The one escape is a straight-down approach, where the plane constraint is vacuous and <code>wrist_roll</code> gives you the full 360&#176; of tool yaw. <strong>Top-down grasps have free yaw. Nothing else does.</strong></p>
+<p>Six numbers, on an arm with <strong>five</strong> degrees of freedom. Both are true.</p>
 
 <figure class="fig">
-  <svg viewBox="0 0 980 424" role="img" aria-label="The SO-101 arm in side view with its six joints labelled, beside a real action vector of six joint angles. Three of the joints are parallel pitch axes, and the sixth joint only opens the jaw.">
+  <svg viewBox="0 0 940 356" role="img" aria-label="Roll, pitch and yaw shown on an aircraft in three views, then mapped onto the SO-101's joints. Three of the arm's joints all pitch about the same axis.">
+    <text x="30" y="26" class="dh">THE THREE WAYS A BODY CAN TURN</text>
+
+    <!-- ROLL: front view -->
+    <g transform="translate(126,146)">
+      <line x1="-64" y1="0" x2="64" y2="0" class="ln" stroke-width="5"/>
+      <ellipse cx="0" cy="-2" rx="13" ry="15" class="box fillp"/>
+      <line x1="0" y1="-17" x2="0" y2="-34" class="ln" stroke-width="3"/>
+      <circle cx="0" cy="-2" r="7" class="box fillp"/>
+      <path d="M-3.6 -5.6 l7.2 7.2 M3.6 -5.6 l-7.2 7.2" class="ln"/>
+      <path d="M-52 26 A 54 54 0 0 0 52 26" class="ln r" fill="none" marker-end="url(#aP)"/>
+      <text x="0" y="76" class="bt sm" text-anchor="middle">roll</text>
+      <text x="0" y="96" class="bs" text-anchor="middle">about the axis it</text>
+      <text x="0" y="113" class="bs" text-anchor="middle">points along</text>
+    </g>
+
+    <!-- PITCH: side view -->
+    <g transform="translate(330,146)">
+      <path d="M-58 0 L38 0 L58 -3 L38 -7 L-58 -5 Z" class="box" fill="#C4B99F"/>
+      <path d="M-58 -4 L-46 -30 L-36 -4 Z" class="box" fill="#C4B99F"/>
+      <line x1="-8" y1="-2" x2="-8" y2="14" class="ln" stroke-width="4"/>
+      <circle cx="-8" cy="-2" r="7" class="box fillp"/>
+      <path d="M-11.6 -5.6 l7.2 7.2 M-4.4 -5.6 l-7.2 7.2" class="ln"/>
+      <path d="M46 -30 A 54 54 0 0 1 46 26" class="ln r" fill="none" marker-end="url(#aP)"/>
+      <text x="0" y="76" class="bt sm" text-anchor="middle">pitch</text>
+      <text x="0" y="96" class="bs" text-anchor="middle">nose up and</text>
+      <text x="0" y="113" class="bs" text-anchor="middle">nose down</text>
+    </g>
+
+    <!-- YAW: plan view -->
+    <g transform="translate(542,146)">
+      <path d="M0 -46 L7 -20 L52 16 L52 26 L7 12 L7 30 L18 40 L18 46 L0 40 L-18 46 L-18 40 L-7 30 L-7 12 L-52 26 L-52 16 L-7 -20 Z" class="box" fill="#C4B99F"/>
+      <circle cx="0" cy="0" r="7" class="box fillp"/>
+      <path d="M-3.6 -3.6 l7.2 7.2 M3.6 -3.6 l-7.2 7.2" class="ln"/>
+      <path d="M-44 -30 A 56 56 0 0 1 44 -30" class="ln r" fill="none" marker-end="url(#aP)"/>
+      <text x="0" y="76" class="bt sm" text-anchor="middle">yaw</text>
+      <text x="0" y="96" class="bs" text-anchor="middle">nose left and</text>
+      <text x="0" y="113" class="bs" text-anchor="middle">nose right</text>
+    </g>
+
+    <line x1="640" y1="60" x2="640" y2="300" class="rail"/>
+
+    <!-- mapping -->
+    <text x="676" y="26" class="dh r">WHICH JOINT DOES WHICH</text>
+    <text x="676" y="70" class="bs"><tspan class="num">1</tspan> shoulder_pan</text><text x="900" y="70" class="bn" text-anchor="end">YAW</text>
+    <line x1="676" y1="84" x2="900" y2="84" class="rail"/>
+    <text x="676" y="110" class="bs"><tspan class="num">2</tspan> shoulder_lift</text><text x="900" y="110" class="bn r" text-anchor="end">PITCH</text>
+    <text x="676" y="136" class="bs"><tspan class="num">3</tspan> elbow_flex</text><text x="900" y="136" class="bn r" text-anchor="end">PITCH</text>
+    <text x="676" y="162" class="bs"><tspan class="num">4</tspan> wrist_flex</text><text x="900" y="162" class="bn r" text-anchor="end">PITCH</text>
+    <line x1="676" y1="176" x2="900" y2="176" class="rail"/>
+    <text x="676" y="202" class="bs"><tspan class="num">5</tspan> wrist_roll</text><text x="900" y="202" class="bn" text-anchor="end">ROLL</text>
+
+    <rect x="676" y="224" width="234" height="76" class="box hi"/>
+    <text x="694" y="248" class="bt sm">Three pitches, one axis.</text>
+    <text x="694" y="270" class="bs">They share a plane, so they buy</text>
+    <text x="694" y="288" class="bs">three freedoms, not three axes.</text>
+
     <defs>
-      <marker id="aJ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
-        <path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker>
+      <marker id="aP" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#B23A2E"/></marker>
     </defs>
-    <text x="30" y="26" class="dh">SIDE VIEW &#183; ONE POSE</text>
-
-    <!-- table -->
-    <line x1="46" y1="366" x2="316" y2="366" class="ln"/>
-    <!-- base + shoulder_pan (yaw about vertical) -->
-    <rect x="128" y="332" width="72" height="34" class="box"/>
-    <line x1="164" y1="300" x2="164" y2="340" class="rail"/>
-    <path d="M146 316 A 18 7 0 1 0 182 316" class="ln" fill="none" marker-end="url(#aJ)"/>
-    <text x="112" y="356" class="bn" text-anchor="end">1</text>
-
-    <!-- links -->
-    <line x1="164" y1="332" x2="164" y2="286" class="ln" stroke-width="7"/>
-    <line x1="164" y1="286" x2="236" y2="182" class="ln" stroke-width="7"/>
-    <line x1="236" y1="182" x2="312" y2="222" class="ln" stroke-width="7"/>
-    <line x1="312" y1="222" x2="360" y2="196" class="ln" stroke-width="5"/>
-
-    <!-- pitch joints: identical glyph, and that is the point -->
-    <g>
-      <circle cx="164" cy="286" r="8" class="box fillp"/><path d="M158.5 280.5 l11 11 M169.5 280.5 l-11 11" class="ln"/>
-      <text x="146" y="278" class="bn" text-anchor="end">2</text>
-      <circle cx="236" cy="182" r="8" class="box fillp"/><path d="M230.5 176.5 l11 11 M241.5 176.5 l-11 11" class="ln"/>
-      <text x="228" y="168" class="bn" text-anchor="end">3</text>
-      <circle cx="312" cy="222" r="8" class="box fillp"/><path d="M306.5 216.5 l11 11 M317.5 216.5 l-11 11" class="ln"/>
-      <text x="322" y="242" class="bn">4</text>
-    </g>
-
-    <!-- wrist_roll about the tool axis -->
-    <path d="M344 178 A 12 6 -28 1 0 366 190" class="ln r" fill="none" marker-end="url(#aJ)"/>
-    <text x="352" y="166" class="bn r">5</text>
-
-    <!-- jaw -->
-    <line x1="360" y1="196" x2="386" y2="180" class="ln" stroke-width="3"/>
-    <line x1="360" y1="196" x2="382" y2="208" class="ln" stroke-width="3"/>
-    <text x="394" y="196" class="bn r">6</text>
-
-    <text x="46" y="392" class="bs">joints <tspan class="num">2</tspan>, <tspan class="num">3</tspan> and <tspan class="num">4</tspan> carry the same glyph because their axes are</text>
-    <text x="46" y="410" class="bs"><tspan font-weight="600">exactly parallel</tspan>. that makes them one planar chain, not three freedoms.</text>
-
-    <line x1="440" y1="46" x2="440" y2="398" class="rail"/>
-
-    <!-- the action vector -->
-    <text x="472" y="26" class="dh r">ONE ROW OF THE ACTION CHUNK &#183; MEASURED</text>
-    <text x="472" y="62" class="bn">JOINT</text>
-    <text x="726" y="62" class="bn" text-anchor="end">VALUE</text>
-    <text x="762" y="62" class="bn">LIMIT</text>
-    <text x="846" y="62" class="bn">DOES WHAT</text>
-    <line x1="472" y1="72" x2="950" y2="72" class="ln"/>
-
-    <g>
-      <text x="472" y="98" class="bs">1 &#183; shoulder_pan</text><text x="726" y="98" class="num" text-anchor="end">&#8722;4.0&#176;</text><text x="762" y="98" class="num">&#177;110&#176;</text><text x="846" y="98" class="bs">moves the gripper</text>
-      <text x="472" y="126" class="bs">2 &#183; shoulder_lift</text><text x="726" y="126" class="num" text-anchor="end">&#8722;29.0&#176;</text><text x="762" y="126" class="num">&#177;100&#176;</text><text x="846" y="126" class="bs">moves the gripper</text>
-      <text x="472" y="154" class="bs">3 &#183; elbow_flex</text><text x="726" y="154" class="num" text-anchor="end">+38.2&#176;</text><text x="762" y="154" class="num">&#177;96.8&#176;</text><text x="846" y="154" class="bs">moves the gripper</text>
-      <text x="472" y="182" class="bs">4 &#183; wrist_flex</text><text x="726" y="182" class="num" text-anchor="end">+28.4&#176;</text><text x="762" y="182" class="num">&#177;95&#176;</text><text x="846" y="182" class="bs">moves the gripper</text>
-      <text x="472" y="210" class="bs">5 &#183; wrist_roll</text><text x="726" y="210" class="num" text-anchor="end">&#8722;61.9&#176;</text><text x="762" y="210" class="num">&#8722;157/+163&#176;</text><text x="846" y="210" class="bs">moves the gripper</text>
-    </g>
-    <line x1="472" y1="228" x2="950" y2="228" class="ln r"/>
-    <text x="472" y="254" class="bs">6 &#183; gripper</text><text x="726" y="254" class="num r" text-anchor="end">+1.2&#176;</text><text x="762" y="254" class="num r">&#8722;10/+100&#176;</text><text x="846" y="254" class="bs">opens the jaw</text>
-
-    <rect x="472" y="286" width="478" height="52" class="box hi"/>
-    <text x="492" y="308" class="bt sm">Five joints place the gripper. The sixth only opens it.</text>
-    <text x="492" y="328" class="bs">That is why a 6-number action vector is a 5-DOF arm.</text>
-
-    <text x="472" y="368" class="bs">values are the median action across all 120 episodes of</text>
-    <text x="472" y="386" class="bs">phi_so101_cubes_cylinder_v1. limits are from the URDF.</text>
   </svg>
-  <figcaption>The three crossed circles are the tell. <code>shoulder_lift</code>, <code>elbow_flex</code> and <code>wrist_flex</code> rotate about axes that are exactly parallel, verified to |axis&#183;axis| = 1.000000, so together they form a planar chain rather than three independent directions.</figcaption>
+  <figcaption>Roll, pitch and yaw are the three ways any rigid body can turn; a crossed circle marks the axis going into the page. The SO-101 spends three of its five joints on the same pitch axis, which is why it can reach a point in many ways but can never yaw the gripper on its own.</figcaption>
 </figure>
 
+<p><strong>The sixth number is the jaw, not a direction.</strong> Five joints place the gripper. The sixth only opens it, which is why a six-number action vector describes a five-DOF arm.</p>
+
+<p>And the five you get are not five free directions. <code>shoulder_lift</code>, <code>elbow_flex</code> and <code>wrist_flex</code> all pitch about <strong>exactly parallel axes</strong>, measured at |axis&#183;axis| = 1.000000. Three joints, one plane. So <code>shoulder_pan</code> yaws to pick a vertical plane, the three pitch joints work inside it, and <code>wrist_roll</code> spins the tool. There is no wrist yaw anywhere in the chain.</p>
+
+<p>Over 200,000 random poses the gripper's approach direction never left the plane <code>shoulder_pan</code> chose, to within 0.43&#176;. <strong>You cannot hold the gripper still and re-aim it.</strong> Pose the arm below and try.</p>
+
 <figure class="fig">
-  <canvas id="armCanvas" role="img" aria-label="Interactive SO-ARM101 robot arm. Drag to move it, tap a numbered joint to read what that joint does."></canvas>
-  <p class="arm-readout" id="armReadout" aria-live="polite"><span class="ar-hint">Drag to move the arm &middot; tap a joint to learn what it does</span></p>
-  <figcaption>The same arm, posed by you. Drag the gripper and watch which joints have to move to get it there. Try holding the gripper in one place and re-aiming it: you cannot, and joints <span class="mono">2</span>, <span class="mono">3</span> and <span class="mono">4</span> being parallel is the reason.</figcaption>
+  <div class="armfig">
+    <div>
+      <canvas id="armCanvas" role="img" aria-label="Interactive SO-ARM101 robot arm. Drag to move it, tap a numbered joint to read what that joint does."></canvas>
+      <p class="arm-readout" id="armReadout" aria-live="polite"><span class="ar-hint">Drag to move the arm &middot; tap a joint to learn what it does</span></p>
+    </div>
+    <div class="jtab">
+      <p class="jt-h">One row of the action chunk</p>
+      <table>
+        <tr><th></th><th>joint</th><th class="v">value</th><th>limit</th></tr>
+        <tr id="jr1"><td class="n">1</td><td>shoulder_pan</td><td class="v">&#8722;4.0&#176;</td><td class="l">&#177;110&#176;</td></tr>
+        <tr id="jr2"><td class="n">2</td><td>shoulder_lift</td><td class="v">&#8722;29.0&#176;</td><td class="l">&#177;100&#176;</td></tr>
+        <tr id="jr3"><td class="n">3</td><td>elbow_flex</td><td class="v">+38.2&#176;</td><td class="l">&#177;96.8&#176;</td></tr>
+        <tr id="jr4"><td class="n">4</td><td>wrist_flex</td><td class="v">+28.4&#176;</td><td class="l">&#177;95&#176;</td></tr>
+        <tr id="jr5"><td class="n">5</td><td>wrist_roll</td><td class="v">&#8722;61.9&#176;</td><td class="l">&#8722;157/+163&#176;</td></tr>
+        <tr id="jr6" class="jaw"><td class="n">6</td><td>gripper</td><td class="v">+1.2&#176;</td><td class="l">&#8722;10/+100&#176;</td></tr>
+      </table>
+      <p class="jt-f"><b>1&#8211;5 place the gripper. 6 only opens it.</b><br>
+      Values are the median action over all 120 episodes of <span class="mono">phi_so101_cubes_cylinder_v1</span>. Limits from the URDF.</p>
+    </div>
+  </div>
+  <figcaption>Tap a numbered joint and its row lights up. Joints <span class="mono">2</span>, <span class="mono">3</span> and <span class="mono">4</span> are the parallel pitch chain: move any of them and the gripper stays in the same vertical plane.</figcaption>
 </figure>
 
 <p>During training we do not ask the network to produce that trajectory from nothing. We take the real trajectory from a human demonstration, deliberately corrupt it, and ask the network to identify the corruption.</p>
@@ -1009,5 +1038,19 @@
   <p class="footer-fine">Open source · built by the club.</p>
 </footer>
 <script src="../main.js"></script>
+<script>
+(function(){
+  var ro=document.getElementById('armReadout'); if(!ro) return;
+  function sync(){
+    var m=/J(\d)/.exec(ro.textContent||'');
+    for(var i=1;i<=6;i++){
+      var tr=document.getElementById('jr'+i);
+      if(tr) tr.classList.toggle('on', !!m && +m[1]===i);
+    }
+  }
+  new MutationObserver(sync).observe(ro,{childList:true,subtree:true,characterData:true});
+  sync();
+})();
+</script>
 </body>
 </html>
