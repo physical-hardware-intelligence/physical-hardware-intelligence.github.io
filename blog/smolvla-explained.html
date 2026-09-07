@@ -49,8 +49,6 @@
   .bp-body a:hover{border-color:var(--apple);color:var(--apple)}
   .bp-body code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
     padding:.1em .34em;border-radius:2px;color:var(--ink)}
-  .bp-body .note{margin-top:clamp(30px,4vw,44px);padding-top:20px;border-top:1px solid var(--line);
-    font-size:.98rem;color:var(--ink-2)}
   .bp-body .aside{margin:1.4em 0;padding:14px 18px;border-left:2px solid var(--line-2);
     background:var(--paper-2);font-size:.97rem;line-height:1.62;color:var(--ink-2)}
   .bp-body .aside b{color:var(--ink);font-weight:500}
@@ -203,7 +201,7 @@
   <article>
     <div class="bp-wrap">
       <a class="bp-back" href="index.html">&#8592; Blog</a>
-      <p class="bp-meta"><span class="rt"><b>24 min</b> read</span><span>5 August 2026</span><span>Written by Parv Patodia</span><span>Physical Hardware Intelligence</span></p>
+      <p class="bp-meta"><span class="rt"><b>23 min</b> read</span><span>5 August 2026</span><span>Written by Parv Patodia</span><span>Physical Hardware Intelligence</span></p>
       <h1>SmolVLA, explained from the ground up</h1>
       <p class="dek">A 450-million-parameter robot policy that beats a 3.3-billion-parameter one, and only about 1.6 million of its weights are new. We took it apart on our own arms, and this is all of it, starting from one red cube.</p>
       <hr class="bp-rule">
@@ -671,22 +669,22 @@
 
 <h2><span class="hn">07</span>Two towers, sixteen floors, twenty-four attentions</h2>
 
-<p>The two stacks walk forward together, and what passes between them depends on which floor you are standing on. This is the part described wrongly most often, including by the paper.</p>
+<p>The two stacks walk forward together, and what passes between them depends on the floor. This is the part described wrongly most often, including by the paper.</p>
 
-<p>On <strong>even floors</strong> there is no separate expert attention. Each tower runs its own tokens through its own query, key and value projections, the two sets are <em>concatenated on the token axis</em>, and one attention runs over the whole thing. One matrix, one softmax, scene and action tokens side by side, then the rows split apart and each tower keeps its half. We hooked the call, and in training it comes through as a (291, 291) map. <em>Measured.</em></p>
+<p>On <strong>even floors</strong> there is no separate expert attention. Each tower projects its own tokens into queries, keys and values, the two sets are <em>concatenated on the token axis</em>, and one attention runs over the whole thing. One matrix, one softmax, then the rows split apart and each tower keeps its half. We hooked the call, and in training it comes through as a (291, 291) map. <em>Measured.</em></p>
 
-<p>The paper calls those the floors where &#8220;action tokens attend to each other&#8221;, which leaves out the more interesting half, because in that same call the action tokens also attend over all 241 scene tokens. Nothing fetches the scene here, it is already in the matrix.</p>
+<p>The paper calls those the floors where &#8220;action tokens attend to each other&#8221;, which leaves out the half that matters, because in that same call the actions also attend over all 241 scene tokens. Nothing fetches the scene here, it is already in the matrix.</p>
 
-<p>On <strong>odd floors</strong> they come apart. The frozen tower attends over its own 241 tokens and the expert runs a separate 50&#215;241 attention against the frozen side. What we only found by hooking it is that the expert does not re-read the frozen hidden states. It takes the keys and values the frozen tower <em>already computed</em> and pushes each through its own <code>Linear(320 &#8594; 320)</code>, so it cannot change what the frozen model saw, only how it reads it.</p>
+<p>On <strong>odd floors</strong> they come apart. The frozen tower attends over its own 241 tokens and the expert runs a separate 50&#215;241 attention against the frozen side. Hooking it showed that the expert does not re-read the frozen hidden states. It takes the keys and values the frozen tower <em>already computed</em> and pushes each through its own <code>Linear(320 &#8594; 320)</code>, so it cannot change what the frozen model saw, only how it reads it.</p>
 
 
-<p>The widths have to meet. An action token arrives 720 wide and <code>q_proj</code> takes it <em>up</em> to <strong>960</strong>, because 960 is what splits into the frozen tower&#39;s 15 heads of 64.</p>
-<p>The keys on an odd floor are the frozen tower&#39;s, 5 key-value heads of 64 over 241 positions, each read by 3 query heads once expanded. Q times K transposed gives a 50 &#215; 241 table with no column for any action token, which is why actions cannot see each other here. After the softmax the heads merge back to 960 and <code>o_proj</code> drops the result to 720. Both towers divide by &#8730;64 = 8, because the scaling follows the head width, not the model width. <em>Measured.</em></p>
+<p>The widths have to meet, so an action token arrives 720 wide and <code>q_proj</code> takes it <em>up</em> to <strong>960</strong>, which is what splits into the frozen tower&#39;s 15 heads of 64. The keys are the frozen tower&#39;s, 5 key-value heads over 241 positions read by 3 query heads each, which is grouped-query attention, fifteen people asking questions of five filing cabinets. Q times K transposed gives a 50 &#215; 241 table with no column for any action token, which is why actions cannot see each other here, and <code>o_proj</code> drops the answer back to 720. <em>Measured.</em></p>
 
-<p>The 15-against-5 split is grouped-query attention, fifteen people asking questions of five filing cabinets, each consulted by three of them.</p>
-<p>What it saves is commonly overstated. Expanding the 5 key-value heads back out to 15 costs exactly what 15 real ones would, so the saving is only in the smaller <code>k_proj</code> and <code>v_proj</code>, a third off the four attention projections but about an eighth off a whole layer once the feed-forward is counted, and in the cache, 14.8 MB down to 4.9 MB in bfloat16. The cache is the half that matters, because the denoising loop is bound by memory reads. <em>Measured.</em></p>
-<p>Eight even floors are one call each, and eight odd floors are two, because the frozen tower still does its own 241&#215;241 pass before the expert reads it. Counting real calls on a training step gives eight at (291, 291), eight at (241, 241) and eight at (50, 241), which is 24. <em>Measured by wrapping the attention function.</em></p>
-<div class="aside"><b>At inference the same sixteen floors behave differently.</b> Nothing is concatenated. The prefix goes up all sixteen floors alone and its keys and values are cached, then each of the ten denoising passes sends only the 50 action tokens. That is 16 + 10 &#215; 16 = <strong>176</strong> calls per chunk. <em>Measured.</em> Same weights, same masks, same answer, different shape.</div>
+
+
+<p>What it saves is commonly overstated. Expanding the 5 key-value heads back out to 15 costs exactly what 15 real ones would, so the saving is only in the smaller <code>k_proj</code> and <code>v_proj</code>, a third off the four attention projections but about an eighth off a whole layer once the feed-forward is counted. The cache is the half that matters, 14.8 MB down to 4.9 MB in bfloat16, because the denoising loop is bound by memory reads. <em>Measured.</em></p>
+<p>Eight even floors are one call each, and eight odd floors are two, because the frozen tower still does its own 241&#215;241 pass before the expert reads it. A training step comes to eight at (291, 291), eight at (241, 241) and eight at (50, 241), which is 24. <em>Measured by wrapping the attention function.</em></p>
+
 <figure class="fig" id="f5">
   <svg viewBox="0 0 800 430" role="img" aria-label="Animated. Two towers side by side across sixteen floors. On even floors both towers join into one attention over all 291 tokens. On odd floors they split, and the expert reads the frozen tower&#39;s cached keys through a 50 by 241 attention. A pulse travels up the floors.">
     <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
@@ -718,13 +716,13 @@
     <line x1="20" y1="396" x2="780" y2="396" class="sl"/>
     <text x="20" y="418" class="mn">expert q_proj 720 &#8594; 960 &#183; attend in the shared 15&#215;64 head space &#183; o_proj 960 &#8594; 720</text>
   </svg>
-  <figcaption><em>Measured.</em> The width multiplier shrinks the expert&#39;s residual stream from 960 to 720 and its feed-forward from 2560 to 2048, and leaves head count and head width alone, because the even floors concatenate both towers&#39; heads.</figcaption>
+  <figcaption><em>Measured.</em> The width multiplier shrinks the expert&#39;s residual stream from 960 to 720 and its feed-forward from 2560 to 2048, leaving head count and head width alone so the even floors can concatenate both towers&#39; heads.</figcaption>
 </figure>
 
 
 
-<div class="aside"><b>Why half the layers.</b> Dropping the top half halves the cost of both the language model and the expert reading it, and the paper cites prior work showing layers can go without much loss. Table 8 prices depth at 75.0 for 8 layers, 78.5 for 16, 79.5 for 24 and 80.3 for all 32, so half the depth costs 1.8 points. It never claims the lower half handles language and the upper half something else, so the honest reading is that half was cheap and nearly as good.</div>
-<p>Alternating beats either alone, 85.5 against 79.0 for cross-attention only and 74.5 for self-attention only, because they do different jobs. Cross-attention is how the expert gets a cheap look at the scene. Self-attention is how action 30 finds out what action 29 committed to, and without it you hold 50 independent guesses rather than one motion.</p>
+<div class="aside"><b>Why half the layers.</b> Dropping the top half halves the cost of the language model and of the expert reading it. Table 8 prices depth at 75.0 for 8 layers, 78.5 for 16, 79.5 for 24 and 80.3 for all 32, so half the depth costs 1.8 points. The paper never claims the lower half handles language and the upper half something else, so the honest reading is that half was cheap and nearly as good.</div>
+<p>Alternating beats either alone, 85.5 against 79.0 for cross-attention only and 74.5 for self-attention only, because they do different jobs. Cross-attention is the expert&#39;s cheap look at the scene. Self-attention is how action 30 finds out what action 29 committed to, and without it you hold 50 independent guesses rather than one motion.</p>
 
 <h2><span class="hn">08</span>Why it starts from noise</h2>
 
@@ -813,12 +811,12 @@ loss = mse(u_t, model(x_t, time))</div>
     <line x1="24" y1="300" x2="916" y2="300" class="sl"/>
     <text x="24" y="322" class="mn">360 sines + 360 cosines = 720 &#183; periods 0.004 &#8594; 4.000, each 1.0194&#215; the last &#183; &#8214;emb&#8214; = &#8730;360 = 18.9737 at every time</text>
   </svg>
-  <figcaption><em>Measured.</em> The slowest period is 4.0, longer than the whole range of <code>time</code>, so it never comes back on itself. The fastest is 0.004, far finer than the 0.1 spacing of the ten steps. Both ends are chosen, not inherited.</figcaption>
+  <figcaption><em>Measured.</em> The slowest period, 4.0, is longer than the whole range of <code>time</code>, so it never comes back on itself. The fastest, 0.004, is far finer than the 0.1 spacing of the ten steps. Both ends are chosen, not inherited.</figcaption>
 </figure>
 
-<p>The result is sharper than you would guess. <em>Measured</em>, the clock at 0.50 and 0.51 has cosine similarity 0.5169, and by 0.55 that has fallen to 0.2842, so neighbouring steps do not look alike to the expert. The whole vector has length &#8730;360 = 18.9737 at every value, so the clock only changes direction, never magnitude, which stops it acting as a gain on the tokens it joins.</p>
-<p>In section 03 the vision tower told 1024 patch tokens where they sat by <strong>adding</strong> a position row onto each patch row, element by element, free. Here the expert has to tell 50 action tokens what time it is, and it does the opposite. The 720-number clock is <strong>concatenated</strong>, not added.</p>
-<p><code>action_in_proj</code> takes the noisy chunk up to <strong>(B, 50, 720)</strong> and the clock comes out as (B, 720), stretched across all fifty positions as a view rather than a copy. Then <code>cat(dim=2)</code> makes <strong>(B, 50, 1440)</strong> and two layers with a SiLU between them bring it back to 720, so every token carries the same clock and its own content side by side rather than mixed.</p>
+<p>It is sharper than you would guess. <em>Measured</em>, the clock at 0.50 and 0.51 has cosine similarity 0.5169, falling to 0.2842 by 0.55, so neighbouring steps do not look alike to the expert. Its length is &#8730;360 = 18.9737 at every value, so the clock only changes direction, never magnitude, and cannot act as a gain on the tokens it joins.</p>
+<p>In section 03 the vision tower told 1024 patch tokens where they sat by <strong>adding</strong> a position row onto each patch row, free. Here the expert has to tell 50 action tokens what time it is, and it does the opposite. The 720-number clock is <strong>concatenated</strong>, not added.</p>
+<p><code>action_in_proj</code> takes the noisy chunk up to <strong>(B, 50, 720)</strong> and the clock comes out as (B, 720), stretched across all fifty positions. Concatenating makes <strong>(B, 50, 1440)</strong>, and two layers with a SiLU between them bring it back to 720, so every token carries the same clock and its own content side by side rather than mixed.</p>
 
 <figure class="fig wide" id="fA">
   <svg viewBox="0 0 940 300" role="img" aria-label="Two wiring diagrams. Above, what SmolVLA does: the 720-number action token and the 720-number clock are concatenated into 1440 and fused by a two-layer MLP costing 1,556,640 weights. Below, the cheaper alternative: adding them element by element, which costs nothing but forces both facts into one shared space.">
@@ -851,10 +849,10 @@ loss = mse(u_t, model(x_t, time))</div>
   <figcaption><em>Measured.</em> The two fusion layers come to 1,556,640 of the 1,635,152 structurally new weights, and the other three projections are the remaining 78,512.</figcaption>
 </figure>
 <p>Adding would have been free. Concatenating costs <code>Linear(1440 &#8594; 720)</code> and <code>Linear(720 &#8594; 720)</code>, which is 1,556,640 weights, <strong>95.2% of everything structurally new in SmolVLA</strong>, out of a five-module total of 1,635,152. <em>Measured.</em></p>
-<p>What the money buys is separability. Side by side, the MLP can learn any interaction between which step of the chunk a token is and how noisy the chunk is, where adding would fold both into the same 720 directions and make a late step in a clean chunk hard to tell from an early step in a noisy one. The tower gets away with adding because a patch&#39;s position never changes, while the clock changes on every one of the ten steps.</p>
+<p>What the money buys is separability. Side by side, the MLP can learn any interaction between where in the chunk a token sits and how noisy the chunk is. Added, both fold into the same 720 directions, and a late step in a clean chunk becomes hard to tell from an early step in a noisy one. The tower gets away with adding because a patch&#39;s position never changes.</p>
 
 
-<p>Coming back out is cheaper. <code>action_out_proj</code> takes each token&#39;s 720 numbers down to 32, and on our arm only the first 6 mean anything, because 32 is the cross-embodiment slot and the SO-101 has six joints. The other 26 are computed on every token of every step and dropped, because the loss is sliced to the real action dimension first, so they never see a gradient. <em>Measured.</em></p>
+<p>Coming back out is cheaper. <code>action_out_proj</code> takes each token&#39;s 720 numbers down to 32, and on our arm only the first 6 mean anything, because 32 is the cross-embodiment slot and the SO-101 has six joints. The other 26 are computed on every token of every step and dropped, because the loss is sliced first. <em>Measured.</em></p>
 
 
 <h2><span class="hn">10</span>Ten steps, and why ten is exact</h2>
@@ -924,7 +922,7 @@ loss = mse(u_t, model(x_t, time))</div>
   </svg>
   <figcaption><em>Measured.</em> The vision tower and the 241-token prefix run once for the whole chunk. Only the small side of the model runs ten times over.</figcaption>
 </figure>
-<p>The prefix is 241 of the 291 tokens, and after the sixteen floors it is kept as 16 layers of two tensors of shape (241, 5, 64), 4.9 MB in bfloat16. Everything after reads from it instead of recomputing, so the ten sampling passes each move 50 tokens rather than 291. <em>Measured.</em></p>
+<p>The prefix is 241 of the 291 tokens, and after the sixteen floors it is kept as 16 layers of two tensors of shape (241, 5, 64), 4.9 MB in bfloat16. Everything after reads from it instead of recomputing, so the ten sampling passes each move 50 tokens rather than 291. The whole chunk costs 16 + 10 &#215; 16 = <strong>176</strong> attention calls, against 24 in training, with the same weights and the same masks. <em>Measured.</em></p>
 
 <h2><span class="hn">12</span>How long can it act blind</h2>
 
@@ -985,14 +983,14 @@ loss = mse(u_t, model(x_t, time))</div>
 
 <h2><span class="hn">15</span>Read the tables, not the captions</h2>
 
-<p>Three things in the paper do not line up with themselves, and checking is better than trusting any summary of a paper, this one included.</p>
+<p>Three things in the paper do not line up with themselves, and checking beats trusting any summary, including this one.</p>
 
-<p>The expert that shipped is 0.75 times the width of the frozen tower. Table 9 tests four widths and its caption says a wider expert does better, while its own rows say <strong>&#215;0.50 is smaller and scores 2.8 points higher</strong> than the &#215;0.75 that shipped. Table 11 claims the frozen tower is the better home for the pose token under both attention variants, when its own self-attention rows go the other way, 53.3 against 74.8.</p>
+<p>Table 9 tests four expert widths and its caption says a wider expert does better, while its own rows say <strong>&#215;0.50 is smaller and scores 2.8 points higher</strong> than the &#215;0.75 that shipped. Table 11 claims the frozen tower is the better home for the pose token under both attention variants, when its own self-attention rows go the other way, 53.3 against 74.8.</p>
 
 
-<p>The plainest one is not an ablation. Table 1 counts the pretraining set at 481 datasets, 22.9K episodes and 10.6M frames, and its own caption says the set stands &#8220;at ~10M episodes&#8221;, having taken the frame count and put the wrong noun on it. The table above it is right.</p>
+<p>The plainest one is not an ablation. Table 1 counts the pretraining set at 481 datasets, 22.9K episodes and 10.6M frames, and its own caption says the set stands &#8220;at ~10M episodes&#8221;, which took the frame count and put the wrong noun on it.</p>
 
-<p>The shipped choices might still be right, because every one of these ablations is trained from scratch on LIBERO with no robotics pretraining, and the released model is a different setting where the ordering could flip. Anyone who reads the captions and skips the tables gets a tidier story than the numbers support.</p>
+<p>The shipped choices might still be right, because every one of these ablations is trained from scratch on LIBERO with no robotics pretraining and the released model is a different setting. Anyone who reads the captions and skips the tables gets a tidier story than the numbers support.</p>
 
 <table class="tb">
   <caption>Every ablation in the paper, LIBERO average, trained from scratch with the backbone frozen. Shipped choice in red. Tables 6 to 13.</caption>
@@ -1159,7 +1157,7 @@ loss = mse(u_t, model(x_t, time))</div>
 
 <p>Taking it apart mostly taught us how little of it is new. Flow matching and the action expert come from <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&#960;<sub>0</sub></a>, the frozen backbone is <a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">SmolVLM-2</a> off the shelf, and action chunking goes back to <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT</a> in 2023. What SmolVLA adds is decisions about what to leave out, and together they are most of the distance from 3.3 billion parameters to 450 million.</p>
 
-<p class="note">We run <a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">SO-101</a> arms, the hardware SmolVLA is evaluated on in Table 4. Everything marked <em>measured</em> came out of hooking the released model on our own rig, and the full teardown, with shapes and file references, sits in <a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">our repo</a>. For what a VLA still leaves undone, there is <a href="a-vla-is-not-the-policy.html">the other post</a>.</p>
+
 </div>
     </div>
 
