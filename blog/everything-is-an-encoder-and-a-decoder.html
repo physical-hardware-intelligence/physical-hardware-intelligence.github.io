@@ -26,6 +26,9 @@
   .bp-back:hover{color:var(--ink);border-color:var(--line-2)}
   .bp-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;
     text-transform:uppercase;color:var(--ink-3);margin:0 0 18px}
+  .bp-meta .rt{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--line-2);
+    border-radius:2px;color:var(--ink);background:var(--paper-2);letter-spacing:.06em}
+  .bp-meta .rt b{font-family:var(--disp);font-size:14px;font-weight:600;letter-spacing:0;color:var(--apple)}
   .bp h1{font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0}
   .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch}
   .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
@@ -84,13 +87,6 @@
   .fig .kp{fill:var(--apple)}
   .fig .barb{fill:var(--ink-3)}
   .fig .barr{fill:var(--apple)}
-
-  /* interactive control, matching the SmolVLA post */
-  .ctl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px auto 0;max-width:640px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
-  .ctl input[type=range]{flex:1;min-width:190px;accent-color:var(--apple);height:20px}
-  .ctl output{font-size:13px;letter-spacing:0;color:var(--ink);text-transform:none}
-  .ctl output b{font-family:var(--disp);font-size:17px;font-weight:600;color:var(--apple)}
 
   /* maths set inside figures */
   .fig .mth{font-family:var(--serif);font-size:14px;fill:var(--ink);font-style:italic}
@@ -154,7 +150,7 @@
   <article>
     <div class="bp-wrap">
       <a class="bp-back" href="index.html">&#8592; Blog</a>
-      <p class="bp-meta"><span>7 September 2026</span><span>11 min read</span><span>Physical Hardware Intelligence</span></p>
+      <p class="bp-meta"><span class="rt"><b>11 min</b> read</span><span>7 September 2026</span><span>Written by Yashvardhan Gupta</span><span>Physical Hardware Intelligence</span></p>
       <h1>Diffusion Policy &#8212; Transformer explained</h1>
       <hr class="bp-rule">
       <div class="bp-body">
@@ -635,94 +631,6 @@
   <figcaption>The shape of the two score matrices is the argument. 48&#215;48 keeps the trajectory coherent with itself. 48&#215;3 is the only doorway the world has into the model, and it is three tokens wide.</figcaption>
 </figure>
 
-<p>The easiest way to feel the asymmetry is to move the query. Pick an action token below and watch what it is allowed to look at.</p>
-
-<figure class="fig">
-  <svg viewBox="0 0 900 300" role="img" aria-label="Interactive diagram. A slider selects one of forty-eight action tokens. The upper strip shows that token's self attention weights over all forty-eight tokens. The lower strip shows its three cross attention weights over the memory.">
-    <text x="30" y="26" class="dh">SELF-ATTENTION &#183; THE SELECTED TOKEN LOOKS AT ALL 48</text>
-    <text x="870" y="26" class="bn r" text-anchor="end" id="atRow">ROW SUMS TO 1.000</text>
-      <rect id="sa0" x="40.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa1" x="57.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa2" x="75.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa3" x="92.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa4" x="110.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa5" x="127.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa6" x="145.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa7" x="162.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa8" x="180.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa9" x="197.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa10" x="215.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa11" x="232.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa12" x="250.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa13" x="267.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa14" x="285.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa15" x="302.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa16" x="320.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa17" x="337.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa18" x="355.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa19" x="372.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa20" x="390.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa21" x="407.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa22" x="425.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa23" x="442.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa24" x="460.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa25" x="477.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa26" x="495.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa27" x="512.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa28" x="530.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa29" x="547.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa30" x="565.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa31" x="582.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa32" x="600.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa33" x="617.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa34" x="635.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa35" x="652.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa36" x="670.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa37" x="687.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa38" x="705.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa39" x="722.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa40" x="740.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa41" x="757.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa42" x="775.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa43" x="792.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa44" x="810.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa45" x="827.5" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa46" x="845.0" y="96" width="15.5" height="34" class="slab"/>
-      <rect id="sa47" x="862.5" y="96" width="15.5" height="34" class="slab"/>
-    <line id="qmark" x1="40" y1="88" x2="55.5" y2="88" class="ln r" stroke-width="2.5"/>
-    <text id="qlab" x="47" y="80" class="bn r" text-anchor="middle">QUERY</text>
-      <text x="47.7" y="150" class="bn" text-anchor="middle">0</text>
-      <text x="187.7" y="150" class="bn" text-anchor="middle">8</text>
-      <text x="327.7" y="150" class="bn" text-anchor="middle">16</text>
-      <text x="467.7" y="150" class="bn" text-anchor="middle">24</text>
-      <text x="607.7" y="150" class="bn" text-anchor="middle">32</text>
-      <text x="747.7" y="150" class="bn" text-anchor="middle">40</text>
-      <text x="870.2" y="150" class="bn" text-anchor="middle">47</text>
-    <text x="30" y="176" class="bs">near neighbours dominate, which is what keeps the chunk smooth.</text>
-
-    <line x1="30" y1="196" x2="870" y2="196" class="rail"/>
-
-    <text x="30" y="226" class="dh r">CROSS-ATTENTION &#183; THE SAME TOKEN LOOKS AT 3</text>
-    <rect id="ca0" x="40" y="240" width="180" height="34" class="slab"/>
-    <text x="130" y="262" class="bn" text-anchor="middle">NOISE LEVEL k</text>
-    <text id="cv0" x="230" y="262" class="num r">0.00</text>
-
-    <rect id="ca1" x="300" y="240" width="180" height="34" class="slab"/>
-    <text x="390" y="262" class="bn" text-anchor="middle">FRAME t&#8722;1</text>
-    <text id="cv1" x="490" y="262" class="num r">0.00</text>
-
-    <rect id="ca2" x="560" y="240" width="180" height="34" class="slab"/>
-    <text x="650" y="262" class="bn" text-anchor="middle">FRAME t</text>
-    <text id="cv2" x="750" y="262" class="num r">0.00</text>
-  </svg>
-  <div class="ctl">
-    <label for="tok">Action token</label>
-    <input id="tok" type="range" min="0" max="47" step="1" value="12" aria-describedby="tokout">
-    <output id="tokout" for="tok"><b>12</b> &#183; 0.40 s into the chunk</output>
-  </div>
-  <figcaption>The <em>mechanism</em> is exact: one row of scores, softmaxed, summing to one, and the two rows have wildly different widths. The weights themselves are illustrative rather than read from our checkpoint. Note what does not change as you drag: the memory is always three tokens wide.</figcaption>
-</figure>
-
 <p>After eight of those, a final LayerNorm and a <code>Linear(256 &#8594; 6)</code> project every action token back down to six joint values. Output shape <code>(1, 48, 6)</code>, identical to the input. That is the predicted noise.</p>
 
 <p>At inference we run the decoder 16 times, subtracting a little of the predicted noise each pass. <strong>The memory is computed once</strong> and reused across all 16, which is why the vision cost is paid a single time per chunk rather than sixteen times.</p>
@@ -1017,36 +925,6 @@
   var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
   if(tg&&lk)tg.addEventListener('click',function(){
     var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
-  var tok=document.getElementById('tok');
-  if(tok){
-    var out=document.getElementById('tokout'), rowlab=document.getElementById('atRow');
-    function paintAttn(){
-      var q=+tok.value, w=[], sum=0;
-      for(var i=0;i<48;i++){ var d=i-q; var v=Math.exp(-d*d/32)+0.012; w.push(v); sum+=v; }
-      for(var i=0;i<48;i++){
-        var a=w[i]/sum, el=document.getElementById('sa'+i);
-        el.setAttribute('fill','#B23A2E');
-        el.setAttribute('fill-opacity', Math.min(0.92, a*7).toFixed(3));
-        el.setAttribute('stroke', i===q ? '#B23A2E' : '#D3C9B4');
-      }
-      document.getElementById('qmark').setAttribute('x1', 40+q*17.5);
-      document.getElementById('qmark').setAttribute('x2', 40+q*17.5+15.5);
-      document.getElementById('qlab').setAttribute('x', 40+q*17.5+7.7);
-      // illustrative: early steps lean on the current frame, later ones are more speculative
-      var f=q/47, c=[0.18+0.22*f, 0.20+0.10*f, 0.62-0.32*f], cs=c[0]+c[1]+c[2];
-      for(var j=0;j<3;j++){
-        var cv=c[j]/cs;
-        var r=document.getElementById('ca'+j);
-        r.setAttribute('fill','#B23A2E'); r.setAttribute('fill-opacity',(cv*1.15).toFixed(3));
-        r.setAttribute('stroke','#B23A2E');
-        document.getElementById('cv'+j).textContent=cv.toFixed(2);
-      }
-      out.innerHTML='<b>'+q+'</b> &#183; '+(q/30).toFixed(2)+' s into the chunk';
-      rowlab.textContent='ROW SUMS TO 1.000';
-    }
-    tok.addEventListener('input',paintAttn); paintAttn();
-  }
-
   var io=new IntersectionObserver(function(es){
     es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
   },{threshold:0.08,rootMargin:'0px 0px -5% 0px'});

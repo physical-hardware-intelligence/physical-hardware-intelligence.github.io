@@ -26,6 +26,9 @@
   .bp-back:hover{color:var(--ink);border-color:var(--line-2)}
   .bp-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;
     text-transform:uppercase;color:var(--ink-3);margin:0 0 18px}
+  .bp-meta .rt{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--line-2);
+    border-radius:2px;color:var(--ink);background:var(--paper-2);letter-spacing:.06em}
+  .bp-meta .rt b{font-family:var(--disp);font-size:14px;font-weight:600;letter-spacing:0;color:var(--apple)}
   .bp h1{font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0}
   .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch}
   .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
@@ -102,7 +105,7 @@
   <article>
     <div class="bp-wrap">
       <a class="bp-back" href="index.html">&#8592; Blog</a>
-      <p class="bp-meta"><span>21 August 2026</span><span>7 min read</span><span>Physical Hardware Intelligence</span></p>
+      <p class="bp-meta"><span class="rt"><b>7 min</b> read</span><span>21 August 2026</span><span>Written by Yashvardhan Gupta</span><span>Physical Hardware Intelligence</span></p>
       <h1>A VLA is not the policy</h1>
       <p class="dek">Action chunking is what made behaviour cloning work. It is also what leaves the policy blind for two seconds at a time.</p>
       <hr class="bp-rule">
