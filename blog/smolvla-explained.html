@@ -49,11 +49,6 @@
   .bp-body a:hover{border-color:var(--apple);color:var(--apple)}
   .bp-body code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
     padding:.1em .34em;border-radius:2px;color:var(--ink)}
-  .bp-body .note{margin-top:clamp(30px,4vw,44px);padding-top:20px;border-top:1px solid var(--line);
-    font-size:.98rem;color:var(--ink-2)}
-  .bp-body .aside{margin:1.4em 0;padding:14px 18px;border-left:2px solid var(--line-2);
-    background:var(--paper-2);font-size:.97rem;line-height:1.62;color:var(--ink-2)}
-  .bp-body .aside b{color:var(--ink);font-weight:500}
   .bp-body .mono{font-family:var(--mono);font-size:.82rem;line-height:1.85;color:var(--ink-2);
     background:var(--paper-2);border:1px solid var(--line);padding:14px 16px;margin:1.3em 0;
     overflow-x:auto;white-space:pre}
@@ -125,7 +120,6 @@
   @keyframes loop10{0%,90%{opacity:1}95%,100%{opacity:.15}}
   @keyframes rowsweep{from{transform:translateY(0)}to{transform:translateY(157.5px)}}
   @keyframes lyrx{from{transform:translateX(0)}to{transform:translateX(198px)}}
-  @keyframes pairx{0%,44%{transform:translateX(0)}50%,94%{transform:translateX(144px)}100%{transform:translateX(0)}}
 
   .a-tick{animation:tickx 3.3s steps(11,jump-none) infinite}
   .a-filt{animation:filt 5.4s linear infinite}
@@ -144,7 +138,6 @@
   .a-loop{animation:loop10 1.6s steps(1,end) infinite}
   .a-row{animation:rowsweep 4.8s steps(16,jump-none) infinite}
   .a-lyr{animation:lyrx 4.8s steps(12,jump-none) infinite}
-  .a-pair{animation:pairx 4s steps(1,end) infinite}
 
   .ctl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
     margin:14px auto 0;max-width:640px;font-family:var(--mono);font-size:11px;
@@ -203,25 +196,25 @@
   <article>
     <div class="bp-wrap">
       <a class="bp-back" href="index.html">&#8592; Blog</a>
-      <p class="bp-meta"><span class="rt"><b>32 min</b> read</span><span>5 August 2026</span><span>Written by Parv Patodia</span><span>Physical Hardware Intelligence</span></p>
+      <p class="bp-meta"><span class="rt"><b>18 min</b> read</span><span>5 August 2026</span><span>Written by Parv Patodia</span><span>Physical Hardware Intelligence</span></p>
       <h1>SmolVLA, explained from the ground up</h1>
-      <p class="dek">A 450-million-parameter robot policy that beats a 3.3-billion-parameter one, and only about 1.6 million of its weights are new. We took it apart on our own arms, and this is all of it, starting from one red cube.</p>
+      <p class="dek">A 450-million-parameter robot policy that beats a 3.3-billion-parameter one, and only about 1.6 million of its weights are new. We took it apart on our own arms, starting from one red cube.</p>
       <hr class="bp-rule">
       <div class="bp-body">
 
-<p class="lede">There is a red cube on a table in front of the arm, and you type &#8220;pick up the red cube,&#8221; and from that moment six motors need an angle from somebody, thirty times a second, until the cube is in the gripper. Pixels and a sentence in, joint angles out.</p>
+<p class="lede">A red cube sits on the table in front of the arm, you type &#8220;pick up the red cube,&#8221; and from that moment six motors need an angle from somebody, thirty times a second, until the cube is in the gripper. Pixels and a sentence in, joint angles out.</p>
 
-<p>Getting that done used to mean writing it out. Find the cube, estimate its pose, plan a path, hand the path to a controller, then rewrite the chain when someone leaves a spoon on the table instead. A <button type="button" class="gl" data-def="Vision-language-action. One network that maps camera frames plus a written instruction straight to motor commands, with no hand-written perception or planning stack in between.">vision-language-action model</button> throws the chain out. One network reads the frames and the sentence and emits joint angles, and everything a person used to specify is learned from recordings of people doing the job.</p>
+<p>That used to mean writing it out. Find the cube, estimate its pose, plan a path, hand it to a controller, then rewrite the chain when someone leaves a spoon on the table. A <button type="button" class="gl" data-def="Vision-language-action. One network that maps camera frames plus a written instruction straight to motor commands, with no hand-written perception or planning stack in between.">vision-language-action model</button> throws the chain out. One network reads the frames and the sentence and emits joint angles, and what a person used to specify is learned from recordings.</p>
 
-<p>What makes that work is that the seeing half does not start from scratch. It is a model already trained on internet images and captions, so &#8220;red&#8221; and &#8220;cube&#8221; mean something to it before a robot is involved, and only the half that turns understanding into motion has to be taught. It is also why these models are big. The published ones run to billions of parameters, which <a href="https://arxiv.org/abs/2506.01844" target="_blank" rel="noopener">the SmolVLA paper</a> says brings high training costs and limited real-world deployability, while recordings from people on cheap arms pile up unused.</p>
+<p>That works because the seeing half does not start from scratch. Trained on internet images and captions, it knows what &#8220;red&#8221; and &#8220;cube&#8221; mean before a robot is involved, so only the half that turns understanding into motion has to be taught. It is also why these models are big, and the SmolVLA paper calls them too costly to train and deploy while recordings from cheap arms pile up unused.</p>
 
-<p>So it sets a budget instead of a capability target. One GPU to train on, a consumer GPU or even a CPU to run on, no pretraining data beyond what the community had already uploaded, everything released.</p>
+<p>So SmolVLA sets a budget instead of a capability target. One GPU to train on, a consumer GPU or a CPU to run on, community data only, everything released. It lands at <strong>450 million parameters</strong> and <strong>87.3</strong> on the <button type="button" class="gl" data-def="A standard set of simulated robot arm tasks. The score is the percentage of attempts that finish the task.">LIBERO benchmark</button>, where <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&#960;<sub>0</sub></a> needs 3.3 billion and 10,000 hours of robot pretraining to reach <strong>86.0</strong>. Every choice inside it is about what to leave out.</p>
 
-<p>It lands at <strong>450 million parameters</strong> and <strong>87.3</strong> on the <button type="button" class="gl" data-def="A standard set of simulated robot arm tasks. The score is the percentage of attempts that finish the task.">LIBERO benchmark</button>, where <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&#960;<sub>0</sub></a> needs 3.3 billion and 10,000 hours of robot pretraining to reach <strong>86.0</strong>. It is smaller on every axis, so every choice inside it is a choice about what to leave out.</p>
 
-<p>Take it apart and almost nothing in it is new. The seeing half is borrowed and frozen, the moving half is a shrunken copy of that same half, and only about <strong>1.6 million</strong> weights have no counterpart in what was copied. 95% of those go on one piece of bookkeeping, and section 09 is why it was worth paying for. The rest is subtraction, and nearly every subtraction has a number behind it.</p>
 
-<p>One convention. Anything marked <em>measured</em> is ours, from forward hooks on the released code. Everything else is the paper&#39;s, and where the two disagree we say so.</p>
+
+
+<p>One convention. Anything marked <em>measured</em> is ours, from forward hooks on the released code. Everything else is the paper&#39;s, and where they disagree we say so.</p>
 
 <figure class="fig" id="f1">
   <svg viewBox="0 0 800 236" role="img" aria-label="The task, end to end. Three camera frames of a red cube on a table, plus the written instruction, enter the model. The model outputs fifty time steps of joint angles covering the next 1.7 seconds.">
@@ -251,16 +244,16 @@
     <text x="460" y="182" class="lbl">ONE JOINT DRAWN &#183; 1.7 SECONDS AT 30 Hz</text>
     <text x="460" y="212" class="red">not one action, a whole chunk of them</text>
   </svg>
-  <figcaption>The model does not emit one action, it emits the next 50 at once, about 1.7 seconds of motion, and almost every choice further down follows from that.</figcaption>
+  <figcaption>The model does not emit one action but the next 50 at once, about 1.7 seconds of motion, and almost every choice below follows from that.</figcaption>
 </figure>
 
 <h2><span class="hn">01</span>Almost none of it is new</h2>
 
-<p>Start with where the weights actually sit, because once you know that, the architecture stops reading like a design and starts reading like a set of consequences.</p>
 
-<p>There are two stacks. The left one is a <button type="button" class="gl" data-def="A model trained on internet images and captions. It can describe a picture, but knows nothing about robots.">vision-language model</button> that has seen enough of the internet to know what &#8220;red&#8221; and &#8220;cube&#8221; mean, and it is <button type="button" class="gl" data-def="Its weights never change during training. It stays exactly as it was pretrained.">frozen</button>, so none of that knowledge moves. The right one is a smaller <button type="button" class="gl" data-def="The new, trainable half of SmolVLA. It turns the frozen model&#39;s view of the scene into joint angles.">action expert</button> that only speaks joint angles, and it is the half that learns.</p>
 
-<p>Counting the model layer by layer, as the released config builds it, gives 450,046,176 parameters, of which 99,880,992 train. But the expert is a copy of the frozen architecture at smaller widths, so if you ask instead how many weights are <em>structurally new</em>, with no counterpart in the borrowed model, the answer is <strong>1,635,152</strong> across five small linear layers. That is 0.36% of the thing.</p>
+<p>Two stacks. The left is a <button type="button" class="gl" data-def="A model trained on internet images and captions. It can describe a picture, but knows nothing about robots.">vision-language model</button> carrying what it learned from the internet, and it is <button type="button" class="gl" data-def="Its weights never change during training. It stays exactly as it was pretrained.">frozen</button>, so none of that knowledge moves. The right is a smaller <button type="button" class="gl" data-def="The new, trainable half of SmolVLA. It turns the frozen model&#39;s view of the scene into joint angles.">action expert</button> that only speaks joint angles, and it is the half that learns.</p>
+
+<p>Counted layer by layer as the released config builds it, the model is 450,046,176 parameters, of which 99,880,992 train, and 47.3 million of the frozen half is an <code>lm_head</code> for turning hidden states back into words, on the GPU for nothing because the forward pass never calls it. Since the expert is a copy of the frozen architecture at smaller widths, the better question is how many weights are <em>structurally new</em>, with no counterpart in what was borrowed, and the answer is <strong>1,635,152</strong> across five small linear layers, 0.36% of the thing.</p>
 
 <figure class="fig wide" id="f2">
   <svg viewBox="0 0 940 372" role="img" aria-label="Where SmolVLA&#39;s 450 million parameters live, drawn to scale. The bar runs vision tower, connector, text model, dead language head, action expert, and new projections. Brackets mark 350.2 million frozen and 99.9 million trained. Below, the five linear layers that are structurally new total 1,635,152.">
@@ -306,19 +299,19 @@
     <text x="560" y="334" class="say">machinery that did not</text>
     <text x="560" y="354" class="say">already exist</text>
   </svg>
-  <figcaption><em>Measured.</em> 350,165,184 frozen plus 99,880,992 trained closes exactly on the released checkpoint. A borrowed describer carrying a small writer that is mostly a copy of it.</figcaption>
+  <figcaption><em>Measured.</em> 350,165,184 frozen plus 99,880,992 trained closes exactly on the released checkpoint.</figcaption>
 </figure>
 
-<div class="aside"><b>47.3 million dead parameters.</b> The frozen model arrives with <code>lm_head</code> attached, a 49280&#215;960 matrix for turning hidden states back into words, and it is a real second copy rather than a view onto the input embedding table. SmolVLA never generates a word, so the forward pass never calls it. Loaded and moved onto the GPU for nothing, 10.5% of the parameter count, 95 MB at bfloat16 you get back by deleting the module after load. <em>Measured.</em></div>
+
 
 <h2><span class="hn">02</span>From a 4:3 camera to a square</h2>
-<p>Nothing runs until the frame is square, because the vision tower takes 512&#215;512 and only that. Our cameras give 640 wide by 480 high, so something has to give, and one line of arithmetic decides which.</p>
-<p>The obvious move is to squash 640&#215;480 into 512&#215;512. Nobody does, because the tower doing the looking was never shown a squashed picture. Every resize in the processor SmolVLM ships with keeps the aspect ratio, and a frame that will not fit gets tiled instead of stretched. So squashing would hand a frozen encoder geometry it has never seen, a mug as an ellipse, a cube as a slab, with nothing downstream retrained to undo it.</p>
-<p>Better to keep the shapes honest and waste pixels. That reasoning is ours, read off the preprocessing code, and the paper does not ablate it.</p>
-<p>The code computes both shrink factors, 640/512 = 1.25 and 480/512 = 0.9375, and uses the larger for both axes, which makes this fit-inside rather than fill, so nothing is cropped and the aspect ratio survives exactly. The frame lands at 512 wide and 384 high.</p>
-<p>That leaves 128 rows short of square, and they all go on top rather than being split between the edges, because the padding is passed as (left, right, top, bottom) with the row count in the third slot. We checked the tensor rather than the argument order, and row 0 comes back constant while the last row is real image. <em>Measured.</em></p>
-<p>What that constant is turns an odd-looking number into an obvious one. The code takes frames already scaled to 0 to 1, its own comment says so, and one line maps them onto &#8722;1 to 1 with <code>img * 2.0 - 1.0</code>. The padding is written before that line, as plain zeros, so the doubling and the shift carry them to &#8722;1.</p>
-<p>Which means the padded rows are not a sentinel to be learned around. They are black, in the exact convention the frozen tower already reads black in.</p>
+<p>Nothing runs until the frame is square, because the vision tower takes 512&#215;512 and only that, while our cameras give 640 by 480. The obvious move is to squash it, and nobody does, because the frozen tower was never shown a squashed picture, so it would arrive as geometry the tower has never seen, a mug as an ellipse, a cube as a slab, with nothing downstream retrained to undo it. Better to waste pixels and keep the shapes honest. That reasoning is ours.</p>
+
+
+<p>The code takes both shrink factors, 640/512 = 1.25 and 480/512 = 0.9375, and uses the larger for both axes. Fit-inside rather than fill, so nothing is cropped and the frame lands at 512 by 384.</p>
+<p>That leaves 128 rows short of square, and they all go on top rather than split between the edges, holding plain zeros that <code>img * 2.0 - 1.0</code> carries to &#8722;1, so they are black rather than a sentinel to be learned around. <em>Measured.</em> The processor the backbone ships with pads bottom and right, so the frozen tower reads padding on an edge its pretraining never used.</p>
+
+
 <figure class="fig wide" id="fR">
   <svg viewBox="0 0 940 330" role="img" aria-label="Animated, three panels drawn to one scale. A 640 by 480 camera frame shrinks by 1.25 to 512 by 384, then 128 rows of constant minus one drop onto the top edge to make it 512 by 512. A quarter of the finished square is padding.">
     <defs><marker id="ar5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
@@ -366,60 +359,15 @@
     <line x1="636" y1="274" x2="916" y2="274" class="sl"/>
     <text x="636" y="296" class="red">and every one is paid for at full attention cost</text>
   </svg>
-  <figcaption><em>Measured on our SO-101 rig.</em> All three panels are drawn to the same scale, a quarter of a pixel each, so the shrink and the padding band are their true sizes. This is our cameras against this model, not a flaw in either.</figcaption>
+  <figcaption><em>Measured on our SO-101 rig.</em> All three panels share one scale, so the shrink and the padding band are true sizes.</figcaption>
 </figure>
-<p>So a quarter of every frame the model looks at is a constant, and nothing downstream throws it away. Those 128 rows are 8 of the 32 patch rows, surviving the vision tower as 16 of the 64 tokens for that camera, which across three cameras is <strong>48 of the 192 image tokens</strong> paying full attention cost while carrying nothing. <em>Measured.</em></p>
-<p>The shrink has an off-by-half almost everyone gets wrong first time. Bilinear resizing answers one question per output pixel, where in the input does this pixel sit, and PyTorch answers it with <code>s = (j + 0.5) &#215; scale &#8722; 0.5</code>.</p>
-<p>Each piece does one job. The +0.5 steps from an index, which names a whole pixel, out to a coordinate, which names the point at its centre. Multiplying by scale finds where that centre lands in the input. The &#8722;0.5 steps back to an index so it can be looked up. Then <code>lo = floor(s)</code>, <code>frac = s &#8722; lo</code>, and the answer is (1 &#8722; frac)&#183;in[lo] + frac&#183;in[lo+1].</p>
-<figure class="fig wide" id="fB">
-  <svg viewBox="0 0 940 360" role="img" aria-label="Two bands. The first shows four input pixels as boxes, with integer indices naming the boxes and half-integer coordinates naming their centres, plus the resizing formula. The second works that formula through a four-to-two shrink, with both output pixels shown and a highlight alternating between the pair of inputs each one reads.">
-    <text x="24" y="22" class="ttl">AN INDEX NAMES A BOX &#183; A COORDINATE NAMES A POINT</text>
-    <rect x="24" y="46" width="84" height="62" class="bx fp"/><rect x="108" y="46" width="84" height="62" class="bx fp"/><rect x="192" y="46" width="84" height="62" class="bx fp"/><rect x="276" y="46" width="84" height="62" class="bx fp"/>
-    <text x="61" y="84" class="num">0</text><text x="145" y="84" class="num">1</text><text x="229" y="84" class="num">2</text><text x="313" y="84" class="num">3</text>
-    <g class="sl"><path d="M66 108 v13 M150 108 v13 M234 108 v13 M318 108 v13"/></g>
-    <text x="55" y="138" class="lbl">0.5</text><text x="139" y="138" class="lbl">1.5</text><text x="223" y="138" class="lbl">2.5</text><text x="307" y="138" class="lbl">3.5</text>
-    <text x="24" y="164" class="say">Integers name the boxes. Halves name their centres.</text>
-
-    <line x1="404" y1="34" x2="404" y2="176" class="sl"/>
-    <text x="432" y="22" class="ttl">THE ONE LINE THAT DOES IT</text>
-    <text x="432" y="56" class="num">s = (j + 0.5) &#215; scale &#8722; 0.5</text>
-    <text x="432" y="84" class="say">+0.5 &#183; step out to the pixel&#39;s centre</text>
-    <text x="432" y="106" class="say">&#215; scale &#183; find that spot in the input</text>
-    <text x="432" y="128" class="say">&#8722;0.5 &#183; step back to an index</text>
-    <text x="432" y="158" class="mn">lo = floor(s) &#183; frac = s &#8722; lo</text>
-
-    <line x1="24" y1="190" x2="916" y2="190" class="sl"/>
-    <text x="24" y="216" class="ttl">FOUR PIXELS DOWN TO TWO &#183; scale = 2</text>
-
-    <rect x="24" y="234" width="72" height="50" class="bx fp"/><rect x="96" y="234" width="72" height="50" class="bx fp"/><rect x="168" y="234" width="72" height="50" class="bx fp"/><rect x="240" y="234" width="72" height="50" class="bx fp"/>
-    <text x="56" y="266" class="num">0</text><text x="128" y="266" class="num">1</text><text x="200" y="266" class="num">2</text><text x="272" y="266" class="num">3</text>
-    <g class="mv a-pair"><rect x="24" y="234" width="144" height="50" class="sa" fill="#B23A2E" fill-opacity=".15"/></g>
-    <text x="24" y="308" class="lbl">THE HIGHLIGHT SHOWS WHICH PAIR</text>
-    <text x="24" y="326" class="lbl">EACH OUTPUT PIXEL READS</text>
-
-    <line x1="352" y1="204" x2="352" y2="344" class="sl"/>
-    <text x="380" y="234" class="mn">j = 0 &#8594; s = 0.5, lo = 0, frac = 0.5</text>
-    <text x="380" y="256" class="num">out[0] = 0.5&#183;in[0] + 0.5&#183;in[1] = 0.5</text>
-    <text x="380" y="296" class="mn">j = 1 &#8594; s = 2.5, lo = 2, frac = 0.5</text>
-    <text x="380" y="318" class="num">out[1] = 0.5&#183;in[2] + 0.5&#183;in[3] = 2.5</text>
-
-    <line x1="712" y1="204" x2="712" y2="344" class="sl"/>
-    <text x="740" y="234" class="ttl">TORCH AGREES</text>
-    <text x="740" y="266" class="mn">[0, 1, 2, 3]</text>
-    <text x="740" y="292" class="red">&#8594; [0.5, 2.5]</text>
-    <text x="740" y="322" class="say">the pairwise means</text>
-  </svg>
-  <figcaption><em>Measured.</em> The half-pixels come from <code>align_corners=False</code>, which treats a pixel as a small area with a centre rather than a point on a grid line. Flip the flag and the formula changes.</figcaption>
-</figure>
-<div class="aside"><b>Bilinear does not average the frame down.</b> Only the four nearest input pixels are read, two per axis, and there is no prefilter in front of the 1.25&#215; reduction to blend in the rest. Pixels get skipped rather than averaged, so fine detail aliases instead of softening away. On a 25 mm cube on a textured table that is not a technicality, because a thin edge can survive or vanish depending on where it landed in the grid.</div>
-<div class="aside"><b>The padding is on the wrong side, sort of.</b> The processor the backbone ships with pads bottom and right. SmolVLA pads top and left. The vision tower is frozen and never gets a gradient here, so it reads padding on an edge its pretraining never put padding on. We have not measured the cost and the paper does not raise it. You only notice it with both pipelines open side by side.</div>
-
+<p>A quarter of every frame is a constant, and nothing downstream throws it away. Those 128 rows are 8 of the 32 patch rows, so 16 of that camera&#39;s 64 tokens are blank, and across three cameras that is <strong>48 of the 192 image tokens</strong> paying full attention cost while carrying nothing. <em>Measured.</em></p>
 <h2><span class="hn">03</span>One frame becomes 1024 patches</h2>
-<p>A <button type="button" class="gl" data-def="A layer where every item in a list can look at every other item and pull in what it needs.">transformer</button> reads one flat list, so the frame, the sentence and the arm&#39;s pose all have to become entries in that list first. One entry is called a <button type="button" class="gl" data-def="One item in the list the model reads. A patch of image, a word, or the arm&#39;s pose, as a row of numbers.">token</button>.</p>
-<p>The square frame is cut into 16&#215;16 patches, and 512 / 16 = 32, so there are 32 &#215; 32 = <strong>1024</strong> of them. What turns a patch into numbers is one convolution with a 16&#215;16 kernel and a stride of 16. Because those are equal the windows never overlap, which makes it exactly the same operation as flattening each patch and multiplying by a matrix.</p>
-<p>There are <strong>768 filters</strong>, each holding 3 channels &#215; 16 &#215; 16 = 768 weights, so the bank is 768 &#215; 768 = 589,824 numbers. Each filter reads the whole patch and returns one number, so a patch leaves as 768 responses, which is the (1024, 768) block feeding the rest of the tower.</p>
-<p>Line those two counts up, because most explanations skip it. A patch <em>arrives</em> as 3 &#215; 16 &#215; 16 = 768 raw values and <em>leaves</em> as 768 filter responses, so the patch embedding compresses nothing. One learned change of basis, and every reduction happens after it.</p>
-<p>Scale that to the whole frame and it stops looking like a per-patch coincidence. A 512&#215;512 colour frame is 3 &#215; 512 &#215; 512 = <strong>786,432</strong> numbers, and out comes a 32 &#215; 32 grid of 768-number descriptions, 32 &#215; 32 &#215; 768 = <strong>786,432</strong>. The same total, to the digit. The model is not carrying a summary of the picture here, it is carrying the whole picture rewritten into learned features.</p>
+<p>A <button type="button" class="gl" data-def="A layer where every item in a list can look at every other item and pull in what it needs.">transformer</button> reads one flat list, so the frame, the sentence and the arm&#39;s pose all become entries in it. One entry is a <button type="button" class="gl" data-def="One item in the list the model reads. A patch of image, a word, or the arm&#39;s pose, as a row of numbers.">token</button>.</p>
+<p>The square frame is cut into 16&#215;16 patches, and 512 / 16 = 32, so there are 32 &#215; 32 = <strong>1024</strong> of them. One convolution turns a patch into numbers, 16&#215;16 kernel and stride 16, and because those are equal the windows never overlap, which makes it the same as flattening each patch and multiplying by a matrix.</p>
+<p><strong>768 filters</strong>, each holding 3 channels &#215; 16 &#215; 16 = 768 weights, so a patch <em>arrives</em> as 768 raw values and <em>leaves</em> as 768 filter responses. Across the whole frame that is 3 &#215; 512 &#215; 512 = 786,432 numbers in and 32 &#215; 32 &#215; 768 = <strong>786,432</strong> out, the same total to the digit. It is not a summary of the picture but the whole picture rewritten into learned features, and every reduction happens after this.</p>
+
+
 <figure class="fig wide" id="fC">
   <svg viewBox="0 0 940 300" role="img" aria-label="Animated. One 16 by 16 patch with three colour channels, 768 raw numbers, is read by a bank of 768 filters that each also hold 768 weights. A highlighted filter steps through the bank. Out comes one response per filter, so 768 numbers, the same count that went in.">
     <defs><marker id="ar6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
@@ -466,20 +414,20 @@
     <text x="484" y="254" class="mn">position table = (1024, 768), one row per patch</text>
     <text x="484" y="276" class="red">exactly 1024 rows, so 512&#215;512 is not a setting, it is a parameter shape</text>
   </svg>
-  <figcaption>512 / 16 = 32, so a square frame holds 32 &#215; 32 = 1024 patches, and the learned position table has exactly 1024 rows to match. No interpolation, no room to grow.</figcaption>
+  <figcaption>512 / 16 = 32, so a square frame holds exactly 1024 patches, and the learned position table has 1024 rows. No interpolation, no room to grow.</figcaption>
 </figure>
-<p>The tensor is turned sideways before a transformer will take it. The convolution hands back <strong>(B, 768, 32, 32)</strong>, channels first with the grid still a grid. <code>flatten(2)</code> collapses it to <strong>(B, 768, 1024)</strong> and <code>transpose(1, 2)</code> gives <strong>(B, 1024, 768)</strong>, 1024 items of 768 numbers, with no value changed.</p>
-<p>Worth watching once anyway, because the convolution is the only part of this model that thinks in pictures. From here to the motors everything is a list.</p>
-<p>Then a learned position table is added on, one row per patch, shape (1024, 768). <strong>Added</strong>, element by element, the position row landing on top of the patch row. Hold onto that, because the expert faces the same problem later and solves it the other way, at more cost than anything else new in the model.</p>
-<p>The other thing about that table is the number 1024. Not 1024-and-interpolate, exactly 1024, so the tower cannot take another resolution. A good example of a habit in these models, where a decision that reads like a configuration flag is frozen into the shape of a weight. The 512&#215;512 above cannot change without retraining.</p>
+<p>That convolution is the only part of this model that thinks in pictures. From here to the motors, everything is a list.</p>
+
+<p>Then a learned position table is added on, one row per patch, shape (1024, 768). <strong>Added</strong>, element by element, the position row landing on the patch row, so a configuration flag is frozen into the shape of a weight and the 512&#215;512 above cannot change. Hold onto the adding, because the expert faces the same problem later and solves it the other way, at more cost than anything else new.</p>
+
 
 
 
 <h2><span class="hn">04</span>Twelve layers where every patch sees every patch</h2>
 <p>Those 1024 tokens go through the vision tower proper, a plain ViT twelve layers deep, and its attention is bidirectional. No causal mask, no ordering, so patch 900 reads patch 3 as freely as patch 3 reads patch 900. The right call for a picture, which has no reading direction.</p>
-<p>By the twelfth layer no token describes its own 16&#215;16 square any more. Each one describes that square <em>in the context of the whole frame</em>.</p>
-<p>The shapes inside one layer are worth learning once, because they come back in the action expert with different numbers. Width 768 splits into 12 heads of 64, so Q, K and V each come out as <strong>(B, 12, 1024, 64)</strong>.</p>
-<p>Inside one head, Q times K transposed is a <strong>1024 &#215; 1024</strong> table, one number per ordered pair of patches. Divide by &#8730;64 = 8, softmax each row, multiply by V, and (1024&#215;1024) against (1024&#215;64) returns (1024&#215;64). Each patch leaves with 64 numbers blended from every patch in the frame, and twelve heads concatenate back to 768.</p>
+<p>By the twelfth layer a token describes not its own 16&#215;16 square but that square <em>in the context of the whole frame</em>.</p>
+<p>Width 768 splits into 12 heads of 64, so Q, K and V each come out as <strong>(B, 12, 1024, 64)</strong>, and the same shapes return in the expert at other numbers. Inside one head, Q times K transposed is a <strong>1024 &#215; 1024</strong> table, one number per ordered pair of patches. Divide by &#8730;64 = 8, softmax each row, multiply by V, and each patch leaves with 64 numbers blended from the whole frame. That is 1,048,576 numbers per head per layer, so twelve layers of twelve heads is about <strong>151 million</strong> attention scores per frame, none of them stored.</p>
+
 <figure class="fig wide" id="fV">
   <svg viewBox="0 0 940 430" role="img" aria-label="Animated, two bands. The first shows the patch tokens and an identically shaped learned position table added element by element, then a 1024 by 1024 attention table with one query row sweeping down it, then the shapes and the cost inside one head. The second shows the pre-norm block, layer norm then attention then a residual add then layer norm then MLP then another residual add, and a strip of twelve layers with a highlight stepping through them.">
     <defs><marker id="ar8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
@@ -549,19 +497,19 @@
     <text x="620" y="400" class="say">all twelve are frozen. Not one</text>
     <text x="620" y="420" class="say">of them gets a gradient here.</text>
   </svg>
-  <figcaption><em>Measured</em> from the installed config, 12 layers and 12 heads at width 768. The 151 million is attention weights per frame, three times over for three cameras, every one thrown away as soon as its layer is done.</figcaption>
+  <figcaption><em>Measured</em> from the installed config.</figcaption>
 </figure>
-<p>That table is 1,048,576 numbers, per head, per layer. Twelve heads across twelve layers is about <strong>151 million</strong> attention weights to look at one frame, none of it stored, for a picture the arm glances at for 33 milliseconds. Part of what the async trick in section 13 buys back is this bill. We have not profiled the split, so read that as the shape of the argument.</p>
-<p>Around the attention sits the standard pre-norm block, and the order is what people misremember. Normalise <em>first</em>, attend, add the original token back. Normalise again, through the MLP, add back again. Those two additions let a token come out unchanged if the layer had nothing to contribute, which makes stacking twelve safe.</p>
+
+
 
 <h2><span class="hn">05</span>A thousand patches become sixty-four</h2>
-<p>Something the backbone was trained with is switched off here. SmolVLM-2 uses image tiling, processing several crops of a frame alongside the whole frame, which helps a describer see small things. SmolVLA keeps the global image only, so the 64 tokens below are the whole visual budget for that camera rather than 64 per crop. Detail traded for speed, before the model sees a robot.</p>
-<p>Carrying 1024 tokens per camera is not affordable, so the next step folds them. Every 4&#215;4 block of patches is stacked end to end into one vector of 16 &#215; 768 = <strong>12,288</strong> features, and a single <code>Linear(12288 &#8594; 960)</code> with no bias decides what survives, leaving <strong>64 tokens per camera</strong>, each covering a 64&#215;64 region. That matrix is 11,796,480 weights, seven times everything structurally new put together.</p>
+<p>SmolVLM-2 was trained with image tiling, several crops of a frame alongside the whole frame, which helps a describer see small things. SmolVLA switches it off, so the 64 tokens below are that camera&#39;s whole budget rather than 64 per crop. Detail traded for speed.</p>
+<p>Carrying 1024 tokens per camera is not affordable. Every 4&#215;4 block of patches is stacked end to end into one vector of 16 &#215; 768 = <strong>12,288</strong> features, and a single <code>Linear(12288 &#8594; 960)</code> with no bias decides what survives, leaving <strong>64 tokens per camera</strong>, each covering a 64&#215;64 region. That matrix is 11,796,480 weights, seven times everything structurally new put together.</p>
 
-<p>The part to hold onto is that this is not pooling. Nothing is averaged and nothing is discarded before the projection sees it. Spatial detail folds into the channels first and a learned matrix picks from it, so the model can in principle keep a thin red edge an average over sixteen patches would have washed flat.</p>
-<p>After that the counting is short. Three cameras give <strong>192</strong> image tokens, the whole arm gives <strong>1</strong>, and the sentence gives up to <strong>48</strong>, which puts the prefix at <strong>241</strong> and the full list at <strong>291</strong> once the <strong>50</strong> actions being written are counted.</p>
+<p>This is not pooling. Nothing is averaged before the projection sees it, so spatial detail folds into the channels and a learned matrix picks from it, and a thin red edge that an average over sixteen patches would wash flat can survive.</p>
+<p>Count them. Three cameras give <strong>192</strong> image tokens, the arm gives <strong>1</strong> and the sentence up to <strong>48</strong>, putting the prefix at <strong>241</strong> and the full list at <strong>291</strong> once the <strong>50</strong> actions being written are counted.</p>
 
-<p>Both are ceilings. The sentence is padded only to the longest in the batch, and &#8220;pick up the red cube&#8221; is 6 tokens, so that instruction alone gives a 199-token prefix. We padded language to its 48-token cap for every measurement below so the shapes stay comparable. <em>Measured.</em></p>
+<p>Both are ceilings, because the sentence is padded only to the longest in the batch, and &#8220;pick up the red cube&#8221; is 6 tokens, giving a 199-token prefix. We padded to the 48-token cap for every measurement below. <em>Measured.</em></p>
 
 <figure class="fig wide" id="f3">
   <svg viewBox="0 0 940 350" role="img" aria-label="Animated. One camera frame is cut into a 32 by 32 grid of 1024 patches. A band four patch rows tall sweeps down it, and each band becomes one row of the 8 by 8 grid of 64 output tokens on the right. The ledger reads 192 image tokens from three cameras, 48 language, 1 pose, giving 241, plus 50 action tokens for 291 in total.">
@@ -606,16 +554,16 @@
     <line x1="552" y1="274" x2="916" y2="274" class="st"/>
     <text x="552" y="300" class="num">291 in one list, every layer</text>
   </svg>
-  <figcaption><em>Measured on our SO-101 rig.</em> The pose is six joint angles zero-padded to 32 before its projection, and those 26 empty columns are the cross-embodiment slot, sized for arms with more joints than ours.</figcaption>
+  <figcaption><em>Measured on our SO-101 rig.</em> The pose is six joint angles zero-padded to 32, and those 26 empty columns are the cross-embodiment slot, for arms with more joints than ours.</figcaption>
 </figure>
 
-<div class="aside"><b>There is no time axis.</b> The policy sees one frame. Not a stack of the last few, not a hidden state carried over from the last decision, one frame, and whatever it knows about how things are moving has to come out of that image plus the current joint angles. Which is why the length of the action chunk turns into such an expensive decision further down.</div>
+
 
 <h2><span class="hn">06</span>Who is allowed to look at whom</h2>
 
-<p>All 291 tokens sit in one sequence but they are not all allowed to see each other, and the rule deciding who sees whom explains more of the architecture than anything else in the model.</p>
+<p>All 291 tokens sit in one sequence, but they cannot all see each other, and that rule shapes more of the architecture than anything else.</p>
 
-<p>Every token gets a block number. Images and language share block 0, the pose token gets block 1, and each action token gets its own, 2 through 51. A token may attend to another only when that other one&#39;s block number is less than or equal to its own.</p>
+<p>Every token gets a block number. Images and language share block 0, the pose gets 1, and each action gets its own, 2 through 51. A token may attend to another only if that other token&#39;s block number is at most its own.</p>
 
 <figure class="fig wide" id="f4">
   <svg viewBox="0 0 940 390" role="img" aria-label="Animated. The 291 by 291 attention mask drawn to scale. Rows are the token doing the looking, columns the token being looked at. Image and language rows see only image and language columns, leaving a large white rectangle over the action columns. The pose row also sees itself. Action rows see the whole prefix plus earlier actions, forming a staircase.">
@@ -661,32 +609,32 @@
     <line x1="120" y1="356" x2="916" y2="356" class="sl"/>
     <text x="120" y="374" class="red">Drawn to scale, 291 rows and 291 columns, except the single pose row and column, widened to 12 px so they are visible at all.</text>
   </svg>
-  <figcaption><em>Measured.</em> Block-causal, not causal end to end. The prefix is one bidirectional blob and the actions run causally after it. We built the mask and read it rather than trusting the comment, and the action block comes back exactly lower-triangular including the diagonal.</figcaption>
+  <figcaption><em>Measured.</em> Block-causal, not causal end to end. The prefix is one bidirectional blob and the actions run causally after it, with the action block exactly lower-triangular.</figcaption>
 </figure>
 
 
 
-<p>Two things fall out of that picture and both come back later. The first is that the prefix never looks at the actions, so its <button type="button" class="gl" data-def="What a token offers so others can find it, and what they take once they do. Recomputed at every layer.">keys and values</button> do not depend on them, which makes it legal to compute the prefix once and reuse it across all ten denoising passes.</p>
-<p>The second is that the actions are strictly causal among themselves, so action 30 sees action 29 and not the reverse. The paper says this outright and Table 7 prices it, 74.5 for causal against 67.5 for looking both ways. Read the small print, because both numbers come from a self-attention-only variant, not the model that shipped.</p>
+<p>Two things fall out, both coming back later. The prefix never looks at the actions, so its <button type="button" class="gl" data-def="What a token offers so others can find it, and what they take once they do. Recomputed at every layer.">keys and values</button> do not depend on them, which makes it legal to compute the prefix once and reuse it across all ten denoising passes. And the actions are strictly causal among themselves, so action 30 sees action 29 and not the reverse, which Table 7 prices at 74.5 against 67.5 for looking both ways, both from a self-attention-only variant.</p>
+
 
 <h2><span class="hn">07</span>Two towers, sixteen floors, twenty-four attentions</h2>
 
-<p>The two stacks walk forward together, and what passes between them depends on which floor you are standing on. This is the part described wrongly most often, including by the paper, so it is worth being slow about.</p>
+<p>The two stacks walk forward together, and what passes between them depends on the floor. This is the part described wrongly most often, including by the paper.</p>
 
-<p>On <strong>even floors</strong> there is no separate expert attention. Each tower runs its own tokens through its own query, key and value projections, the two sets are <em>concatenated on the token axis</em>, and one attention runs over the whole thing. One matrix, one softmax, scene and action tokens side by side, then the rows split apart and each tower keeps its half. We hooked the call, and in training it comes through as a (291, 291) map on every even floor. <em>Measured.</em></p>
+<p>On <strong>even floors</strong> there is no separate expert attention. Each tower projects its own tokens into queries, keys and values, the two sets are <em>concatenated on the token axis</em>, and one attention runs over the whole thing, one matrix and one softmax, then the rows split and each tower keeps its half. In training we hooked it as a (291, 291) map. <em>Measured.</em></p>
 
-<p>The paper calls those the floors where &#8220;action tokens attend to each other&#8221;, true but leaving out the more interesting half, because in that same call the action tokens also attend over all 241 scene tokens. Nothing fetches the scene here. It is already in the matrix.</p>
+<p>The paper calls those the floors where &#8220;action tokens attend to each other&#8221;, which leaves out the half that matters, because in the same call the actions also attend over all 241 scene tokens. Nothing fetches the scene here, it is already in the matrix.</p>
 
-<p>On <strong>odd floors</strong> they come apart. The frozen tower attends over its own 241 tokens and the expert runs a separate 50&#215;241 attention against the frozen side. The detail we only found by hooking it is that the expert does not re-read the frozen hidden states. It takes the keys and values the frozen tower <em>already computed</em> and pushes each through its own <code>Linear(320 &#8594; 320)</code>, so it cannot change what the frozen model saw, only how it reads it.</p>
+<p>On <strong>odd floors</strong> they come apart. The frozen tower attends over its own 241 tokens and the expert runs a separate 50&#215;241 attention against the frozen side. Hooking it showed the expert does not re-read the frozen hidden states, it takes the keys and values the frozen tower <em>already computed</em> and pushes each through its own <code>Linear(320 &#8594; 320)</code>, so it cannot change what the frozen model saw, only how it reads it.</p>
 
 
-<p>Same walk on the expert side at other widths. An action token arrives 720 wide and <code>q_proj</code> takes it <em>up</em> to <strong>960</strong>, because 960 is what splits into the frozen tower&#39;s 15 heads of 64 and both sides have to meet in the same head space. So Q is <strong>(B, 15, 50, 64)</strong>.</p>
-<p>On an odd floor the keys are not the expert&#39;s. They are the frozen tower&#39;s, 5 key-value heads of 64 over 241 positions, each read by 3 query heads once expanded, so K is <strong>(B, 15, 241, 64)</strong>. Q times K transposed gives a 50 &#215; 241 table with no column for any action token, which is why actions cannot see each other here.</p>
-<p>Softmax, multiply by V, and (50&#215;241) against (241&#215;64) returns (50&#215;64). The heads merge to 960 and <code>o_proj</code> drops it back to 720. Both towers divide by &#8730;64 = 8 first, because the scaling follows the head width, never the model width. <em>Measured.</em></p>
-<p>The 15-against-5 split is grouped-query attention. Fifteen people asking questions of five filing cabinets, each cabinet consulted by three of them.</p>
-<p>What it saves is commonly overstated. Expand the 5 key-value heads back out to 15 and the attention arithmetic costs what 15 real ones would. The saving is in the smaller <code>k_proj</code> and <code>v_proj</code>, a third off the four attention projections but only about an eighth off a whole layer once the feed-forward is counted, and in the cache, 14.8 MB down to 4.9 MB in bfloat16. The cache is the half that matters, because the denoising loop is bound by memory reads. <em>Measured.</em></p>
-<p>The arithmetic is worth doing once. Eight even floors are one call each. Eight odd floors are two, because the frozen tower still does its own 241&#215;241 pass before the expert reads it. Counting real calls on a training step gives eight at (291, 291), eight at (241, 241) and eight at (50, 241), which is 24. <em>Measured by wrapping the attention function.</em></p>
-<div class="aside"><b>At inference the same sixteen floors behave differently.</b> Nothing is concatenated, because the two halves no longer run together. The prefix goes up all sixteen floors alone, sixteen calls at (241, 241), and its keys and values are cached. Each of the ten denoising passes then sends only the 50 action tokens, so even floors become (50, 291), 50 queries against 241 cached keys plus their own 50, and odd floors stay at (50, 241). That is 16 + 10 &#215; 16 = <strong>176</strong> calls per chunk. <em>Measured.</em> Same weights, same masks, same answer, different shape.</div>
+<p>An action token arrives 720 wide and <code>q_proj</code> takes it <em>up</em> to <strong>960</strong>, the frozen tower&#39;s 15 heads of 64. The keys are the frozen tower&#39;s, 5 key-value heads read by 3 query heads each, which is grouped-query attention, fifteen people asking questions of five filing cabinets. Q times K transposed gives a 50 &#215; 241 table with no column for any action token, so actions cannot see each other here, and <code>o_proj</code> drops the answer back to 720. <em>Measured.</em></p>
+
+
+
+<p>What it saves is commonly overstated. Expanding 5 key-value heads back out to 15 costs what 15 real ones would, so the saving is a third off the attention projections but an eighth off a whole layer. The cache is what matters, 14.8 MB down to 4.9 MB in bfloat16. <em>Measured.</em></p>
+<p>Eight even floors are one call each, eight odd floors are two, because the frozen tower still does its own 241&#215;241 pass first, so a training step is eight at (291, 291), eight at (241, 241) and eight at (50, 241), which is 24. <em>Measured by wrapping the attention function.</em> Sixteen floors rather than the language model&#39;s 32, because Table 8 prices the top half at 1.8 points.</p>
+
 <figure class="fig" id="f5">
   <svg viewBox="0 0 800 430" role="img" aria-label="Animated. Two towers side by side across sixteen floors. On even floors both towers join into one attention over all 291 tokens. On odd floors they split, and the expert reads the frozen tower&#39;s cached keys through a 50 by 241 attention. A pulse travels up the floors.">
     <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
@@ -718,19 +666,18 @@
     <line x1="20" y1="396" x2="780" y2="396" class="sl"/>
     <text x="20" y="418" class="mn">expert q_proj 720 &#8594; 960 &#183; attend in the shared 15&#215;64 head space &#183; o_proj 960 &#8594; 720</text>
   </svg>
-  <figcaption><em>Measured.</em> The width multiplier shrinks the expert&#39;s residual stream from 960 to 720 and its feed-forward from 2560 to 2048, and leaves the head count and head width alone, because the even floors concatenate both towers&#39; heads.</figcaption>
+  <figcaption><em>Measured.</em> The width multiplier takes the expert&#39;s residual stream from 960 to 720, and its feed-forward follows at 2048 rather than the tower&#39;s 2560, leaving head count and head width alone so the even floors can concatenate.</figcaption>
 </figure>
 
-<div class="aside"><b>One scale factor, applied to two of the four inputs.</b> Image and language tokens get multiplied by &#8730;960 = 30.9839 on the way into the list. The pose token and the action tokens do not. <em>Measured</em>, and the paper never mentions it. Our reading is that image and language come out of frozen matrices trained under that convention, so dropping the factor would hand those layers vectors at the wrong magnitude, while the pose projection and the action MLP train from nothing and can learn whatever scale they need.</div>
-<div class="aside"><b>The position index skips the padding.</b> Rotary embeddings need each token&#39;s position, and SmolVLA computes it as <code>cumsum(pad_masks) - 1</code>, so a padded slot never advances the counter. With &#8220;pick up the red cube&#8221; filling 6 of the 48 language slots, the pose token sits in slot 240 but carries rotary position 198, putting the arm&#39;s state right after the last real word instead of 42 dead slots past it. <em>Measured.</em> A shorter sentence gives the same rig a different position layout, which matters when you compare two runs.</div>
-<div class="aside"><b>Why half the layers.</b> The argument is efficiency. Dropping the top half halves the cost of both the language model and the expert reading it, and the paper cites prior work showing layers can go without much loss and that the last layer is not always best. Table 8 prices depth at 75.0 for 8 layers, 78.5 for 16, 79.5 for 24 and 80.3 for all 32, so half the depth costs 1.8 points. It never claims the lower half handles language and the upper half something else, and no such split is measured, so the honest reading is that half was cheap and nearly as good.</div>
-<p>Alternating beats either alone, 85.5 against 79.0 for cross-attention only and 74.5 for self-attention only, because they do different jobs. Cross-attention is how the expert gets a cheap look at the scene. Self-attention is how action 30 finds out what action 29 committed to, and without it you hold 50 independent guesses rather than one motion.</p>
+
+
+<p>Alternating beats either alone, 85.5 against 79.0 for cross-attention only and 74.5 for self-attention only, because they do different jobs. Cross-attention is the expert&#39;s cheap look at the scene, self-attention is how action 30 learns what action 29 committed to, and without it you hold 50 independent guesses rather than one motion.</p>
 
 <h2><span class="hn">08</span>Why it starts from noise</h2>
 
-<p>The objective is easier to follow if you first look at the particular way a simpler model fails.</p>
 
-<p>Put a mug on the table between the gripper and the cube. Going left around it works and going right works, and if you train a model to predict the one correct trajectory under a loss that averages, what it takes from having seen both is the average of left and right, which goes straight through the mug. It learned exactly what was asked, and what was asked was wrong.</p>
+
+<p>Put a mug on the table between the gripper and the cube. Left around it works and right works, and if you train a model to predict the one correct trajectory under a loss that averages, what it learns from seeing both is the average of the two, straight through the mug. It learned exactly what was asked, and what was asked was wrong.</p>
 
 <figure class="fig wide" id="f6">
   <svg viewBox="0 0 940 300" role="img" aria-label="Animated, three panels. First, two demonstrations reach the cube, one passing above the mug and one below it, symmetric about the straight line. Second, their average drives straight into the mug. Third, flow matching samples one whole route at a time, alternating between the two.">
@@ -766,25 +713,25 @@
     <text x="654" y="256" class="say">one whole route at a time,</text>
     <text x="654" y="276" class="say">committed to from end to end</text>
   </svg>
-  <figcaption>The average of two safe routes is an unsafe route, so being able to say &#8220;either of these, pick one&#8221; is the difference between a working model and a broken one. Swapping the averaging loss for <button type="button" class="gl" data-def="Train a model to point from noise towards the answer along a straight line, then walk that line.">flow matching</button> is worth 5 points on LIBERO, 80.25 against 75.25.</figcaption>
+  <figcaption>The average of two safe routes is an unsafe route, so being able to say &#8220;either of these, pick one&#8221; is the difference between working and broken. Swapping the averaging loss for <button type="button" class="gl" data-def="Train a model to point from noise towards the answer along a straight line, then walk that line.">flow matching</button> is worth 5 points on LIBERO, 80.25 against 75.25.</figcaption>
 </figure>
 
-<p>So the expert never predicts the answer directly. Training mixes the true actions with noise, stands at a random point on the line between them, and asks only which direction the answer lies in from there.</p>
+<p>So the expert never predicts the answer directly. Training mixes the true actions with noise, stands at a random point on the line between them, and asks only which direction the answer lies in.</p>
 
 <div class="mono">time = Beta(1.5, 1.0).sample() * 0.999 + 0.001
 x_t  = time&#183;noise + (1 - time)&#183;actions
 u_t  = <b>noise - actions</b>
 loss = mse(u_t, model(x_t, time))</div>
 
-<div class="aside"><b>A convention trap.</b> The paper writes the noisy point as <code>&#964;A + (1&#8722;&#964;)&#949;</code>, with &#964; = 1 meaning the clean action. The released code writes <code>time&#183;noise + (1&#8722;time)&#183;actions</code>, with <code>time</code> = 1 meaning pure noise. Those run in opposite directions. The maths agrees either way, but reading one while holding the other in your head makes the sampler look like it is running backwards, and it is an easy way to lose an hour.</div>
 
-<p>That target line carries more weight than it looks. Because the thing predicted is <code>noise &#8722; actions</code>, <strong>the action term never drops out</strong>. Hold that against a plain denoiser trained to predict the noise alone. At the noisy end the input very nearly <em>is</em> the noise, so predicting it collapses into copying the input and the loss stops measuring anything. Here the error at that end floors at the action-prediction error instead.</p>
 
-<p>And the sampling is deliberately tilted that way. <code>Beta(1.5, 1.0)</code> has density proportional to &#8730;t and a mean of 0.601, with <strong>28.5% of draws in the top fifth of the range</strong>, so most of the training budget goes where the loss still has something to say.</p>
+<p>Because the thing predicted is <code>noise &#8722; actions</code>, <strong>the action term never drops out</strong>. Hold that against a plain denoiser trained to predict noise alone, where at the noisy end the input very nearly <em>is</em> the noise, so predicting it collapses into copying the input and the loss stops measuring anything. Here the error floors at the action-prediction error instead.</p>
+
+<p>And the sampling tilts towards that end. <code>Beta(1.5, 1.0)</code> has density proportional to &#8730;t and a mean of 0.6, with <strong>28.5% of draws in the top fifth</strong>, so most of the training budget goes where the loss still says something.</p>
 
 <h2><span class="hn">09</span>The clock the expert reads</h2>
-<p>The expert cannot point anywhere useful without knowing how far along it is, because the right direction from a nearly-clean chunk is not the right direction from pure noise. That number is the clock. Everything below is measured off the code, so it is the code&#39;s <code>time</code>, 1 at pure noise down to 0 at the answer.</p>
-<p>One number is not much for a transformer to condition on, so it is widened first. <code>time</code> becomes <strong>720</strong> values, 360 sines and 360 cosines, with periods running 0.004 up to 4.000 and each exactly 1.0194 times the one before, so the spacing is geometric rather than even.</p>
+<p>The expert cannot point anywhere useful without knowing how far along it is, because the right direction from a nearly-clean chunk is not the right direction from pure noise. That number is the clock, and everything below is the code&#39;s <code>time</code>, 1 at pure noise down to 0 at the answer, the paper&#39;s &#964; upside down.</p>
+<p>One number is not much to condition on, so it is widened into <strong>720</strong> values, 360 sines and 360 cosines, periods running 0.004 up to 4.000, each 1.0194 times the one before.</p>
 <figure class="fig wide" id="fT">
   <svg viewBox="0 0 940 330" role="img" aria-label="Animated. The clock value runs from 0 to 1 along the top with the ten sampling steps ticked. Below it three of the 360 sine components are drawn: the slowest completes only a quarter of a cycle across the whole range, the middle one two and a half cycles, and a fast one twenty-five cycles. A readout line steps across all three together.">
     <text x="24" y="22" class="ttl">time &#183; ONE NUMBER, 0 AT THE ANSWER TO 1 AT PURE NOISE</text>
@@ -813,13 +760,13 @@ loss = mse(u_t, model(x_t, time))</div>
     <line x1="24" y1="300" x2="916" y2="300" class="sl"/>
     <text x="24" y="322" class="mn">360 sines + 360 cosines = 720 &#183; periods 0.004 &#8594; 4.000, each 1.0194&#215; the last &#183; &#8214;emb&#8214; = &#8730;360 = 18.9737 at every time</text>
   </svg>
-  <figcaption><em>Measured.</em> The slowest period is 4.0, longer than the whole range of <code>time</code>, so it sweeps a quarter of a cycle and never comes back on itself. The fastest is 0.004, separating values about 0.4% apart, far finer than the 0.1 spacing of the ten steps. Every component is a fixed sine.</figcaption>
+  <figcaption><em>Measured.</em> The slowest period, 4.0, is longer than the whole range of <code>time</code>, so it never wraps. The fastest, 0.004, is finer than the 0.1 spacing of the ten steps. Both ends are chosen, not inherited.</figcaption>
 </figure>
 
-<p>Both ends are chosen, not inherited, and the result is sharper than you would guess. <em>Measured</em>, the clock at 0.50 and 0.51 has cosine similarity 0.5169, and by 0.55 that has fallen to 0.2842, so neighbouring steps do not look alike to the expert. The whole vector has length &#8730;360 = 18.9737 at every value, so the clock only changes direction, never magnitude, which stops it acting as a gain on the tokens it joins.</p>
-<p>Now the part that is easy to read past, because it is the one place where the same problem gets solved two ways. In section 03 the vision tower told 1024 patch tokens where they sat by <strong>adding</strong> a position row onto each patch row, element by element, free. Here the expert has to tell 50 action tokens what time it is, and it does the opposite. The 720-number clock is <strong>concatenated</strong>, not added.</p>
-<p>The shapes are short. <code>action_in_proj</code> takes the noisy chunk from (B, 50, 32) up to <strong>(B, 50, 720)</strong>. The clock comes out as (B, 720), one vector for the whole chunk.</p>
-<p>It is stretched across all fifty positions with <code>expand_as</code>, a view rather than a copy, so those 720 numbers are read fifty times and never duplicated. Then <code>cat(dim=2)</code> makes <strong>(B, 50, 1440)</strong> and two layers with a SiLU between them bring it back to <strong>(B, 50, 720)</strong>. Every token carries the same clock and its own content, side by side rather than mixed.</p>
+<p>It is sharper than you would guess. <em>Measured</em>, the clock at 0.50 and 0.51 has cosine similarity 0.5169, falling to 0.2842 by 0.55, so neighbouring steps do not look alike. Its length is &#8730;360 at every value, so it changes direction only, never magnitude.</p>
+<p>In section 03 the vision tower told 1024 patch tokens where they sat by <strong>adding</strong> a position row onto each patch row, free. Telling 50 action tokens what time it is goes the other way. The 720-number clock is <strong>concatenated</strong>, not added.</p>
+<p><code>action_in_proj</code> takes the noisy chunk up to <strong>(B, 50, 720)</strong>, the clock arrives as (B, 720) stretched across all fifty positions, and concatenating makes <strong>(B, 50, 1440)</strong>, which two layers with a SiLU between them bring back to 720. Every token then carries the same clock and its own content side by side rather than mixed.</p>
+
 <figure class="fig wide" id="fA">
   <svg viewBox="0 0 940 300" role="img" aria-label="Two wiring diagrams. Above, what SmolVLA does: the 720-number action token and the 720-number clock are concatenated into 1440 and fused by a two-layer MLP costing 1,556,640 weights. Below, the cheaper alternative: adding them element by element, which costs nothing but forces both facts into one shared space.">
     <defs><marker id="ar7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
@@ -848,18 +795,18 @@ loss = mse(u_t, model(x_t, time))</div>
     <text x="404" y="252" class="say">but which step a token is and how noisy the chunk is</text>
     <text x="404" y="272" class="say">now have to share the same 720 directions</text>
   </svg>
-  <figcaption><em>Measured.</em> The two fusion layers come to 1,556,640 of the 1,635,152 structurally new weights, and the other three projections are the remaining 78,512. Almost the whole new part of SmolVLA keeps &#8220;where in the chunk&#8221; and &#8220;how noisy&#8221; separable.</figcaption>
+  <figcaption><em>Measured.</em> The other three new projections come to 78,512 weights between them, next to nothing.</figcaption>
 </figure>
-<p>Adding would have been free. Concatenating costs <code>Linear(1440 &#8594; 720)</code> and <code>Linear(720 &#8594; 720)</code>, which is 1,556,640 weights, and that is the number that reframes the whole model. Those two layers are <strong>95.2% of everything structurally new in SmolVLA</strong>, out of a five-module total of 1,635,152. <em>Measured.</em></p>
-<p>What the money buys is separability. Side by side, the MLP can learn any interaction between which step of the chunk a token is and how noisy the chunk is. Added, both facts fold into the same 720 directions, and a late step in a clean chunk becomes hard to tell from an early step in a noisy one.</p>
-<p>So the most expensive new decision in a 450-million-parameter model is keeping those two questions apart.</p>
-<p>Why the tower gets away with adding comes down to how much the two things vary. A patch&#39;s position never changes, so the tower can bake it into the same directions the content lives in and let twelve layers sort out the interference. The clock changes on every one of the ten steps, and the right direction to move a chunk depends on the clock and the chunk <em>jointly</em>, so folding them together throws away the distinction the expert has to make.</p>
-<p>Coming back out is cheaper. <code>action_out_proj</code> takes each token&#39;s 720 numbers down to 32, and on our arm only the first 6 columns mean anything, because 32 is the cross-embodiment slot and the SO-101 has six joints.</p>
-<p>The other 26 are computed on every token of every step and dropped, because the loss is sliced to the real action dimension before anything is averaged, so they never see a gradient. <em>Measured.</em> The price of a model meant to run on somebody else&#39;s arm too.</p>
+<p>Adding would have been free. Concatenating costs <code>Linear(1440 &#8594; 720)</code> and <code>Linear(720 &#8594; 720)</code>, 1,556,640 weights, <strong>95.2% of everything structurally new in SmolVLA</strong>. <em>Measured.</em></p>
+<p>What the money buys is separability. Side by side, the MLP can learn any interaction between a token&#39;s place in the chunk and how noisy the chunk is. Adding folds both into the same 720 directions, where a late step in a clean chunk gets hard to tell from an early step in a noisy one. The tower gets away with adding because a patch&#39;s position never changes.</p>
+
+
+<p>Coming back out is cheaper. <code>action_out_proj</code> drops each token to 32 numbers, of which only the first 6 mean anything on a six-joint SO-101. The other 26 are the cross-embodiment slot, computed on every token of every step and dropped. <em>Measured.</em></p>
+
 
 <h2><span class="hn">10</span>Ten steps, and why ten is exact</h2>
 
-<p>At generation time the expert starts from pure noise and takes ten equal Euler steps down to the actions.</p>
+<p>At generation time the expert starts from pure noise and takes ten equal Euler steps to the actions.</p>
 
 <figure class="fig" id="f7">
   <svg viewBox="0 0 800 322" role="img" aria-label="Animated. Above, a straight path from noise to actions divided into ten equal steps, with a dot jumping one step at a time and landing exactly on the answer. Below, a curved path with the same ten steps drawn as straight chords, which cut every corner and leave the path.">
@@ -886,14 +833,14 @@ loss = mse(u_t, model(x_t, time))</div>
     <text x="70" y="290" class="say">Each step is a straight line, so on a curve it cuts the corner, and the next step starts</text>
     <text x="70" y="306" class="say">from the wrong place. Staying on the path means taking more steps, each one smaller.</text>
   </svg>
-  <figcaption>Feed the true velocity field into the sampler and measure the distance left to the answer. Halfway sits at exactly half the starting distance, the end lands on zero to floating-point precision, and two steps arrive where ten do to within 6e&#8722;06. <em>Measured</em>, and all three hold for any starting noise. The curved path is drawn for contrast.</figcaption>
+  <figcaption>Feed the true velocity field into the sampler and measure the distance to the answer. Halfway sits at exactly half the starting distance, the end lands on zero, and two steps arrive where ten do to within 6e&#8722;06. <em>Measured</em>, for any starting noise.</figcaption>
 </figure>
 
-<p>This is what the straight path buys. With a constant velocity, ten steps and two steps land in the same place, so the step count neither buys nor costs accuracy, and any error in a real run is the model pointing the wrong way rather than the integrator. A curved path does not get that, because a straight step across a curve cuts the corner by an amount that depends on the step count. We have not benchmarked other policies, so that is why the property is worth having, not a claim about anyone else&#39;s step counts.</p>
+<p>This is what the straight path buys. Ten and two steps land in the same place, so the step count neither buys nor costs accuracy, and any error in a real run is the model pointing the wrong way, not the integrator. A curved path would cut the corner by an amount that depends on the count.</p>
 
 <h2><span class="hn">11</span>Where the speed actually comes from</h2>
 
-<p>Inference is two passes that look almost nothing like each other, and pulling them apart is the whole efficiency argument.</p>
+<p>Inference is two passes that look nothing like each other.</p>
 
 <figure class="fig wide" id="f8">
   <svg viewBox="0 0 940 260" role="img" aria-label="Animated. Pass one runs the 241-token prefix through all sixteen layers once and stores a key-value cache of 4.9 megabytes. Pass two runs ten denoising steps, each forwarding only the 50 action tokens against the cached prefix.">
@@ -922,13 +869,13 @@ loss = mse(u_t, model(x_t, time))</div>
     <text x="484" y="192" class="mn">50 of 291 &#183; 17% of the sequence, ten times over</text>
     <text x="468" y="230" class="say">ten denoising steps cost far less than ten forward passes</text>
   </svg>
-  <figcaption><em>Measured.</em> The expensive parts, the vision tower and the 241-token prefix, run once for the whole chunk. Only the small side of the model runs ten times over.</figcaption>
+  <figcaption><em>Measured.</em> The vision tower and the 241-token prefix run once for the whole chunk. Only the small side runs ten times.</figcaption>
 </figure>
-<p>To put a size on it, the prefix is 241 of the 291 tokens, and after the sixteen floors it is kept as 16 layers of two tensors of shape (241, 5, 64), 4.9 MB in bfloat16, sitting there for the rest of the chunk. Everything after reads from it instead of recomputing, so the ten sampling passes each move 50 tokens rather than 291. <em>Measured.</em></p>
+<p>The prefix is 241 of the 291 tokens, and after the sixteen floors it is kept as 16 layers of two tensors of shape (241, 5, 64), 4.9 MB in bfloat16. Everything after reads it instead of recomputing, so the ten sampling passes each move 50 tokens rather than 291, and the chunk costs 16 + 10 &#215; 16 = <strong>176</strong> attention calls against 24 in training. <em>Measured.</em></p>
 
 <h2><span class="hn">12</span>How long can it act blind</h2>
 
-<p>Predicting 50 actions is cheap. Executing all 50 before you look again is not, and this is where the missing time axis bites, because a frame from 49 steps ago is all the model has to go on. Drag the slider.</p>
+<p>Predicting 50 actions is cheap. Executing all 50 before looking again is not, because the policy sees one frame with no history and no hidden state carried over, so a frame from 49 steps ago is all it has to go on. Drag the slider.</p>
 
 <figure class="fig" id="f9">
   <svg viewBox="0 0 800 190" role="img" aria-label="Interactive. A 50-step chunk. The slider sets how many steps are executed before the model takes a fresh camera frame, and the measured LIBERO success rate updates.">
@@ -946,14 +893,14 @@ loss = mse(u_t, model(x_t, time))</div>
     <input id="sl" type="range" min="0" max="3" step="1" value="0" aria-describedby="out">
     <output id="out" for="sl"><b>1</b> step &#183; 80.3</output>
   </div>
-  <figcaption>Only the four settings the paper measured are selectable, so nothing here is interpolated. Going from 1 to 50 costs 28.5 points. How far ahead the model predicts and how far ahead you let it act are separate dials.</figcaption>
+  <figcaption>Only the settings the paper measured are selectable. Going from 1 to 50 costs 28.5 points.</figcaption>
 </figure>
 
 <h2><span class="hn">13</span>So stop making it wait</h2>
 
-<p>If acting blind is expensive and thinking is slow, the obvious compromise is to act, then stop, then think, then act again, and the stopping is where all of the waste is.</p>
+<p>If acting blind is expensive and thinking is slow, the compromise is to act, stop, think, act again, and the stopping is the waste. So SmolVLA separates the robot from the model. The arm drains a queue of actions and ships the current frame to a server when the queue runs low, then keeps moving while the server thinks, which puts the thinking underneath the motion rather than in the gaps.</p>
 
-<p>SmolVLA separates the robot from the model. The arm holds a queue of actions and drains it, and when the queue runs low it ships the current frame to a server and keeps moving while the server thinks, so the thinking happens underneath the motion rather than in the gaps.</p>
+
 
 <figure class="fig wide" id="f10">
   <svg viewBox="0 0 940 262" role="img" aria-label="Animated. Two gripper glyphs travel along a track. The synchronous one stops each time the model thinks. The asynchronous one never stops, and finishes far more cycles in the same window.">
@@ -974,74 +921,48 @@ loss = mse(u_t, model(x_t, time))</div>
     <text x="638" y="200" class="lbl">SAME MODEL, SAME SUCCESS RATE</text>
     <text x="638" y="218" class="num">9.7 s &#183; 19 cycles in 60 s</text>
   </svg>
-  <figcaption>Success rates came out comparable in both modes. What changed was throughput, roughly 30% faster per task and more than twice the cycles inside a fixed minute, and the server does not have to sit on the robot either.</figcaption>
+  <figcaption>Success rates were comparable in both modes. What changed was throughput, roughly 30% faster per task and more than twice the cycles inside a fixed minute.</figcaption>
 </figure>
 
 <h2><span class="hn">14</span>What it was trained on</h2>
 
-<p>481 community datasets from Hugging Face, 22,900 episodes, 10.6 million frames. OpenVLA trained on roughly a million trajectories, so this is around forty times smaller, and it is the paper itself that says so, in its own limitations.</p>
+<p>481 community datasets from Hugging Face, 22,900 episodes, 10.6 million frames. The paper&#39;s own limitations put OpenVLA at around a million trajectories against this 23k, so it is roughly forty times less data.</p>
 
-<p>The data was messy the way community data always is. Task descriptions were missing or wrong, so a vision-language model rewrote them, and camera names disagreed between datasets, so viewpoints had to be mapped onto a shared scheme. Neither is a research contribution and both had to happen first.</p>
+<p>The data was messy the way community data always is. Task descriptions were missing or wrong, so a vision-language model rewrote them, and camera names disagreed, so viewpoints had to be mapped onto a shared scheme. Neither is a research contribution and both had to happen first.</p>
 
 <h2><span class="hn">15</span>Read the tables, not the captions</h2>
 
-<p>Four things in the paper do not line up with themselves, and noticing that is better practice than trusting any summary of a paper, this one included.</p>
+<p>Three things in the paper do not line up with themselves, and checking beats trusting any summary, including this one.</p>
 
-<p>The expert that shipped is 0.75 times the width of the frozen tower. Table 9 tests four widths and its caption says a wider expert does better, while its own rows say <strong>&#215;0.50 is smaller and scores 2.8 points higher</strong> than the &#215;0.75 that shipped. Table 11 claims the frozen tower is the better home for the pose token under both attention variants, when its own self-attention rows go the other way, 53.3 against 74.8.</p>
+<p>Table 9 tests four expert widths and its caption says larger capacities do better, while its own rows say <strong>&#215;0.50 is smaller and scores 2.8 points higher</strong> than the &#215;0.75 that shipped. Table 11 says feeding the pose token to the frozen tower beats feeding it to the expert, with no qualification, when its own self-attention rows go the other way, 53.3 against 74.8.</p>
 
-<p>Table 8 is milder. Its text says sampling every second layer beats a smaller backbone, and its rows put every-second-layer at 75.5 against the smaller 256M model at 75.8, a gap of 0.3 points that means nothing either way.</p>
-<p>The plainest one is not an ablation. Table 1 counts the pretraining set at 481 datasets, 22.9K episodes and 10.6M frames, and its own caption says the set stands &#8220;at ~10M episodes&#8221;. The caption took the frame count and put the wrong noun on it, overstating the scale by a factor of several hundred while the table above it is right. It is what happens to captions.</p>
 
-<p>The shipped choices might still be right. Every one of these ablations is trained from scratch on LIBERO with no robotics pretraining, and the released model is a different setting where the ordering could flip. The paper does not show that, and anyone who reads the captions and skips the tables gets a tidier story than the numbers support.</p>
+<p>The plainest one is not an ablation. Table 1 lists 22.9K episodes and 10.6M frames, then its own caption says the set stands &#8220;at ~10M episodes&#8221;, taking the frame count and putting the wrong noun on it.</p>
+
+<p>The shipped choices might still be right, because these ablations are all trained from scratch on LIBERO with no robotics pretraining, a different setting from the released model. But anyone who reads the captions and skips the tables gets a tidier story than the numbers support.</p>
 
 <table class="tb">
-  <caption>Every ablation in the paper, LIBERO average, trained from scratch with the backbone frozen. Shipped choice in red. Tables 6 to 13.</caption>
-  <thead><tr><th scope="col">Decision</th><th scope="col">Option</th><th scope="col" class="r">Avg</th></tr></thead>
+  <caption>The two ablations whose captions contradict their own rows. LIBERO average, trained from scratch with the backbone frozen. Shipped choice in red. Tables 9 and 11.</caption>
+  <thead><tr><th scope="col">Option</th><th scope="col" class="r">Avg</th></tr></thead>
   <tbody>
-    <tr class="sec"><td colspan="3">How the towers talk</td></tr>
-    <tr><td></td><td>cross-attention only</td><td class="r">79.0</td></tr>
-    <tr><td></td><td>self-attention only</td><td class="r">74.5</td></tr>
-    <tr class="w"><td></td><td>alternating</td><td class="r">85.5</td></tr>
-    <tr class="sec"><td colspan="3">Action tokens may see</td></tr>
-    <tr><td></td><td>all actions, both ways</td><td class="r">67.5</td></tr>
-    <tr class="w"><td></td><td>earlier actions only</td><td class="r">74.5</td></tr>
-    <tr class="sec"><td colspan="3">Layers kept from the language model</td></tr>
-    <tr><td></td><td>8</td><td class="r">75.0</td></tr>
-    <tr class="w"><td></td><td>16</td><td class="r">78.5</td></tr>
-    <tr><td></td><td>24</td><td class="r">79.5</td></tr>
-    <tr><td></td><td>32, all of them</td><td class="r">80.3</td></tr>
-    <tr><td></td><td>every second layer</td><td class="r">75.5</td></tr>
-    <tr><td></td><td>a smaller 256M model</td><td class="r">75.8</td></tr>
-    <tr class="sec"><td colspan="3">Expert width</td></tr>
-    <tr><td></td><td>&#215; 1.00</td><td class="r">82.3</td></tr>
-    <tr class="w"><td></td><td>&#215; 0.75</td><td class="r">77.5</td></tr>
-    <tr><td></td><td>&#215; 0.50</td><td class="r">80.3</td></tr>
-    <tr><td></td><td>&#215; 0.25</td><td class="r">73.8</td></tr>
-    <tr class="sec"><td colspan="3">Training objective</td></tr>
-    <tr class="w"><td></td><td>flow matching</td><td class="r">80.25</td></tr>
-    <tr><td></td><td>regression, L1</td><td class="r">75.25</td></tr>
-    <tr class="sec"><td colspan="3">Pose token goes to</td></tr>
-    <tr class="w"><td></td><td>frozen tower, cross-attn</td><td class="r">80.3</td></tr>
-    <tr><td></td><td>action expert, cross-attn</td><td class="r">73.3</td></tr>
-    <tr><td></td><td>frozen tower, self-attn</td><td class="r">53.3</td></tr>
-    <tr><td></td><td>action expert, self-attn</td><td class="r">74.8</td></tr>
-    <tr class="sec"><td colspan="3">Chunk size predicted</td></tr>
-    <tr><td></td><td>1</td><td class="r">50.0</td></tr>
-    <tr><td></td><td>10</td><td class="r">84.0</td></tr>
-    <tr><td></td><td>30</td><td class="r">78.5</td></tr>
-    <tr class="w"><td></td><td>50</td><td class="r">80.3</td></tr>
-    <tr><td></td><td>100</td><td class="r">74.5</td></tr>
-    <tr class="sec"><td colspan="3">Steps executed before looking again</td></tr>
-    <tr class="w"><td></td><td>1</td><td class="r">80.3</td></tr>
-    <tr><td></td><td>10</td><td class="r">82.8</td></tr>
-    <tr><td></td><td>30</td><td class="r">70.8</td></tr>
-    <tr><td></td><td>50</td><td class="r">51.8</td></tr>
+    <tr class="sec"><td colspan="2">Expert width</td></tr>
+    <tr><td>&#215; 1.00</td><td class="r">82.3</td></tr>
+    <tr class="w"><td>&#215; 0.75</td><td class="r">77.5</td></tr>
+    <tr><td>&#215; 0.50</td><td class="r">80.3</td></tr>
+    <tr><td>&#215; 0.25</td><td class="r">73.8</td></tr>
+    <tr class="sec"><td colspan="2">Pose token goes to</td></tr>
+    <tr class="w"><td>frozen tower, cross-attn</td><td class="r">80.3</td></tr>
+    <tr><td>action expert, cross-attn</td><td class="r">73.3</td></tr>
+    <tr><td>frozen tower, self-attn</td><td class="r">53.3</td></tr>
+    <tr><td>action expert, self-attn</td><td class="r">74.8</td></tr>
   </tbody>
 </table>
 
 <h2><span class="hn">16</span>The whole thing on one page</h2>
 
-<p>This is everything above, in the order it happens, with the numbers that decide the cost.</p>
+<p>Everything above, in the order it happens.</p>
+
+
 
 <figure class="fig wide" id="fZ">
   <svg viewBox="0 0 940 726" role="img" aria-label="The whole of SmolVLA in five bands read top to bottom. One, what goes in: three 640 by 480 cameras, a written instruction and the arm pose. Two, everything becomes one flat list of at most 241 tokens. Three, a frozen vision-language model and a trainable action expert walk up sixteen shared floors, joined into one attention on even floors and split on odd ones. Four, ten Euler steps turn noise into a chunk of actions while the cached prefix is left alone. Five, fifty six-dimensional joint angles drain out of a queue that refills before it empties.">
@@ -1152,18 +1073,18 @@ loss = mse(u_t, model(x_t, time))</div>
     <text x="722" y="652" class="say">numbers, then it looks</text>
     <text x="722" y="669" class="say">at the world again</text>
   </svg>
-  <figcaption>Read top to bottom. Bands one to three run once per observation. Band four runs ten times and moves 50 tokens rather than 291. Every number here has its working somewhere above.</figcaption>
+  <figcaption>Read top to bottom. Bands one to three run once per observation, band four ten times.</figcaption>
 </figure>
 
-<p>Taking it apart mostly taught us how little of it is new. Flow matching and the action expert come from <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&#960;<sub>0</sub></a>, the frozen backbone is <a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">SmolVLM-2</a> off the shelf, and action chunking goes back to <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT</a> in 2023. What SmolVLA adds is decisions about what to leave out, half the language model&#39;s layers, 64 visual tokens per camera rather than 1024, an expert three quarters the width of the tower it copied. None is interesting alone, and together they are most of the distance from 3.3 billion parameters to 450 million.</p>
+<p>Taking it apart mostly taught us how little of it is new. Flow matching and the action expert come from <a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">&#960;<sub>0</sub></a>, the frozen backbone is <a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">SmolVLM-2</a> off the shelf, and action chunking goes back to <a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">ACT</a> in 2023. What SmolVLA adds is decisions about what to leave out, and they cover most of the distance from 3.3 billion parameters to 450 million.</p>
 
-<p class="note">We run <a href="https://huggingface.co/docs/lerobot" target="_blank" rel="noopener">SO-101</a> arms, the hardware SmolVLA is evaluated on in Table 4. Everything marked <em>measured</em> came out of hooking the released model on our own rig, and the full teardown, with shapes and file references, sits in <a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">our repo</a>. For what a VLA still leaves undone, there is <a href="a-vla-is-not-the-policy.html">the other post</a>.</p>
+
 </div>
     </div>
 
     <section class="bp-src">
       <h2>Sources</h2>
-      <ol><li><a href="https://arxiv.org/abs/2506.01844" target="_blank" rel="noopener">Shukor, Aubakirova, Capuano et al., <em>SmolVLA: A vision-language-action model for affordable and efficient robotics</em>, arXiv:2506.01844v1, June 2025</a><span>the paper's own figures, including 450M parameters with ~100M in the action expert, the first 16 of the language model's layers, 64 visual tokens per frame, chunk size 50, 10 flow-matching steps, expert width 0.75&#215;d, Tables 6 to 13, and the async timings of 9.7 s against 13.75 s</span></li><li><a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">Phi, <em>SmolVLA: a frozen VLM with an action expert bolted on</em></a><span>every number marked <em>measured</em>: the ledger closing at 450,046,176 with 99,880,992 trainable and 1,635,152 structurally new; the 47.3M dead <code>lm_head</code>; the 480&#215;640 resize landing at 512&#215;384 with 128 padded rows and 25.0% dead pixels; the (768, 3, 16, 16) patch convolution at 589,824 weights; the (1024, 768) position table; the 241-token prefix and 291-token sequence at the 48-token language cap, and the 199-token prefix our own instruction really gives; the block-causal mask; the 720-number clock with periods 0.004 to 4.000 and norm &#8730;360; the 1,556,640-weight time-fusion MLP at 95.2% of all new weights; 24 attention calls across 16 layers; the expert re-projecting cached keys through <code>Linear(320&#8594;320)</code>; the 4.9 MB bf16 cache; and Euler integration landing at 0.0000</span></li><li><a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">Black et al., <em>&#960;<sub>0</sub>: A Vision-Language-Action Flow Model for General Robot Control</em>, 2024</a><span>the 3.3B model SmolVLA is measured against, pretrained on 10,000 hours of robot data; origin of the flow-matching action expert and the Beta-distributed noise level</span></li><li><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al., <em>Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</em> (ACT), RSS 2023</a><span>action chunking, and the single-task baseline in the paper's real-world tables</span></li><li><a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">Marafioti et al., <em>SmolVLM2</em>, Hugging Face, 2025</a><span>the frozen backbone, a SigLIP vision encoder feeding a SmolLM2 decoder</span></li><li><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">Cadene et al., <em>LeRobot</em></a><span>the implementation everything was measured against, <code>lerobot/policies/smolvla/</code> at version 0.6.0</span></li></ol>
+      <ol><li><a href="https://arxiv.org/abs/2506.01844" target="_blank" rel="noopener">Shukor, Aubakirova, Capuano et al., <em>SmolVLA: A vision-language-action model for affordable and efficient robotics</em>, arXiv:2506.01844v1, June 2025</a><span>the paper's own figures, including 450M parameters with ~100M in the action expert, the first 16 of the language model's layers, 64 visual tokens per frame, chunk size 50, 10 flow-matching steps, expert width 0.75&#215;d, Tables 6 to 13, and the async timings of 9.7 s against 13.75 s with 19 pick-and-place cycles against 9 in a 60-second window</span></li><li><a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">Phi, <em>SmolVLA: a frozen VLM with an action expert bolted on</em></a><span>every number marked <em>measured</em>: the ledger closing at 450,046,176 with 99,880,992 trainable and 1,635,152 structurally new; the 47.3M dead <code>lm_head</code>; the 480&#215;640 resize landing at 512&#215;384 with 128 padded rows and 25.0% dead pixels; the (768, 3, 16, 16) patch convolution at 589,824 weights; the (1024, 768) position table; the 241-token prefix and 291-token sequence at the 48-token language cap, and the 199-token prefix our own instruction really gives; the block-causal mask; the 720-number clock with periods 0.004 to 4.000 and norm &#8730;360; the 1,556,640-weight time-fusion MLP at 95.2% of all new weights; 24 attention calls across 16 layers; the expert re-projecting cached keys through <code>Linear(320&#8594;320)</code>; the 4.9 MB bf16 cache; and Euler integration landing at 0.0000</span></li><li><a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">Black et al., <em>&#960;<sub>0</sub>: A Vision-Language-Action Flow Model for General Robot Control</em>, 2024</a><span>the 3.3B model SmolVLA is measured against, pretrained on 10,000 hours of robot data; origin of the flow-matching action expert and the Beta-distributed noise level</span></li><li><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al., <em>Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</em> (ACT), RSS 2023</a><span>action chunking, and the single-task baseline in the paper's real-world tables</span></li><li><a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">Marafioti et al., <em>SmolVLM2</em>, Hugging Face, 2025</a><span>the frozen backbone, a SigLIP vision encoder feeding a SmolLM2 decoder</span></li><li><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">Cadene et al., <em>LeRobot</em></a><span>the implementation everything was measured against, <code>lerobot/policies/smolvla/</code> at version 0.6.0</span></li></ol>
     </section>
   </article>
 </main>
