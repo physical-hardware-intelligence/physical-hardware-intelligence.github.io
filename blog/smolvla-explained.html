@@ -198,7 +198,7 @@
       <a class="bp-back" href="index.html">&#8592; Blog</a>
       <p class="bp-meta"><span class="rt"><b>18 min</b> read</span><span>5 August 2026</span><span>Written by Parv Patodia</span><span>Physical Hardware Intelligence</span></p>
       <h1>SmolVLA, explained from the ground up</h1>
-      <p class="dek">A 450-million-parameter robot policy that beats a 3.3-billion-parameter one, and only about 1.6 million of its weights are new. We took it apart on our own arms, and this is all of it, starting from one red cube.</p>
+      <p class="dek">A 450-million-parameter robot policy that beats a 3.3-billion-parameter one, and only about 1.6 million of its weights are new. We took it apart on our own arms, starting from one red cube.</p>
       <hr class="bp-rule">
       <div class="bp-body">
 
@@ -251,7 +251,7 @@
 
 
 
-<p>Two stacks. The left is a <button type="button" class="gl" data-def="A model trained on internet images and captions. It can describe a picture, but knows nothing about robots.">vision-language model</button> that knows what &#8220;red&#8221; and &#8220;cube&#8221; mean from the internet, and it is <button type="button" class="gl" data-def="Its weights never change during training. It stays exactly as it was pretrained.">frozen</button>, so none of that knowledge moves. The right is a smaller <button type="button" class="gl" data-def="The new, trainable half of SmolVLA. It turns the frozen model&#39;s view of the scene into joint angles.">action expert</button> that only speaks joint angles, and it is the half that learns.</p>
+<p>Two stacks. The left is a <button type="button" class="gl" data-def="A model trained on internet images and captions. It can describe a picture, but knows nothing about robots.">vision-language model</button> carrying what it learned from the internet, and it is <button type="button" class="gl" data-def="Its weights never change during training. It stays exactly as it was pretrained.">frozen</button>, so none of that knowledge moves. The right is a smaller <button type="button" class="gl" data-def="The new, trainable half of SmolVLA. It turns the frozen model&#39;s view of the scene into joint angles.">action expert</button> that only speaks joint angles, and it is the half that learns.</p>
 
 <p>Counted layer by layer as the released config builds it, the model is 450,046,176 parameters, of which 99,880,992 train, and 47.3 million of the frozen half is an <code>lm_head</code> for turning hidden states back into words, on the GPU for nothing because the forward pass never calls it. Since the expert is a copy of the frozen architecture at smaller widths, the better question is how many weights are <em>structurally new</em>, with no counterpart in what was borrowed, and the answer is <strong>1,635,152</strong> across five small linear layers, 0.36% of the thing.</p>
 
@@ -418,7 +418,7 @@
 </figure>
 <p>That convolution is the only part of this model that thinks in pictures. From here to the motors, everything is a list.</p>
 
-<p>Then a learned position table is added on, one row per patch, shape (1024, 768). <strong>Added</strong>, element by element, the position row landing on the patch row, so a configuration flag is frozen into the shape of a weight and the 512&#215;512 above cannot change either. Hold onto the adding, because the expert faces the same problem later and solves it the other way, at more cost than anything else new.</p>
+<p>Then a learned position table is added on, one row per patch, shape (1024, 768). <strong>Added</strong>, element by element, the position row landing on the patch row, so a configuration flag is frozen into the shape of a weight and the 512&#215;512 above cannot change. Hold onto the adding, because the expert faces the same problem later and solves it the other way, at more cost than anything else new.</p>
 
 
 
@@ -426,7 +426,7 @@
 <h2><span class="hn">04</span>Twelve layers where every patch sees every patch</h2>
 <p>Those 1024 tokens go through the vision tower proper, a plain ViT twelve layers deep, and its attention is bidirectional. No causal mask, no ordering, so patch 900 reads patch 3 as freely as patch 3 reads patch 900. The right call for a picture, which has no reading direction.</p>
 <p>By the twelfth layer a token describes not its own 16&#215;16 square but that square <em>in the context of the whole frame</em>.</p>
-<p>Width 768 splits into 12 heads of 64, so Q, K and V each come out as <strong>(B, 12, 1024, 64)</strong>, and the same shapes return in the expert at other numbers. Inside one head, Q times K transposed is a <strong>1024 &#215; 1024</strong> table, one number per ordered pair of patches. Divide by &#8730;64 = 8, softmax each row, multiply by V, and each patch leaves with 64 numbers blended from the whole frame. That is 1,048,576 numbers per head per layer, so twelve layers of twelve heads is about <strong>151 million</strong> attention weights per frame, none of it stored.</p>
+<p>Width 768 splits into 12 heads of 64, so Q, K and V each come out as <strong>(B, 12, 1024, 64)</strong>, and the same shapes return in the expert at other numbers. Inside one head, Q times K transposed is a <strong>1024 &#215; 1024</strong> table, one number per ordered pair of patches. Divide by &#8730;64 = 8, softmax each row, multiply by V, and each patch leaves with 64 numbers blended from the whole frame. That is 1,048,576 numbers per head per layer, so twelve layers of twelve heads is about <strong>151 million</strong> attention scores per frame, none of them stored.</p>
 
 <figure class="fig wide" id="fV">
   <svg viewBox="0 0 940 430" role="img" aria-label="Animated, two bands. The first shows the patch tokens and an identically shaped learned position table added element by element, then a 1024 by 1024 attention table with one query row sweeping down it, then the shapes and the cost inside one head. The second shows the pre-norm block, layer norm then attention then a residual add then layer norm then MLP then another residual add, and a strip of twelve layers with a highlight stepping through them.">
@@ -497,7 +497,7 @@
     <text x="620" y="400" class="say">all twelve are frozen. Not one</text>
     <text x="620" y="420" class="say">of them gets a gradient here.</text>
   </svg>
-  <figcaption><em>Measured</em> from the installed config, 12 layers and 12 heads at width 768.</figcaption>
+  <figcaption><em>Measured</em> from the installed config.</figcaption>
 </figure>
 
 
@@ -666,7 +666,7 @@
     <line x1="20" y1="396" x2="780" y2="396" class="sl"/>
     <text x="20" y="418" class="mn">expert q_proj 720 &#8594; 960 &#183; attend in the shared 15&#215;64 head space &#183; o_proj 960 &#8594; 720</text>
   </svg>
-  <figcaption><em>Measured.</em> The width multiplier shrinks the expert&#39;s residual stream from 960 to 720 and its feed-forward from 2560 to 2048, leaving head count and width alone so the even floors can concatenate.</figcaption>
+  <figcaption><em>Measured.</em> The width multiplier takes the expert&#39;s residual stream from 960 to 720, and its feed-forward follows at 2048 rather than the tower&#39;s 2560, leaving head count and head width alone so the even floors can concatenate.</figcaption>
 </figure>
 
 
@@ -727,7 +727,7 @@ loss = mse(u_t, model(x_t, time))</div>
 
 <p>Because the thing predicted is <code>noise &#8722; actions</code>, <strong>the action term never drops out</strong>. Hold that against a plain denoiser trained to predict noise alone, where at the noisy end the input very nearly <em>is</em> the noise, so predicting it collapses into copying the input and the loss stops measuring anything. Here the error floors at the action-prediction error instead.</p>
 
-<p>And the sampling tilts towards that end. <code>Beta(1.5, 1.0)</code> has density proportional to &#8730;t and a mean of 0.601, with <strong>28.5% of draws in the top fifth</strong>, so most of the training budget goes where the loss still says something.</p>
+<p>And the sampling tilts towards that end. <code>Beta(1.5, 1.0)</code> has density proportional to &#8730;t and a mean of 0.6, with <strong>28.5% of draws in the top fifth</strong>, so most of the training budget goes where the loss still says something.</p>
 
 <h2><span class="hn">09</span>The clock the expert reads</h2>
 <p>The expert cannot point anywhere useful without knowing how far along it is, because the right direction from a nearly-clean chunk is not the right direction from pure noise. That number is the clock, and everything below is the code&#39;s <code>time</code>, 1 at pure noise down to 0 at the answer, the paper&#39;s &#964; upside down.</p>
@@ -926,7 +926,7 @@ loss = mse(u_t, model(x_t, time))</div>
 
 <h2><span class="hn">14</span>What it was trained on</h2>
 
-<p>481 community datasets from Hugging Face, 22,900 episodes, 10.6 million frames. OpenVLA trained on roughly a million trajectories, so this is around forty times smaller, as the paper&#39;s own limitations say.</p>
+<p>481 community datasets from Hugging Face, 22,900 episodes, 10.6 million frames. The paper&#39;s own limitations put OpenVLA at around a million trajectories against this 23k, so it is roughly forty times less data.</p>
 
 <p>The data was messy the way community data always is. Task descriptions were missing or wrong, so a vision-language model rewrote them, and camera names disagreed, so viewpoints had to be mapped onto a shared scheme. Neither is a research contribution and both had to happen first.</p>
 
@@ -934,10 +934,10 @@ loss = mse(u_t, model(x_t, time))</div>
 
 <p>Three things in the paper do not line up with themselves, and checking beats trusting any summary, including this one.</p>
 
-<p>Table 9 tests four expert widths and its caption says wider does better, while its own rows say <strong>&#215;0.50 is smaller and scores 2.8 points higher</strong> than the &#215;0.75 that shipped. Table 11 claims the frozen tower is the better home for the pose token under both attention variants, when its own self-attention rows go the other way, 53.3 against 74.8.</p>
+<p>Table 9 tests four expert widths and its caption says larger capacities do better, while its own rows say <strong>&#215;0.50 is smaller and scores 2.8 points higher</strong> than the &#215;0.75 that shipped. Table 11 says feeding the pose token to the frozen tower beats feeding it to the expert, with no qualification, when its own self-attention rows go the other way, 53.3 against 74.8.</p>
 
 
-<p>The plainest one is not an ablation. Table 1 counts the pretraining set at 481 datasets, 22.9K episodes and 10.6M frames, then its own caption says &#8220;at ~10M episodes&#8221;, taking the frame count and putting the wrong noun on it.</p>
+<p>The plainest one is not an ablation. Table 1 lists 22.9K episodes and 10.6M frames, then its own caption says the set stands &#8220;at ~10M episodes&#8221;, taking the frame count and putting the wrong noun on it.</p>
 
 <p>The shipped choices might still be right, because these ablations are all trained from scratch on LIBERO with no robotics pretraining, a different setting from the released model. But anyone who reads the captions and skips the tables gets a tidier story than the numbers support.</p>
 
@@ -1084,7 +1084,7 @@ loss = mse(u_t, model(x_t, time))</div>
 
     <section class="bp-src">
       <h2>Sources</h2>
-      <ol><li><a href="https://arxiv.org/abs/2506.01844" target="_blank" rel="noopener">Shukor, Aubakirova, Capuano et al., <em>SmolVLA: A vision-language-action model for affordable and efficient robotics</em>, arXiv:2506.01844v1, June 2025</a><span>the paper's own figures, including 450M parameters with ~100M in the action expert, the first 16 of the language model's layers, 64 visual tokens per frame, chunk size 50, 10 flow-matching steps, expert width 0.75&#215;d, Tables 6 to 13, and the async timings of 9.7 s against 13.75 s</span></li><li><a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">Phi, <em>SmolVLA: a frozen VLM with an action expert bolted on</em></a><span>every number marked <em>measured</em>: the ledger closing at 450,046,176 with 99,880,992 trainable and 1,635,152 structurally new; the 47.3M dead <code>lm_head</code>; the 480&#215;640 resize landing at 512&#215;384 with 128 padded rows and 25.0% dead pixels; the (768, 3, 16, 16) patch convolution at 589,824 weights; the (1024, 768) position table; the 241-token prefix and 291-token sequence at the 48-token language cap, and the 199-token prefix our own instruction really gives; the block-causal mask; the 720-number clock with periods 0.004 to 4.000 and norm &#8730;360; the 1,556,640-weight time-fusion MLP at 95.2% of all new weights; 24 attention calls across 16 layers; the expert re-projecting cached keys through <code>Linear(320&#8594;320)</code>; the 4.9 MB bf16 cache; and Euler integration landing at 0.0000</span></li><li><a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">Black et al., <em>&#960;<sub>0</sub>: A Vision-Language-Action Flow Model for General Robot Control</em>, 2024</a><span>the 3.3B model SmolVLA is measured against, pretrained on 10,000 hours of robot data; origin of the flow-matching action expert and the Beta-distributed noise level</span></li><li><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al., <em>Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</em> (ACT), RSS 2023</a><span>action chunking, and the single-task baseline in the paper's real-world tables</span></li><li><a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">Marafioti et al., <em>SmolVLM2</em>, Hugging Face, 2025</a><span>the frozen backbone, a SigLIP vision encoder feeding a SmolLM2 decoder</span></li><li><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">Cadene et al., <em>LeRobot</em></a><span>the implementation everything was measured against, <code>lerobot/policies/smolvla/</code> at version 0.6.0</span></li></ol>
+      <ol><li><a href="https://arxiv.org/abs/2506.01844" target="_blank" rel="noopener">Shukor, Aubakirova, Capuano et al., <em>SmolVLA: A vision-language-action model for affordable and efficient robotics</em>, arXiv:2506.01844v1, June 2025</a><span>the paper's own figures, including 450M parameters with ~100M in the action expert, the first 16 of the language model's layers, 64 visual tokens per frame, chunk size 50, 10 flow-matching steps, expert width 0.75&#215;d, Tables 6 to 13, and the async timings of 9.7 s against 13.75 s with 19 pick-and-place cycles against 9 in a 60-second window</span></li><li><a href="https://github.com/physical-hardware-intelligence/phi/blob/main/docs/theory/smolvla.md" target="_blank" rel="noopener">Phi, <em>SmolVLA: a frozen VLM with an action expert bolted on</em></a><span>every number marked <em>measured</em>: the ledger closing at 450,046,176 with 99,880,992 trainable and 1,635,152 structurally new; the 47.3M dead <code>lm_head</code>; the 480&#215;640 resize landing at 512&#215;384 with 128 padded rows and 25.0% dead pixels; the (768, 3, 16, 16) patch convolution at 589,824 weights; the (1024, 768) position table; the 241-token prefix and 291-token sequence at the 48-token language cap, and the 199-token prefix our own instruction really gives; the block-causal mask; the 720-number clock with periods 0.004 to 4.000 and norm &#8730;360; the 1,556,640-weight time-fusion MLP at 95.2% of all new weights; 24 attention calls across 16 layers; the expert re-projecting cached keys through <code>Linear(320&#8594;320)</code>; the 4.9 MB bf16 cache; and Euler integration landing at 0.0000</span></li><li><a href="https://arxiv.org/abs/2410.24164" target="_blank" rel="noopener">Black et al., <em>&#960;<sub>0</sub>: A Vision-Language-Action Flow Model for General Robot Control</em>, 2024</a><span>the 3.3B model SmolVLA is measured against, pretrained on 10,000 hours of robot data; origin of the flow-matching action expert and the Beta-distributed noise level</span></li><li><a href="https://arxiv.org/abs/2304.13705" target="_blank" rel="noopener">Zhao et al., <em>Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware</em> (ACT), RSS 2023</a><span>action chunking, and the single-task baseline in the paper's real-world tables</span></li><li><a href="https://huggingface.co/blog/smolvlm2" target="_blank" rel="noopener">Marafioti et al., <em>SmolVLM2</em>, Hugging Face, 2025</a><span>the frozen backbone, a SigLIP vision encoder feeding a SmolLM2 decoder</span></li><li><a href="https://github.com/huggingface/lerobot" target="_blank" rel="noopener">Cadene et al., <em>LeRobot</em></a><span>the implementation everything was measured against, <code>lerobot/policies/smolvla/</code> at version 0.6.0</span></li></ol>
     </section>
   </article>
 </main>
