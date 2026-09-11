@@ -6,12 +6,12 @@
 <script>document.documentElement.classList.add("js");</script>
 <title>ACT policy, shape by shape · Phi</title>
 <meta name="author" content="Sai Krishna">
-<meta name="description" content="A practical, shape-first guide to the ACT policy we run: one wrist camera, six joint values, and a coherent chunk of future actions.">
+<meta name="description" content="A practical, shape-first guide to the ACT policy we run: wrist, top and front cameras, six joint values, and a coherent chunk of future actions.">
 <meta name="theme-color" content="#ECE7DC">
 <meta property="og:type" content="article">
 <meta property="article:author" content="Sai Krishna">
 <meta property="og:title" content="ACT policy, shape by shape">
-<meta property="og:description" content="One wrist camera and six joint values go in. A coherent chunk of future robot commands comes out.">
+<meta property="og:description" content="Wrist, top and front cameras plus six joint values go in. A coherent chunk of future robot commands comes out.">
 <meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
 <meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/act-explained.html">
 <meta name="twitter:card" content="summary_large_image">
@@ -158,31 +158,38 @@
       <a class="bp-back" href="index.html">&#8592; Blog</a>
       <p class="bp-meta"><span class="rt"><b>9 min</b> read</span><span>10 September 2026</span><span>Written by Sai Krishna</span><span>Physical Hardware Intelligence</span></p>
       <h1>ACT policy, shape by shape</h1>
-      <p class="dek">A practical guide to the policy we run: one wrist camera and six joint values in, a short trajectory of robot commands out.</p>
+      <p class="dek">A practical guide to the policy we run: wrist, top and front cameras plus six joint values in, a short trajectory of robot commands out.</p>
       <hr class="bp-rule">
       <div class="bp-body">
 
-<p class="lede">One wrist camera looks past the gripper. Six numbers say where the robot is. ACT turns that single observation into <strong>a coherent chunk of future joint commands</strong>&#8212;then looks again before the world gets away from it.</p>
+<p class="lede">Three cameras see the task from the wrist, top and front. Six numbers say where the robot is. ACT turns that synchronized observation into <strong>a coherent chunk of future joint commands</strong>&#8212;then looks again before the world gets away from it.</p>
 
 <p>That last part matters. Action Chunking with Transformers is often summarized as &#8220;predict many actions at once,&#8221; which makes it sound open-loop. The useful version is a closed-loop visual policy: plan a short trajectory, execute one action or a small prefix, observe the changed scene, and replan.</p>
 
-<p>This is the model from the shapes outward. We use <code>B</code> for batch size, <code>T</code> for chunk length, and six commanded joint values. There is one camera in our setup, mounted on the wrist.</p>
+<p>This is the model from the shapes outward. We use <code>B</code> for batch size, <code>T</code> for chunk length, and six commanded joint values. Our visual input contains exactly three synchronized RGB views: wrist, top and front.</p>
 
 <figure class="fig wide reveal" id="f1">
-  <svg viewBox="0 0 940 300" role="img" aria-label="One wrist camera image and six current joint values enter ACT. The model returns T future steps, each containing six robot commands.">
+  <svg viewBox="0 0 940 300" role="img" aria-label="Wrist, top and front camera images plus six current joint values enter ACT. The model returns T future steps, each containing six robot commands.">
     <defs><marker id="ar1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
     <text x="24" y="24" class="ttl">CURRENT OBSERVATION</text>
-    <rect x="24" y="44" width="190" height="128" class="bx fp"/>
-    <line x1="24" y1="143" x2="214" y2="143" class="sl"/>
-    <path d="M56 132 l31 -44 l34 31 l35 -62" class="st"/>
-    <circle cx="56" cy="132" r="4" class="fi"/><circle cx="87" cy="88" r="4" class="fi"/><circle cx="121" cy="119" r="4" class="fi"/><circle cx="156" cy="57" r="4" class="fi"/>
-    <path d="M156 57 l20 -13 M156 57 l22 7" class="st"/><rect x="100" y="124" width="18" height="18" class="fa"/>
-    <text x="24" y="198" class="say">one wrist camera</text>
-    <text x="24" y="216" class="lbl">I<tspan baseline-shift="sub">t</tspan> &#183; (B, 1, 3, H, W)</text>
-    <rect x="24" y="236" width="190" height="38" class="bsx fe"/>
-    <text x="40" y="260" class="mn">q<tspan baseline-shift="sub">t</tspan> &#183; (B, 6)</text>
+    <rect x="24" y="44" width="78" height="92" class="bx fp"/>
+    <line x1="24" y1="116" x2="102" y2="116" class="sl"/>
+    <path d="M34 108 l18 -27 l16 17 l18 -38" class="st"/>
+    <circle cx="34" cy="108" r="3" class="fi"/><circle cx="52" cy="81" r="3" class="fi"/><circle cx="68" cy="98" r="3" class="fi"/><circle cx="86" cy="60" r="3" class="fi"/>
+    <rect x="68" y="104" width="11" height="11" class="fa"/><text x="63" y="154" class="lbl" text-anchor="middle">WRIST</text>
+    <rect x="112" y="44" width="78" height="92" class="bx fp"/>
+    <circle cx="151" cy="88" r="24" class="sl"/><rect x="143" y="80" width="16" height="16" class="fa"/>
+    <path d="M121 53 L181 127 M181 53 L121 127" class="sl"/><text x="151" y="154" class="lbl" text-anchor="middle">TOP</text>
+    <rect x="200" y="44" width="78" height="92" class="bx fp"/>
+    <line x1="200" y1="116" x2="278" y2="116" class="sl"/>
+    <path d="M211 108 l17 -30 l17 20 l17 -37" class="st"/><circle cx="211" cy="108" r="3" class="fi"/><circle cx="228" cy="78" r="3" class="fi"/><circle cx="245" cy="98" r="3" class="fi"/><circle cx="262" cy="61" r="3" class="fi"/>
+    <rect x="247" y="104" width="11" height="11" class="fa"/><text x="239" y="154" class="lbl" text-anchor="middle">FRONT</text>
+    <text x="24" y="184" class="say">three synchronized RGB views</text>
+    <text x="24" y="202" class="lbl">I<tspan baseline-shift="sub">t</tspan> &#183; (B, 3, 3, H, W)</text>
+    <rect x="24" y="224" width="254" height="40" class="bsx fe"/>
+    <text x="40" y="249" class="mn">q<tspan baseline-shift="sub">t</tspan> &#183; (B, 6)</text>
 
-    <path d="M232 155 H322" class="st" marker-end="url(#ar1)"/>
+    <path d="M294 155 H322" class="st" marker-end="url(#ar1)"/>
     <rect x="336" y="92" width="194" height="126" class="bx fp"/>
     <text x="360" y="129" class="big">ACT policy</text>
     <text x="360" y="154" class="say">vision + state + style</text>
@@ -206,7 +213,7 @@
     <text x="632" y="238" class="say">T future steps &#215; 6 commands</text>
     <text x="632" y="258" class="red">&#226; &#183; (B, T, 6)</text>
   </svg>
-  <figcaption>Our path is deliberately small: one wrist image, the current six-value robot state, and a predicted chunk with shape <code>(B, T, 6)</code>.</figcaption>
+  <figcaption>Our path is deliberately small: three synchronized images, the current six-value robot state, and a predicted chunk with shape <code>(B, T, 6)</code>.</figcaption>
 </figure>
 
 <h2><span class="hn">01</span>Why change the prediction unit</h2>
@@ -216,30 +223,30 @@
 <p>ACT changes the unit from one command to a local trajectory. The transformer predicts <code>T</code> future controls together, so reaching, closing, and lifting can form one consistent motion instead of a row of unrelated guesses.</p>
 
 <figure class="fig wide reveal" id="f2">
-  <svg viewBox="0 0 940 278" role="img" aria-label="The ACT control loop has three stages: see one wrist image and current robot state, plan a chunk of T actions, execute a short prefix, then observe and replan.">
+  <svg viewBox="0 0 940 278" role="img" aria-label="The ACT control loop has three stages: see wrist, top and front images plus the current robot state, plan a chunk of T actions, execute a short prefix, then observe and replan.">
     <defs><marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
     <text x="24" y="24" class="ttl">THE LIVE CONTROL LOOP</text>
     <rect x="24" y="54" width="244" height="136" class="bx fp"/>
-    <text x="46" y="88" class="lbl">01 &#183; SEE</text><text x="46" y="122" class="big">one wrist image</text><text x="46" y="147" class="say">plus the current robot state</text>
+    <text x="46" y="88" class="lbl">01 &#183; SEE</text><text x="46" y="122" class="big">three camera views</text><text x="46" y="147" class="say">wrist + top + front, plus state</text>
     <rect x="348" y="54" width="244" height="136" class="bx fp"/>
     <text x="370" y="88" class="lbl">02 &#183; PLAN A CHUNK</text><text x="370" y="122" class="big">T future actions</text><text x="370" y="147" class="say">predicted together, in parallel</text>
     <rect x="672" y="54" width="244" height="136" class="bx fp"/>
     <text x="694" y="88" class="lbl">03 &#183; EXECUTE + REPLAN</text><text x="694" y="122" class="big">use a short prefix</text><text x="694" y="147" class="say">then look at the changed world</text>
     <path d="M280 122 H334" class="st" marker-end="url(#ar2)"/><path d="M604 122 H658" class="st" marker-end="url(#ar2)"/>
     <path d="M794 204 C794 252 146 252 146 204" class="sa a-loop" marker-end="url(#ar2)"/>
-    <text x="470" y="244" class="red" text-anchor="middle">closed-loop because the camera keeps coming back</text>
+    <text x="470" y="244" class="red" text-anchor="middle">closed-loop because the cameras keep coming back</text>
   </svg>
-  <figcaption>ACT is not a fixed open-loop script. It predicts a chunk, uses only as much as the control strategy allows, and repeatedly conditions on fresh wrist-camera evidence.</figcaption>
+  <figcaption>ACT is not a fixed open-loop script. It predicts a chunk, uses only as much as the control strategy allows, and repeatedly conditions on fresh evidence from all three cameras.</figcaption>
 </figure>
 
 <h2><span class="hn">02</span>The whole model in seven shapes</h2>
 
-<p>The easiest way to understand the architecture is to keep a ledger. Our image tensor has a camera axis of exactly one. The state and every action have six values. Everything else exists to move information into the transformer's hidden width <code>d</code> and back out again.</p>
+<p>The easiest way to understand the architecture is to keep a ledger. Our image tensor has a camera axis of exactly three, ordered wrist, top and front. Its next axis is also three, but that one means RGB channels. The state and every action have six values. Everything else exists to move information into the transformer's hidden width <code>d</code> and back out again.</p>
 
 <table class="shape reveal">
   <thead><tr><th>Tensor</th><th>Shape</th><th>What it means</th></tr></thead>
   <tbody>
-    <tr><td>wrist images</td><td>(B, 1, 3, H, W)</td><td>one RGB observation per sample</td></tr>
+    <tr><td>camera images</td><td>(B, 3, 3, H, W)</td><td>wrist, top and front RGB views</td></tr>
     <tr><td>current state</td><td>(B, 6)</td><td>the six current joint values</td></tr>
     <tr><td>demonstrated actions</td><td>(B, T, 6)</td><td>the future training target</td></tr>
     <tr><td>posterior &mu;, log &sigma;&sup2;</td><td>(B, d<sub>z</sub>) each</td><td>parameters of the training style distribution</td></tr>
@@ -247,17 +254,17 @@
     <tr><td>learned action queries</td><td>(T, d)</td><td>one query for each future position</td></tr>
     <tr><td>predicted chunk</td><td>(B, T, 6)</td><td>T continuous six-value commands</td></tr>
   </tbody>
-  <caption>The camera count stays one throughout. <code>d</code> is the policy width; <code>d<sub>z</sub></code> is the smaller latent-style width.</caption>
+  <caption>The first <code>3</code> is the camera count; the second is the RGB channel count. <code>d</code> is the policy width; <code>d<sub>z</sub></code> is the smaller latent-style width.</caption>
 </table>
 
 <h2><span class="hn">03</span>Training has a path that deployment never sees</h2>
 
 <p>ACT is trained as a <button type="button" class="gl" data-def="A conditional variational autoencoder learns a compact latent variable for variation in the target action sequence while conditioning reconstruction on the current observation.">conditional variational autoencoder</button>. Its upper path sees the answer: the real future action chunk from the demonstration. A transformer encoder reads <code>[CLS]</code>, the current state, and those action tokens. The <code>[CLS]</code> output becomes a mean and log-variance, then reparameterization samples a style <code>z</code>.</p>
 
-<p>The lower path is the policy. The wrist image becomes spatial feature tokens with 2D positions. State and style become context tokens. Then <code>T</code> learned queries cross-attend to that observation memory in parallel, one query for each future action position.</p>
+<p>The lower path is the policy. The wrist, top and front images become spatial feature tokens with 2D positions. State and style become context tokens. Then <code>T</code> learned queries cross-attend to that observation memory in parallel, one query for each future action position.</p>
 
 <figure class="fig wide reveal" id="f3">
-  <svg viewBox="0 0 940 404" role="img" aria-label="During training, state and the demonstrated action chunk enter a CVAE encoder to produce style z. The deployed policy sends one wrist image through a visual backbone, combines it with state and z, and decodes T six-value actions.">
+  <svg viewBox="0 0 940 404" role="img" aria-label="During training, state and the demonstrated action chunk enter a CVAE encoder to produce style z. The deployed policy sends wrist, top and front images through a visual backbone, combines them with state and z, and decodes T six-value actions.">
     <defs><marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#544c40"/></marker></defs>
     <text x="24" y="24" class="ttl">TRAINING-ONLY PATH &#183; INFER STYLE FROM THE DEMONSTRATION</text>
     <rect x="24" y="48" width="138" height="72" class="bx fp"/><text x="42" y="78" class="big">state</text><text x="42" y="101" class="lbl">q<tspan baseline-shift="sub">t</tspan> &#183; (B, 6)</text>
@@ -269,7 +276,7 @@
 
     <line x1="24" y1="158" x2="916" y2="158" class="sl"/>
     <text x="24" y="188" class="ttl">POLICY PATH &#183; THIS IS WHAT RUNS ON THE ROBOT</text>
-    <rect x="24" y="214" width="154" height="88" class="bx fp"/><text x="42" y="246" class="big">wrist image</text><text x="42" y="270" class="lbl">(B, 1, 3, H, W)</text>
+    <rect x="24" y="214" width="154" height="88" class="bx fp"/><text x="42" y="246" class="big">3 camera views</text><text x="42" y="270" class="lbl">(B, 3, 3, H, W)</text>
     <path d="M190 258 H234" class="st" marker-end="url(#ar3)"/>
     <rect x="248" y="214" width="154" height="88" class="bx fe"/><text x="266" y="246" class="big">vision</text><text x="266" y="270" class="lbl">FEATURES + 2D POSITIONS</text>
     <path d="M414 258 H458" class="st" marker-end="url(#ar3)"/>
@@ -290,11 +297,11 @@
 
 <p>The transformer policy receives those memory tokens and the <code>T</code> learned queries. Each query retrieves the observation context it needs through cross-attention and represents one future position in the chunk. The action head is deliberately plain: it maps each decoder output to six continuous commands.</p>
 
-<p>That separation is useful when debugging. If the wrist image does not contain the object, a better decoder cannot invent it. If outputs have the wrong shape, the action head or dataset window is wrong. If the motion is locally inconsistent, inspect the queries, positions, and chunk construction before changing the camera.</p>
+<p>That separation is useful when debugging. If none of the three views contains the object, a better decoder cannot invent it. If outputs have the wrong shape, the action head or dataset window is wrong. If the motion is locally inconsistent, inspect the queries, positions, and chunk construction before changing the cameras.</p>
 
 <h2><span class="hn">05</span>How ACT trains</h2>
 
-<p>Every training sample is anchored at a timestep <code>t</code>. It contains the current wrist image, current state, and the next <code>T</code> demonstrated actions. Near the end of an episode there may be fewer than <code>T</code> real actions, so the remainder is padded and a mask marks which rows are valid.</p>
+<p>Every training sample is anchored at a timestep <code>t</code>. It contains the synchronized wrist, top and front images, current state, and the next <code>T</code> demonstrated actions. Near the end of an episode there may be fewer than <code>T</code> real actions, so the remainder is padded and a mask marks which rows are valid.</p>
 
 <p>The CVAE encoder infers <code>&mu;</code> and <code>log &sigma;&sup2;</code> from the state and real action chunk. Reparameterization produces <code>z = &mu; + exp(0.5 log &sigma;&sup2;) &epsilon;</code>. The policy uses that <code>z</code> to reconstruct the same chunk.</p>
 
@@ -310,7 +317,7 @@
 
 <h2><span class="hn">06</span>Inference stays closed-loop</h2>
 
-<p>At deployment there is no future demonstration, so the CVAE encoder cannot run. The live loop is short: read the wrist image and state; set <code>z = 0</code> unless intentionally sampling diverse behaviour; predict <code>T</code> actions; execute one action or a short prefix; observe again.</p>
+<p>At deployment there is no future demonstration, so the CVAE encoder cannot run. The live loop is short: read the synchronized wrist, top and front images plus the state; set <code>z = 0</code> unless intentionally sampling diverse behaviour; predict <code>T</code> actions; execute one action or a short prefix; observe again.</p>
 
 <p>Repeated calls create overlapping predictions for the same future timestep. <button type="button" class="gl" data-def="An inference-time smoother that combines overlapping predictions for the same action, usually giving more weight to predictions made from newer observations.">Temporal ensembling</button> combines them, with larger weight on newer chunks. The policy keeps frequent visual feedback while abrupt command changes are smoothed away.</p>
 
@@ -336,7 +343,7 @@
     <input id="freshness" type="range" min="0" max="1" step="0.05" value="0.35">
     <output id="freshnessOut"><b>0.35</b> &#183; gentle</output>
   </div>
-  <figcaption>Move the control to see the trade-off. Zero averages all overlapping chunks equally; a stronger preference follows the latest wrist image more closely.</figcaption>
+  <figcaption>Move the control to see the trade-off. Zero averages all overlapping chunks equally; a stronger preference follows the latest three-view observation more closely.</figcaption>
 </figure>
 
 <h2><span class="hn">07</span>What ACT adds beyond chunked behaviour cloning</h2>
@@ -359,16 +366,16 @@
 
 <ul class="check reveal">
   <li><b>Data</b><span>Split by episode, preserve temporal order, normalize state and actions with training statistics, and return both the action chunk and its padding mask.</span></li>
-  <li><b>Vision</b><span>Use the same wrist-camera resolution and normalization during training and rollout. Preserve spatial features for the transformer.</span></li>
+  <li><b>Vision</b><span>Keep the wrist, top and front camera order fixed. Use the same resolution and normalization for every view during training and rollout, and preserve spatial features for the transformer.</span></li>
   <li><b>CVAE</b><span>Use bidirectional self-attention over <code>[CLS]</code>, state, and action tokens. Mask padded action tokens.</span></li>
   <li><b>Policy</b><span>Use <code>T</code> learned queries, observation memory, positional embeddings, and an action head that returns <code>(B, T, 6)</code>.</span></li>
   <li><b>Loss</b><span>Log reconstruction, raw KL, weighted KL, and total loss separately. A single total does not reveal which term moved.</span></li>
   <li><b>Evaluation</b><span>Judge closed-loop rollouts. Success and behaviour matter more than comparing raw loss scales across different policies.</span></li>
 </ul>
 
-<p>The central idea is smaller than the architecture diagram. ACT changes the basic prediction unit from one motor command to a short trajectory. Chunking improves local consistency; repeated wrist-camera observations keep the robot responsive; the CVAE can explain variation in how the demonstrations get there.</p>
+<p>The central idea is smaller than the architecture diagram. ACT changes the basic prediction unit from one motor command to a short trajectory. Chunking improves local consistency; repeated three-camera observations keep the robot responsive; the CVAE can explain variation in how the demonstrations get there.</p>
 
-<p class="note">For our setup, the invariant worth checking first is the camera axis: <code>images.shape[1] == 1</code>. From there the path should close cleanly from <code>(B, 1, 3, H, W)</code> and <code>(B, 6)</code> to <code>(B, T, 6)</code>.</p>
+<p class="note">For our setup, the first invariant worth checking is the camera axis: <code>images.shape[1] == 3</code>, ordered wrist, top and front. From there the path should close cleanly from <code>(B, 3, 3, H, W)</code> and <code>(B, 6)</code> to <code>(B, T, 6)</code>.</p>
 
       </div>
     </div>
