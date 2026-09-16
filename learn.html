@@ -222,8 +222,7 @@
   <!-- 02 · THE PAPERS, IN ORDER (timeline) -->
   <section class="section learn-section" id="papers">
     <div class="sec-head reveal"><span class="sec-idx">02</span><span class="sec-label">Read</span></div>
-    <script type="application/json" id="papers-data">
-{
+    <script type="application/json" id="papers-data">{
  "spines": [
   {
    "id": "policy",
@@ -336,7 +335,7 @@
     {
      "id": "adapt",
      "label": "Adapt it without retraining everything",
-     "era": "2025 \u2013 26"
+     "era": "2025 – 26"
     },
     {
      "id": "shrink",
@@ -463,7 +462,7 @@
     {
      "id": "force",
      "label": "But you cannot see forces",
-     "era": "2024 \u2013 25"
+     "era": "2024 – 25"
     }
    ],
    "short": "Learning without demos"
@@ -624,7 +623,7 @@
    "t": "EyeSight Hand",
    "u": "https://arxiv.org/abs/2408.06265",
    "d": "A 7-DoF hand with vision-based tactile sensors in every fingertip and quasi-direct-drive actuation, 650g and under $2,500 to build. Adding tactile sharply improved bottle opening, cutting and plate handling.",
-   "tag": "hardware \u00b7 tactile",
+   "tag": "hardware · tactile",
    "tagClass": "",
    "now": false,
    "spine": "rl",
@@ -636,7 +635,7 @@
    "t": "DexWrist",
    "u": "https://arxiv.org/abs/2507.01008",
    "d": "Most wrists put their joints in series and make them stiff, so small motions need large arm movements. Co-locating the joints and letting them backdrive raised policy success 50-55% and cut task time 3-5x.",
-   "tag": "hardware \u00b7 read this",
+   "tag": "hardware · read this",
    "tagClass": "",
    "now": true,
    "spine": "rl",
@@ -648,7 +647,7 @@
    "t": "DEXOP",
    "u": "https://arxiv.org/abs/2509.04441",
    "d": "Teleoperation gives the human no force feedback. Linking human fingers to robot fingers mechanically does, so the demonstrator feels contact while collecting vision and tactile data.",
-   "tag": "data \u00b7 tactile",
+   "tag": "data · tactile",
    "tagClass": "",
    "now": false,
    "spine": "rl",
@@ -660,7 +659,7 @@
    "t": "SoftMimic",
    "u": "https://arxiv.org/abs/2510.17792",
    "d": "Motion tracking rewards stiffness, which is why humanoids fail on contact. Reward the compliant response instead and treat the reference as a reference: one policy spans a range of stiffnesses, and one demo generalises across box sizes with no retraining.",
-   "tag": "control \u00b7 read this",
+   "tag": "control · read this",
    "tagClass": "",
    "now": true,
    "spine": "rl",
@@ -923,10 +922,10 @@
   },
   {
    "y": "2026",
-   "t": "Dyna \u2014 deployment is the eval",
+   "t": "Dyna — deployment is the eval",
    "u": "https://www.dyna.co/research/scaling-customer-deployments",
    "d": "Din Tai Fung is rolling Dyna's robots across its restaurants, the first manipulation pilot taken to scaled deployment. Dyna-1 folded 35 napkins an hour at 75% quality; Dyna-2 does 95 at 93%. Deployment is the eval: a terabyte a day, every episode auto-labelled.",
-   "tag": "deployment \u00b7 read this",
+   "tag": "deployment · read this",
    "tagClass": "",
    "now": true,
    "spine": "deploy",
@@ -1125,10 +1124,10 @@
   },
   {
    "y": "2026",
-   "t": "GEN-1.5 \u2014 one-shot learning of physical skills",
+   "t": "GEN-1.5 — one-shot learning of physical skills",
    "u": "https://generalistai.com/blog/gen-1.5",
    "d": "Show it once and it does the task: 59% one-shot across ten tasks, no gradient updates. Weights move under 0.15%, so it is being reminded of something it nearly knew. The authors call it brittler than finetuning.",
-   "tag": "vla \u00b7 read this",
+   "tag": "vla · read this",
    "tagClass": "vla",
    "now": true,
    "spine": "vla",
@@ -1136,10 +1135,10 @@
   },
   {
    "y": "2026",
-   "t": "S1 \u2014 in-context learning for robotics",
+   "t": "S1 — in-context learning for robotics",
    "u": "https://www.skild.ai/blogs/s1",
    "d": "Prompt with a video of the task instead of a sentence, and never touch the weights. 66% on unseen tasks against 9% for language prompting, on horizons up to ten minutes. Post-training still wins, at 2,000 demos.",
-   "tag": "vla \u00b7 read this",
+   "tag": "vla · read this",
    "tagClass": "vla",
    "now": true,
    "spine": "vla",
@@ -1542,10 +1541,10 @@
   },
   {
    "y": "2026",
-   "t": "Atlas \u2014 reconstruct the real world, then simulate it",
+   "t": "Atlas — reconstruct the real world, then simulate it",
    "u": "https://www.worldlabs.ai/blog/atlas",
-   "d": "One model pretrained across text, image, video and 3D at once, emitting explicit point clouds and Gaussian splats rather than pixels alone. World Labs pitches it as Real-to-Sim for robotics. Reconstruction error 8.6 on DTU against 11.1\u201318.2 for specialist baselines. Company\u2019s own numbers, early access only.",
-   "tag": "sim \u00b7 company post",
+   "d": "One model pretrained across text, image, video and 3D at once, emitting explicit point clouds and Gaussian splats rather than pixels alone. World Labs pitches it as Real-to-Sim for robotics. Reconstruction error 8.6 on DTU against 11.1–18.2 for specialist baselines. Company’s own numbers, early access only.",
+   "tag": "sim · company post",
    "tagClass": "",
    "now": true,
    "spine": "data",
@@ -1647,10 +1646,45 @@
    "spine": "data",
    "branch": "gap",
    "read": false
+  },
+  {
+   "y": "2026",
+   "t": "Awesome-WAM — the world-action model taxonomy",
+   "u": "https://openmoss.ai/Awesome-WAM/",
+   "d": "Sorts the whole spine by how prediction and action are coupled: cascaded or joint, autoregressive or diffusion. Where Dyna-2, LingBot and DreamZero sit relative to everyone else, with a leaderboard.",
+   "tag": "world model · survey",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "control",
+   "read": false
+  },
+  {
+   "y": "2026",
+   "t": "Scaling web-video pretraining, measured on a real job",
+   "u": "https://www.rhoda.ai/research/scaling-web-video-pretraining",
+   "d": "A bearing-unpacking task on real hardware, 200+ hours of robot time: at-speed completion goes 3.7% to 84.7% as the video model grows. Their own caveat: one task, one embodiment, one seed.",
+   "tag": "world model · company post",
+   "tagClass": "",
+   "now": false,
+   "spine": "world",
+   "branch": "control",
+   "read": false
+  },
+  {
+   "y": "2026",
+   "t": "GPT-Policy — in-context robot control with a frozen VLM",
+   "u": "https://cheng-haha.github.io/GPT-Policy/",
+   "d": "A frozen VLM learns a task at deployment from a human video or a few demos, no gradient updates. A constrained controller verifies each action before it executes.",
+   "tag": "vla · we're testing it",
+   "tagClass": "vla",
+   "now": false,
+   "spine": "vla",
+   "branch": "adapt",
+   "read": false
   }
  ]
-}
-    </script>
+}</script>
     <div id="flow" class="flow reveal">
       <noscript><p class="flow-err">The reading map needs JavaScript. The papers are listed in the page source.</p></noscript>
     </div>
@@ -1815,6 +1849,10 @@
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UC Berkeley · Levine</span></div>
         <h3><a href="http://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank" rel="noopener">CS 285 — Deep RL<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The canonical graduate deep reinforcement learning course. Lectures free online.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UPenn · Gu</span></div>
+        <h3><a href="https://www.cis.upenn.edu/~cis6280/" target="_blank" rel="noopener">CIS 6280 — World Models<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>Twenty-three lectures from VAEs to video generation to control. Slides are public.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Stanford · Finn</span></div>
         <h3><a href="https://cs224r.stanford.edu/" target="_blank" rel="noopener">CS 224R — Deep RL<span class="ext" aria-hidden="true">↗</span></a></h3>
