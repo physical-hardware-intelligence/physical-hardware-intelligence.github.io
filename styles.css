@@ -301,3 +301,43 @@ html.intro-lock,html.intro-lock body{overflow:hidden}
   html{scroll-behavior:auto}
   .reveal{opacity:1;transform:none}
 }
+
+/* ── 04 · SCHEDULE ─────────────────────────────────────────── */
+.sched-inner{max-width:var(--maxw);margin:0 auto}
+.sched-title{font-family:var(--disp);font-size:clamp(1.9rem,4.4vw,3rem);line-height:1.05;margin:0 0 .35rem}
+.sched-lede{font-family:var(--serif);opacity:.72;margin:0 0 2.2rem}
+
+.sched-week{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.sched-week li{
+  display:grid;grid-template-columns:8.5rem 10rem 7rem 1fr;align-items:baseline;
+  gap:1rem;padding:1.05rem .2rem;border-bottom:1px solid var(--line);
+}
+.sd-day{font-family:var(--disp);font-size:1.15rem}
+.sd-time{font-family:var(--mono);font-size:.86rem;letter-spacing:.01em;opacity:.8;font-variant-numeric:tabular-nums}
+.sd-kind{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  justify-self:start;padding:.2rem .5rem;border:1px solid var(--line);border-radius:2px;white-space:nowrap;
+}
+.sd-learn{color:var(--apple);border-color:var(--apple)}
+.sd-flex{opacity:.55}
+.sd-note{font-family:var(--serif);font-size:.95rem;opacity:.72}
+.sched-week li.sd-open{opacity:.82}
+
+.sched-next{margin-top:2.6rem;padding-top:1.4rem;border-top:2px solid var(--ink)}
+.sn-label{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;opacity:.55}
+.sched-next ul{list-style:none;margin:.9rem 0 0;padding:0}
+.sched-next li{display:grid;grid-template-columns:9rem 1fr;gap:1rem;align-items:baseline;padding:.5rem 0}
+.sched-next time{font-family:var(--mono);font-size:.84rem;opacity:.8;font-variant-numeric:tabular-nums}
+.sched-next b{font-family:var(--disp);font-weight:600;font-size:1.05rem}
+.sched-next li span{grid-column:2;font-family:var(--serif);font-size:.92rem;opacity:.68}
+
+.sched-foot{font-family:var(--mono);font-size:.72rem;opacity:.5;margin-top:1.8rem}
+
+@media(max-width:760px){
+  .sched-week li{grid-template-columns:1fr auto;gap:.3rem .8rem;padding:.95rem .1rem}
+  .sd-time{grid-column:2;grid-row:1;justify-self:end}
+  .sd-kind{grid-column:1;grid-row:2;margin:.15rem 0}
+  .sd-note{grid-column:1/-1;grid-row:3}
+  .sched-next li{grid-template-columns:1fr}
+  .sched-next li span,.sched-next b{grid-column:1}
+}
