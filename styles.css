@@ -307,7 +307,7 @@ html.intro-lock,html.intro-lock body{overflow:hidden}
 
 .sched-week{list-style:none;margin:1.6rem 0 0;padding:0;border-top:1px solid var(--line)}
 .sched-week li{
-  display:grid;grid-template-columns:8.5rem 10rem 7rem 1fr;align-items:baseline;
+  display:grid;grid-template-columns:8.5rem 10rem 1fr;align-items:baseline;
   gap:1rem;padding:1.05rem .2rem;border-bottom:1px solid var(--line);
 }
 .sd-day{font-family:var(--disp);font-size:1.15rem}
@@ -318,7 +318,6 @@ html.intro-lock,html.intro-lock body{overflow:hidden}
 }
 .sd-learn{color:var(--apple);border-color:var(--apple)}
 .sd-flex{opacity:.55}
-.sd-note{font-family:var(--serif);font-size:.95rem;opacity:.72}
 .sched-week li.sd-open{opacity:.82}
 
 .sched-next{margin-top:2.6rem;padding-top:1.4rem;border-top:2px solid var(--ink)}
@@ -332,10 +331,9 @@ html.intro-lock,html.intro-lock body{overflow:hidden}
 .sched-foot{font-family:var(--mono);font-size:.72rem;opacity:.5;margin-top:1.8rem}
 
 @media(max-width:760px){
-  .sched-week li{grid-template-columns:1fr auto;gap:.3rem .8rem;padding:.95rem .1rem}
+  .sched-week li{grid-template-columns:1fr auto;gap:.25rem .8rem;padding:.9rem .1rem}
   .sd-time{grid-column:2;grid-row:1;justify-self:end}
-  .sd-kind{grid-column:1;grid-row:2;margin:.15rem 0}
-  .sd-note{grid-column:1/-1;grid-row:3}
+  .sd-kind{grid-column:1;grid-row:2}
   .sched-next li{grid-template-columns:1fr}
   .sched-next li span,.sched-next b{grid-column:1}
 }
