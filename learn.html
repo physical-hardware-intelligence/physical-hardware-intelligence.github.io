@@ -455,6 +455,11 @@
      "era": "2024"
     },
     {
+     "id": "frozen",
+     "label": "But the policy is now too big to do RL on",
+     "era": "2025 – 26"
+    },
+    {
      "id": "fast",
      "label": "Make simulation fast enough that trying the transfer is cheap",
      "era": "2026"
@@ -1682,6 +1687,42 @@
    "spine": "vla",
    "branch": "adapt",
    "read": false
+  },
+  {
+   "y": "2025",
+   "t": "EXPO — stable RL with expressive policies",
+   "u": "https://arxiv.org/abs/2507.07986",
+   "d": "A flow policy is a long denoising chain, so gradients from a value function do not propagate through it stably. Freeze it, and train a small Gaussian that edits its actions toward higher value instead. 2-3x the sample efficiency.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "frozen",
+   "read": false
+  },
+  {
+   "y": "2026",
+   "t": "Real-Time EXPO-FT — making a slow VLA reactive again",
+   "u": "https://arxiv.org/abs/2609.18207",
+   "d": "A chunked policy acts on a state it saw seconds ago, which also breaks the Markov property RL needs. A lightweight edit policy corrects the surviving chunk from the current observation, and a critic picks between original and edited. 30/30 on real dynamic tasks, 10 minutes of online data.",
+   "tag": "rl",
+   "tagClass": "",
+   "now": false,
+   "spine": "rl",
+   "branch": "frozen",
+   "read": false
+  },
+  {
+   "y": "2026",
+   "t": "We looked at the data",
+   "u": "https://pantheon.inc/research/we-looked-at-the-data",
+   "d": "Annotated four open manipulation datasets and found 15+ categories of corruption: camera freezes, actions misaligned with the visible motion, exposure drift, action spikes with nothing moving. Manifests released. We have hit four of the fifteen on our own arm.",
+   "tag": "gap · read this",
+   "tagClass": "",
+   "now": false,
+   "spine": "data",
+   "branch": "gap",
+   "read": false
   }
  ]
 }</script>
@@ -1853,6 +1894,10 @@
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UC Berkeley · Levine</span></div>
         <h3><a href="http://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank" rel="noopener">CS 285 — Deep RL<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The canonical graduate deep reinforcement learning course. Lectures free online.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">MIT · Agrawal</span></div>
+        <h3><a href="https://pulkitag.github.io/6.8200/" target="_blank" rel="noopener">6.8200 — Computational Sensorimotor Learning<span class="ext" aria-hidden="true">↗</span></a></h3>
+        <p>RL, imitation, self-supervised and model-based learning for control. Hands-on first half, open research questions second.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UPenn · Gu</span></div>
         <h3><a href="https://www.cis.upenn.edu/~cis6280/" target="_blank" rel="noopener">CIS 6280 — World Models<span class="ext" aria-hidden="true">↗</span></a></h3>
