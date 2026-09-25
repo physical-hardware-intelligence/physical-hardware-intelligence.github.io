@@ -199,9 +199,9 @@
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">Welch Labs · 2026</span></div>
         <h3><a href="https://www.youtube.com/watch?v=2mrGMMmrVNE" target="_blank" rel="noopener">Inside the World's Smartest Robot Brain<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>A beautifully made primer on how vision-language-action models actually work.</p></div>
+        <p>A beautifully made primer on how a vision-language-action model turns camera pixels into motor commands.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Site</span><span class="res-src">Humanity's Last Machine</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Site</span><span class="res-src">RoboStrategy</span></div>
         <h3><a href="https://www.humanityslastmachine.com" target="_blank" rel="noopener">Humanity's Last Machine<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A gorgeous, component-level tour of what actually goes into a humanoid robot.</p></div>
 
@@ -219,7 +219,10 @@
     </div>
   </section>
 
-  <!-- 02 · THE PAPERS, IN ORDER (timeline) -->
+  <!-- 02 · READ. Adding a paper = one object in #papers-data below, nothing else.
+       House style, so the grid reads evenly: paper blurbs run 20-34 words,
+       card blurbs 12-20, and res-src gives the employer or university rather
+       than repeating whatever the <h3> already says. -->
   <section class="section learn-section" id="papers">
     <div class="sec-head reveal"><span class="sec-idx">02</span><span class="sec-label">Read</span></div>
     <script type="application/json" id="papers-data">{
@@ -307,7 +310,7 @@
     {
      "id": "gap",
      "label": "But data made elsewhere still has to cross the gap",
-     "era": "2017 – 25"
+     "era": "2017 – 26"
     }
    ]
   },
@@ -432,7 +435,7 @@
     {
      "id": "afford",
      "label": "First, make trial-and-error affordable",
-     "era": "2017 – 2018"
+     "era": "2017 – 18"
     },
     {
      "id": "brute",
@@ -447,7 +450,7 @@
     {
      "id": "logged",
      "label": "Stop collecting. Learn from the data you already have",
-     "era": "2020 – 2023"
+     "era": "2020 – 23"
     },
     {
      "id": "human",
@@ -531,7 +534,7 @@
    "y": "2018",
    "t": "QT-Opt",
    "u": "https://arxiv.org/abs/1806.10293",
-   "d": "580,000 real grasp attempts across a farm of arms, to 96% on unseen objects. It worked, it learned to nudge and regrasp on its own, and the cost is the argument for every other branch here.",
+   "d": "580,000 real grasp attempts across a farm of arms, reaching 96% on unseen objects. It learned to nudge and regrasp on its own, and its cost is the argument for every other branch here.",
    "tag": "rl",
    "tagClass": "",
    "now": false,
@@ -603,7 +606,7 @@
    "y": "2024",
    "t": "HIL-SERL",
    "u": "https://arxiv.org/abs/2410.21845",
-   "d": "Let a human take over when the policy is about to fail. Near-perfect success in 1 to 2.5 hours of real training, roughly double the imitation baselines. This is the stack that ships inside our LeRobot install.",
+   "d": "Let a human take over when the policy is about to fail. Near-perfect success in 1 to 2.5 hours of real training, roughly double the imitation baselines. It ships inside our LeRobot install.",
    "tag": "rl",
    "tagClass": "",
    "now": false,
@@ -615,7 +618,7 @@
    "y": "2026",
    "t": "Squint",
    "u": "https://arxiv.org/abs/2602.21203",
-   "d": "Visual SAC, heavily randomized, on an eight-task SO-101 suite that transfers to a real arm. Most tasks converge in under six minutes on one GPU — cheap enough to retry the transfer until it works.",
+   "d": "Visual SAC, heavily randomized, on an eight-task SO-101 suite that transfers to a real arm. Most tasks converge in under six minutes on one GPU, cheap enough to retry until the transfer works.",
    "tag": "rl",
    "tagClass": "",
    "now": false,
@@ -652,18 +655,18 @@
    "t": "DEXOP",
    "u": "https://arxiv.org/abs/2509.04441",
    "d": "Teleoperation gives the human no force feedback. Linking human fingers to robot fingers mechanically does, so the demonstrator feels contact while collecting vision and tactile data.",
-   "tag": "data · tactile",
+   "tag": "no robot · tactile",
    "tagClass": "",
    "now": false,
-   "spine": "rl",
-   "branch": "force",
+   "spine": "data",
+   "branch": "norobot",
    "read": false
   },
   {
    "y": "2025",
    "t": "SoftMimic",
    "u": "https://arxiv.org/abs/2510.17792",
-   "d": "Motion tracking rewards stiffness, which is why humanoids fail on contact. Reward the compliant response instead and treat the reference as a reference: one policy spans a range of stiffnesses, and one demo generalises across box sizes with no retraining.",
+   "d": "Motion tracking rewards stiffness, which is why humanoids fail on contact. Reward the compliant response instead: one policy spans a range of stiffnesses, and one demo generalises across box sizes with no retraining.",
    "tag": "control · read this",
    "tagClass": "",
    "now": true,
@@ -675,7 +678,7 @@
    "y": "2021",
    "t": "Implicit BC (IBC)",
    "u": "https://arxiv.org/abs/2109.00137",
-   "d": "Score actions with an energy function instead of predicting them. The idea diffusion later stabilized.",
+   "d": "Score candidate actions with an energy function and pick the minimum, instead of regressing one. Handles discontinuities a regressor smooths over, but training it is unstable — the problem diffusion later solved.",
    "tag": "policy",
    "tagClass": "",
    "now": false,
@@ -686,7 +689,7 @@
    "y": "2021",
    "t": "VINN",
    "u": "https://arxiv.org/abs/2112.01511",
-   "d": "No action network at all: good visual features plus a nearest-neighbor lookup over demos.",
+   "d": "No action network at all. Pretrained visual features plus a nearest-neighbour lookup over the demonstrations, so the action you execute is one a human actually performed.",
    "tag": "policy",
    "tagClass": "",
    "now": false,
@@ -697,7 +700,7 @@
    "y": "2022",
    "t": "Behavior Transformer (BeT)",
    "u": "https://arxiv.org/abs/2206.11251",
-   "d": "Cluster behaviors into modes, let a transformer pick one. VQ-BeT's ancestor.",
+   "d": "Cluster the demonstrated actions into modes, then let a transformer pick a mode and regress the offset within it. The first explicit answer to multimodality, and VQ-BeT's ancestor.",
    "tag": "policy",
    "tagClass": "",
    "now": false,
@@ -708,7 +711,7 @@
    "y": "2024",
    "t": "VQ-BeT",
    "u": "https://arxiv.org/abs/2403.03181",
-   "d": "Tokenize actions with a residual VQ-VAE. As expressive as diffusion, ~5× faster.",
+   "d": "Tokenize actions with a residual VQ-VAE, so the modes are learned rather than clustered by hand. As expressive as diffusion policy and roughly five times faster at inference.",
    "tag": "policy",
    "tagClass": "",
    "now": false,
@@ -719,7 +722,7 @@
    "y": "2023",
    "t": "Diffusion Policy",
    "u": "https://arxiv.org/abs/2303.04137",
-   "d": "Generate action trajectories by denoising. Handles the \"many right ways\" of a task.",
+   "d": "Generate a whole action trajectory by denoising it from noise, conditioned on recent observations. The method that made handling the many right ways of a task routine rather than averaging them.",
    "tag": "policy",
    "tagClass": "",
    "now": false,
@@ -730,7 +733,7 @@
    "y": "2025",
    "t": "Much Ado About Noising",
    "u": "https://arxiv.org/abs/2512.01809",
-   "d": "Why do diffusion policies really work? Not multimodality: it's iterative, supervised computation. A 2-step regressor (MIP) keeps up.",
+   "d": "Why do diffusion policies really work? Not multimodality, the paper argues, but iterative supervised computation — and a two-step regressor with no noise in it keeps up across their benchmarks.",
    "tag": "policy · myth-busting",
    "tagClass": "",
    "now": false,
@@ -741,7 +744,7 @@
    "y": "2023",
    "t": "ACT / ALOHA",
    "u": "https://arxiv.org/abs/2304.13705",
-   "d": "Action chunking: predict a burst of moves at once. The baseline every task gets first.",
+   "d": "Action chunking: predict a burst of future moves in one pass and execute the whole thing, so compounding error gets fewer chances to act. Still the baseline every new task gets first.",
    "tag": "policy",
    "tagClass": "",
    "now": false,
@@ -752,8 +755,8 @@
    "y": "2026",
    "t": "Patch Policy",
    "u": "https://arxiv.org/abs/2607.18236",
-   "d": "Keep dense vision-transformer patches instead of pooling them — beat a 7.6B model at 0.7% the size.",
-   "tag": "policy · we're testing it",
+   "d": "Pooling a vision transformer's patches into one vector throws away where things are. Keep the dense patches instead, and a 53M policy beats a 7.6B model at 0.7% of its size.",
+   "tag": "vla · we're testing it",
    "tagClass": "",
    "now": true,
    "spine": "vla",
@@ -763,7 +766,7 @@
    "y": "2022",
    "t": "RT-1",
    "u": "https://arxiv.org/abs/2212.06817",
-   "d": "The transformer that turned robot actions into tokens and trained on them at scale.",
+   "d": "The transformer that turned robot actions into discrete tokens and trained on 130,000 episodes across 700 tasks. The template every autoregressive VLA still follows.",
    "tag": "vla",
    "tagClass": "vla",
    "now": false,
@@ -774,7 +777,7 @@
    "y": "2024",
    "t": "OpenVLA",
    "u": "https://openvla.github.io/",
-   "d": "An open 7B vision-language-action model. The reference point for \"big VLA\" baselines.",
+   "d": "An open 7B vision-language-action model trained on Open X-Embodiment, with weights and training code released. The reference point almost every later VLA paper measures itself against.",
    "tag": "vla",
    "tagClass": "vla",
    "now": false,
@@ -785,7 +788,7 @@
    "y": "2024",
    "t": "π₀ — a generalist policy",
    "u": "https://www.physicalintelligence.company/blog/pi0",
-   "d": "A flow-matching VLA foundation model, in plain language. Read the blog, then the paper.",
+   "d": "A vision-language model with a flow-matching action expert bolted on, emitting continuous action chunks at 50 Hz. The blog explains it in plain language; read that before the paper.",
    "tag": "vla",
    "tagClass": "vla",
    "now": false,
@@ -796,7 +799,7 @@
    "y": "2025",
    "t": "GR00T N1",
    "u": "https://arxiv.org/abs/2503.14734",
-   "d": "An open humanoid foundation model split into fast \"acting\" and slow \"reasoning\" systems.",
+   "d": "An open humanoid foundation model split in two: a slow vision-language system that reasons about the instruction, and a fast diffusion transformer that emits the actions.",
    "tag": "vla",
    "tagClass": "vla",
    "now": false,
@@ -807,7 +810,7 @@
    "y": "2025",
    "t": "SmolVLA",
    "u": "https://huggingface.co/papers/2506.01844",
-   "d": "A 450M vision-language-action model that runs on consumer hardware. In our policy zoo.",
+   "d": "A 450M vision-language-action model trained on community LeRobot datasets, small enough to run on a laptop or a single consumer GPU. One of the policies in our own zoo.",
    "tag": "vla",
    "tagClass": "vla",
    "now": false,
@@ -818,8 +821,8 @@
    "y": "2023",
    "t": "DINOv2",
    "u": "https://github.com/facebookresearch/dinov2",
-   "d": "The frozen vision backbone Patch Policy — and half the field — builds on.",
-   "tag": "vision",
+   "d": "Self-supervised features that work frozen, with no finetuning, because curated data and a KoLeo term keep the capacity spread out. The backbone Patch Policy and half the field build on.",
+   "tag": "ssl",
    "tagClass": "",
    "now": false,
    "spine": "repr",
@@ -829,7 +832,7 @@
    "y": "2026",
    "t": "LeJEPA identifiability",
    "u": "https://arxiv.org/abs/2605.26379",
-   "d": "When does a JEPA actually learn a world model? The conditions under which the representation is identifiable.",
+   "d": "When does a JEPA actually recover the world's structure rather than some arbitrary encoding of it? Gives conditions under which the learned representation is identifiable up to a known transform.",
    "tag": "ssl",
    "tagClass": "",
    "now": false,
@@ -840,7 +843,7 @@
    "y": "2024",
    "t": "FALCON",
    "u": "https://arxiv.org/abs/2410.04959",
-   "d": "A non-contrastive objective engineered so that full collapse is provably impossible.",
+   "d": "A non-contrastive objective engineered so that full collapse is provably impossible rather than merely unlikely, by constraining how features are allocated instead of adding another architectural trick.",
    "tag": "ssl",
    "tagClass": "",
    "now": false,
@@ -851,7 +854,7 @@
    "y": "2025",
    "t": "Dual Perspectives on Non-Contrastive SSL",
    "u": "https://arxiv.org/abs/2507.01028",
-   "d": "Two lenses on why these methods collapse, and what the collapse dynamics actually look like.",
+   "d": "Two lenses on the same question: why do non-contrastive methods avoid collapse at all, and what do the collapse dynamics look like when they fail? Theory catching up with practice.",
    "tag": "ssl",
    "tagClass": "",
    "now": false,
@@ -873,7 +876,7 @@
    "y": "2026",
    "t": "Rectified LpJEPA (RDMReg)",
    "u": "https://arxiv.org/abs/2602.01456",
-   "d": "Replace SIGReg's Gaussian test with a sliced Wasserstein distance, which has no gradient dead zone at collapse.",
+   "d": "Replace SIGReg's Gaussian test with a sliced Wasserstein distance. The gradient no longer flattens out exactly where the representation has collapsed, which is where you most need it.",
    "tag": "ssl",
    "tagClass": "",
    "now": false,
@@ -907,7 +910,7 @@
    "y": "2026",
    "t": "μ₀ — 3D interaction traces",
    "u": "https://arxiv.org/abs/2606.13769",
-   "d": "Forecast sparse 3D interaction traces instead of pixels, arguing pixel models waste capacity on appearance.",
+   "d": "Forecast sparse 3D interaction traces instead of pixels, on the argument that a pixel model spends most of its capacity on appearance that control never uses.",
    "tag": "world model",
    "tagClass": "",
    "now": false,
@@ -916,9 +919,9 @@
   },
   {
    "y": "2026",
-   "t": "The Relling Working Paper",
-   "u": "https://rellingsystems.com/whitepaper",
-   "d": "The bottleneck is not intelligence, it is the deployment layer. Integrator hours, not model quality, are what keep robots off the floor.",
+   "t": "Duration blindness in robot foundation models",
+   "u": "https://rellingsystems.com/research/duration-blindness",
+   "d": "Five VLAs told to wait N seconds before acting all start within one inference step, at any N. Adding the temporal prefix drops LIBERO success from 46.7% to 3.9%.",
    "tag": "deployment",
    "tagClass": "",
    "now": false,
@@ -929,7 +932,7 @@
    "y": "2026",
    "t": "Dyna — deployment is the eval",
    "u": "https://www.dyna.co/research/scaling-customer-deployments",
-   "d": "Din Tai Fung is rolling Dyna's robots across its restaurants, the first manipulation pilot taken to scaled deployment. Dyna-1 folded 35 napkins an hour at 75% quality; Dyna-2 does 95 at 93%. Deployment is the eval: a terabyte a day, every episode auto-labelled.",
+   "d": "Din Tai Fung is rolling Dyna's robots across its restaurants, the first manipulation pilot taken to scaled deployment. Dyna-1 folded 35 napkins an hour at 75% quality; Dyna-2 does 95 at 93%.",
    "tag": "deployment · read this",
    "tagClass": "",
    "now": true,
@@ -940,7 +943,7 @@
    "y": "2026",
    "t": "Kepler v0.1",
    "u": "https://menlo.ai/research/kepler-v01",
-   "d": "A JEPA world encoder trained with SIGReg on 54M frames across four arms. Despite the name it does not predict forward, so you cannot plan with it. Vision-only motor R² 0.304, and zero-shot to unseen robots trails a plain vision baseline.",
+   "d": "A JEPA world encoder trained with SIGReg on 54M frames across four arms. Despite the name it does not predict forward, so you cannot plan with it, and zero-shot transfer trails plain vision.",
    "tag": "ssl · encoder",
    "tagClass": "",
    "now": false,
@@ -1071,7 +1074,7 @@
    "y": "2010",
    "t": "DAgger",
    "u": "https://arxiv.org/abs/1011.0686",
-   "d": "Names the disease. Because the robot's own actions decide what it sees next, the i.i.d. assumption behind supervised learning breaks. The fix is to keep querying the demonstrator on the states the learner actually reaches.",
+   "d": "Names the disease. Because the robot's own actions decide what it sees next, the i.i.d. assumption behind supervised learning breaks. The fix is to keep querying the demonstrator on states the learner actually reaches.",
    "tag": "policy · theory",
    "tagClass": "",
    "now": false,
@@ -1131,7 +1134,7 @@
    "y": "2026",
    "t": "GEN-1.5 — one-shot learning of physical skills",
    "u": "https://generalistai.com/blog/gen-1.5",
-   "d": "Show it once and it does the task: 59% one-shot across ten tasks, no gradient updates. Weights move under 0.15%, so it is being reminded of something it nearly knew. The authors call it brittler than finetuning.",
+   "d": "Show it once and it does the task: 59% one-shot across ten tasks, no gradient updates. Weights move under 0.15%, so it is being reminded of something it nearly knew already.",
    "tag": "vla · read this",
    "tagClass": "vla",
    "now": true,
@@ -1142,7 +1145,7 @@
    "y": "2026",
    "t": "S1 — in-context learning for robotics",
    "u": "https://www.skild.ai/blogs/s1",
-   "d": "Prompt with a video of the task instead of a sentence, and never touch the weights. 66% on unseen tasks against 9% for language prompting, on horizons up to ten minutes. Post-training still wins, at 2,000 demos.",
+   "d": "Prompt with a video of the task instead of a sentence, and never touch the weights. 66% on unseen tasks against 9% for language prompting, on horizons up to ten minutes.",
    "tag": "vla · read this",
    "tagClass": "vla",
    "now": true,
@@ -1165,7 +1168,7 @@
    "y": "2025",
    "t": "What Matters in Large-Scale Datasets",
    "u": "https://arxiv.org/abs/2506.13536",
-   "d": "Co-training on all of DROID failed to learn the tasks at all. Retrieval aligned on camera pose gained 25% on one task; retrieving the right object without aligning the camera lost 15%. Alignment, not volume.",
+   "d": "Co-training on all of DROID failed to learn the tasks at all. Retrieval aligned on camera pose gained 25% on one task; retrieving the right object without aligning the camera lost 15%.",
    "tag": "vla · sceptic",
    "tagClass": "",
    "now": false,
@@ -1225,7 +1228,7 @@
    "y": "2024",
    "t": "Genie",
    "u": "https://arxiv.org/abs/2402.15391",
-   "d": "An 11B foundation world model trained on unlabelled internet video, controllable frame by frame. It learns a latent action space with no action labels at all, which is what makes raw video usable as robot data.",
+   "d": "An 11B world model trained on unlabelled internet video, controllable frame by frame. It learns a latent action space with no action labels at all, which is what makes raw video usable.",
    "tag": "world model",
    "tagClass": "",
    "now": false,
@@ -1261,7 +1264,7 @@
    "y": "2026",
    "t": "Dyna-2 — a 1M-hour scaling law for world-action models",
    "u": "https://www.dyna.co/dyna-2#introduction",
-   "d": "1M hours of egocentric human video, no robot data in pre-training, and cross-embodiment transfer scales predictably that far. Ablations show joint video+action training is what makes it emerge; zero-shot success at unfamiliar sites jumps from 46% to 87%.",
+   "d": "1M hours of egocentric human video, no robot data in pre-training, and transfer that scales predictably that far. Joint video-and-action training is what makes it emerge; zero-shot success goes 46% to 87%.",
    "tag": "world model",
    "tagClass": "",
    "now": false,
@@ -1272,7 +1275,7 @@
    "y": "2026",
    "t": "LingBot-VA 2.0",
    "u": "https://technology.robbyant.com/lingbot-va",
-   "d": "An autoregressive diffusion model that interleaves frame prediction and action inference in one sequence, so predicting and acting become the same forward pass. The argument is that a video world model should be built for physical control from scratch rather than fine-tuned from a digital video generator.",
+   "d": "Interleaves frame prediction and action inference in one autoregressive diffusion sequence, so predicting and acting are the same forward pass. Built for control from scratch rather than fine-tuned from a video generator.",
    "tag": "world model",
    "tagClass": "",
    "now": false,
@@ -1332,7 +1335,7 @@
    "y": "2025",
    "t": "A Careful Examination of Large Behavior Models",
    "u": "https://arxiv.org/abs/2507.05331",
-   "d": "Extends Diffusion Policy across a large sim and real corpus, then judges it with blind randomised trials because meaningful real-world evaluation is itself unsolved. Pretraining pays off in robustness and data efficiency; the harder contribution is the evaluation pipeline.",
+   "d": "Extends Diffusion Policy across a large sim and real corpus, then judges it with blind randomised trials. Pretraining pays off in robustness and data efficiency; the harder contribution is the evaluation pipeline itself.",
    "tag": "deployment · read this",
    "tagClass": "",
    "now": false,
@@ -1476,7 +1479,7 @@
    "y": "2024",
    "t": "LAPA",
    "u": "https://arxiv.org/abs/2410.11758",
-   "d": "Human video has no action labels, so invent them: learn a discrete vocabulary of what changed between frames, pretrain on that, then map it to real actions with a little robot data. Beat OpenVLA, which had true actions, at over 30x the pretraining efficiency.",
+   "d": "Human video has no action labels, so invent them: learn a discrete vocabulary of what changed between frames, pretrain on that, then map it to real actions. Beat OpenVLA at 30x the pretraining efficiency.",
    "tag": "human video",
    "tagClass": "",
    "now": false,
@@ -1548,7 +1551,7 @@
    "y": "2026",
    "t": "Atlas — reconstruct the real world, then simulate it",
    "u": "https://www.worldlabs.ai/blog/atlas",
-   "d": "One model pretrained across text, image, video and 3D at once, emitting explicit point clouds and Gaussian splats rather than pixels alone. World Labs pitches it as Real-to-Sim for robotics. Reconstruction error 8.6 on DTU against 11.1–18.2 for specialist baselines. Company’s own numbers, early access only.",
+   "d": "One model pretrained across text, image, video and 3D, emitting point clouds and Gaussian splats rather than pixels alone. World Labs pitches it as real-to-sim for robotics. Their own numbers, early access only.",
    "tag": "sim · company post",
    "tagClass": "",
    "now": true,
@@ -1608,7 +1611,7 @@
    "y": "2018",
    "t": "RCAN",
    "u": "https://arxiv.org/abs/1812.07252",
-   "d": "The clearest measurement of the gap. A pixel policy trained in plain simulation grasps 21% of the time on a real robot. Randomisation buys about 35%. Translating randomised images to a canonical one buys 70%. Training on real data gets 87%.",
+   "d": "The clearest measurement of the gap. A pixel policy trained in plain simulation grasps 21% of the time on a real robot; randomisation buys 35%, canonicalising the randomised images buys 70%, real data 87%.",
    "tag": "gap · read this",
    "tagClass": "",
    "now": false,
@@ -1632,8 +1635,8 @@
    "y": "2024",
    "t": "Data Scaling Laws in Imitation Learning",
    "u": "https://arxiv.org/abs/2410.18647",
-   "d": "Forty thousand demos and fifteen thousand real rollouts to answer one question: what should you collect more of? Past 32 environment-object pairs, a quarter of the demonstrations matched all of them. Diversity scales, volume does not.",
-   "tag": "gap · read this",
+   "d": "Forty thousand demos and fifteen thousand real rollouts, to answer what you should collect more of. Past 32 environment-object pairs, a quarter of the demos matched all of them. Diversity scales, volume does not.",
+   "tag": "vla · read this",
    "tagClass": "",
    "now": false,
    "spine": "vla",
@@ -1692,7 +1695,7 @@
    "y": "2025",
    "t": "EXPO — stable RL with expressive policies",
    "u": "https://arxiv.org/abs/2507.07986",
-   "d": "A flow policy is a long denoising chain, so gradients from a value function do not propagate through it stably. Freeze it, and train a small Gaussian that edits its actions toward higher value instead. 2-3x the sample efficiency.",
+   "d": "A flow policy is a long denoising chain, so value gradients do not propagate through it stably. Freeze it, train a small Gaussian that edits its actions toward higher value: 2-3x the sample efficiency.",
    "tag": "rl",
    "tagClass": "",
    "now": false,
@@ -1704,7 +1707,7 @@
    "y": "2026",
    "t": "Real-Time EXPO-FT — making a slow VLA reactive again",
    "u": "https://arxiv.org/abs/2609.18207",
-   "d": "A chunked policy acts on a state it saw seconds ago, which also breaks the Markov property RL needs. A lightweight edit policy corrects the surviving chunk from the current observation, and a critic picks between original and edited. 30/30 on real dynamic tasks, 10 minutes of online data.",
+   "d": "A chunked policy acts on a state it saw seconds ago, breaking the Markov property RL needs. An edit policy rewrites the surviving chunk from the current frame, and a critic picks between them.",
    "tag": "rl",
    "tagClass": "",
    "now": false,
@@ -1716,7 +1719,7 @@
    "y": "2026",
    "t": "We looked at the data",
    "u": "https://pantheon.inc/research/we-looked-at-the-data",
-   "d": "Annotated four open manipulation datasets and found 15+ categories of corruption: camera freezes, actions misaligned with the visible motion, exposure drift, action spikes with nothing moving. Manifests released. We have hit four of the fifteen on our own arm.",
+   "d": "Annotated four open manipulation datasets and found 15+ categories of corruption: camera freezes, actions misaligned with the visible motion, exposure drift, action spikes with nothing moving. We have hit four of them.",
    "tag": "gap · read this",
    "tagClass": "",
    "now": false,
@@ -1738,15 +1741,15 @@
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 1 of 4</span></div>
         <h3><a href="https://ggando.com/blog/so101-rl-lift/" target="_blank" rel="noopener">RL to grasp and lift, in MuJoCo<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Trains SAC to lift a cube in simulation. The reward table, and the eleven versions it took to get there, are the real lesson. 100% in sim, and he claims nothing about the real arm.</p></div>
+        <p>Trains SAC to lift a cube in simulation. The eleven versions of the reward table are the real lesson.</p></div>
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 2 of 4</span></div>
         <h3><a href="https://ggando.com/blog/image-rl-grasp/" target="_blank" rel="noopener">Grasping from pixels<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>The same task, now from camera images instead of privileged state. This is the step where it starts to resemble what we actually run.</p></div>
+        <p>The same task from camera images instead of privileged state. The step where it starts to resemble what we run.</p></div>
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 3 of 4</span></div>
         <h3><a href="https://ggando.com/blog/so101-hil-serl/" target="_blank" rel="noopener">HIL-SERL: real-world grasping from scratch<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>On hardware, no simulator, human correcting it as it learns. Uses the same HIL-SERL machinery that already ships inside our LeRobot install.</p></div>
+        <p>On hardware, no simulator, a human correcting it as it learns. The HIL-SERL machinery that ships inside our LeRobot install.</p></div>
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">ggando · 4 of 4</span></div>
         <h3><a href="https://ggando.com/blog/smolvla-so101/" target="_blank" rel="noopener">Fine-tuning SmolVLA<span class="ext" aria-hidden="true">↗</span></a></h3>
@@ -1757,42 +1760,42 @@
     <div class="res-grid">
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Google DeepMind</span></div>
         <h3><a href="https://github.com/google-deepmind/mujoco_menagerie" target="_blank" rel="noopener">MuJoCo Menagerie — <code>trs_so_arm100</code><span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>The official MJCF model of our arm. It ships <em>two</em> calibration variants — new-calib zeroes each joint mid-range, old-calib zeroes it fully extended. Pin one and write it down, or simulation and hardware will disagree about what an action means, silently.</p></div>
+        <p>The official MJCF model of our arm. It ships <em>two</em> calibration variants: pin one, or sim and hardware silently disagree.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">Stone Tao</span></div>
         <h3><a href="https://github.com/StoneT2000/lerobot-sim2real" target="_blank" rel="noopener">lerobot-sim2real<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Train with RL in GPU-parallel ManiSkill3, then deploy to a real arm zero-shot. Built to sit on top of LeRobot, so the hardware side is already solved.</p></div>
+        <p>Train with RL in GPU-parallel ManiSkill3, then deploy to a real arm zero-shot. Built on LeRobot, so hardware is solved.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Code</span><span class="res-src">Almuzairee · UCSD</span></div>
         <h3><a href="https://github.com/aalmuzairee/squint" target="_blank" rel="noopener">Squint<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>The reference implementation for the fastest visual RL numbers on our arm, and the eight-task SO-101 benchmark suite that came with it. The <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">paper</a> is mapped in spine 06.</p></div>
+        <p>Reference implementation for the fastest visual RL numbers on our arm, and its eight-task SO-101 suite. <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Paper</a> in spine 06.</p></div>
     </div>
 
     <div class="read-sub reveal">Writers to follow</div>
     <div class="res-grid">
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Lilian Weng</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Lilian Weng · OpenAI</span></div>
         <h3><a href="https://lilianweng.github.io" target="_blank" rel="noopener">Lil'Log<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The clearest long-form deep-dives in ML — diffusion, RL, agents, and more.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Yang Song</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Meta Superintelligence Labs</span></div>
         <h3><a href="https://yang-song.net" target="_blank" rel="noopener">Yang Song<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Score-based diffusion models, from one of the people who introduced them.</p></div>
+        <p>Score-based diffusion and consistency models, explained by the researcher who introduced both. The clearest writing on why diffusion works.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Sander Dieleman</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Google DeepMind</span></div>
         <h3><a href="https://sander.ai/posts/" target="_blank" rel="noopener">Sander Dieleman<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Deep, beautifully written essays on diffusion and generative models (DeepMind).</p></div>
+        <p>Deep, beautifully written essays on diffusion and generative models, usually the best explanation of an idea anywhere.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Reza Bayat</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Reza Bayat · Mila</span></div>
         <h3><a href="https://rezabyt.github.io/blogposts/sigreg-tutorial.html" target="_blank" rel="noopener">SIGReg, derived from scratch<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A rigorous, beautifully built derivation of LeJEPA's anti-collapse regularizer — characteristic functions to a trainable loss.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Perry Dong · Stanford</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Stanford · Google DeepMind</span></div>
         <h3><a href="https://pd-perry.github.io/blog.html" target="_blank" rel="noopener">Perry Dong<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>RL for real robots, from the author of EXPO. The post-training argument, and a tuning guide for it.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Seohong Park</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Blog</span><span class="res-src">Seohong Park · Berkeley</span></div>
         <h3><a href="https://seohong.me/blog/behavioral-cloning-mystery/" target="_blank" rel="noopener">Behavioral cloning mystery<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Four things behavioural cloning does that it is not supposed to — overfitting helps, open-loop chunks beat closed-loop, and pick-and-place wants a 0.5B-parameter MLP. Park argues all four are test-time distribution shift. Berkeley, and the author of OGBench.</p></div>
+        <p>Overfitting helps, open-loop beats closed-loop, pick-and-place wants a 0.5B MLP. Four things cloning should not do, all from distribution shift.</p></div>
     </div>
   </section>
 
@@ -1813,29 +1816,29 @@
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Video</span><span class="res-src">LeRobot Research #5</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-0s0v3q7mBk" target="_blank" rel="noopener">OpenVLA — a walkthrough<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Moo Jin Kim, OpenVLA's author, on building an open vision-language-action model.</p></div>
+        <p>Moo Jin Kim, OpenVLA's author, on what it takes to build and release an open vision-language-action model.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Talk</span><span class="res-src">Pulkit Agrawal · MIT, 2024</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-ghQJNmStB4" target="_blank" rel="noopener">Embodied Intelligence — the cost of a new behaviour<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Teleop versus sim-to-real, teacher–student distillation, learned reward trade-offs, scanning real rooms into simulators, and adversarial safety testing. His unit throughout is human hours, not success rate.</p></div>
+        <p>Teleop versus sim-to-real, distillation, scanning rooms into simulators, adversarial safety testing. His unit throughout is human hours, not success rate.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Talk</span><span class="res-src">Pulkit Agrawal · ICCV 2025</span></div>
         <h3><a href="https://www.youtube.com/watch?v=vDiWUuYxbZI" target="_blank" rel="noopener">Question the role of vision for robotic control<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Vision is for planning; control needs force. Why manipulation lags locomotion, and why a hand heavier than the object it holds can never be reliable.</p></div>
+        <p>Vision is for planning; control needs force. Why manipulation lags locomotion, and why a hand heavier than its payload fails.</p></div>
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Trelis Research</span></div>
         <h3><a href="https://www.youtube.com/watch?v=-tkEMLOLEwo" target="_blank" rel="noopener">Train an ACT policy on the SO-101<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>A practical, start-to-finish walkthrough of training ACT on the SO-101 with LeRobot.</p></div>
 
-      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Ilia Larchenko</span></div>
+      <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">LeRobot community</span></div>
         <h3><a href="https://www.youtube.com/@ilialarchenko" target="_blank" rel="noopener">Ilia Larchenko<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Deep, practical robotics — SO-101 teleop, training, and reinforcement learning on the arm.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Dan Makes Things</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Maker</span></div>
         <h3><a href="https://www.youtube.com/@DanMakesThings" target="_blank" rel="noopener">Dan Makes Things<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>An engineer who actually builds things, SO-101 included. Watch a whole build come together.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Foundation Robotics</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Channel</span><span class="res-src">Company channel</span></div>
         <h3><a href="https://www.youtube.com/@Foundation_bot" target="_blank" rel="noopener">Foundation Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>Short, sharp explainers on frontier hardware — robotic hands, humanoids, actuators. Good for five spare minutes.</p></div>
     </div>
@@ -1845,21 +1848,21 @@
   <section class="section learn-section" id="listen">
     <div class="sec-head reveal"><span class="sec-idx">04</span><span class="sec-label">Listen</span></div>
     <div class="res-grid">
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Pieter Abbeel</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Pieter Abbeel · Berkeley</span></div>
         <h3><a href="https://www.therobotbrains.ai/" target="_blank" rel="noopener">The Robot Brains<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Long, generous interviews with the people building robot brains.</p></div>
+        <p>Long, generous interviews with the researchers and founders building robot brains. Running since 2021, and still the deepest of them.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Brian Heater · A3</span></div>
         <h3><a href="https://www.youtube.com/@automatedpodcast" target="_blank" rel="noopener">Automated<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Weekly conversations with robotics and humanoid leaders and founders.</p></div>
+        <p>Weekly conversations with robotics and humanoid founders, from TechCrunch's longtime robotics editor. Closer to the business than the research.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Over the Horizon</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Royden D'Souza</span></div>
         <h3><a href="https://www.youtube.com/@overthehorizon" target="_blank" rel="noopener">Over the Horizon<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Technical, opinionated deep-dives on where the humanoid-robotics industry is going.</p></div>
+        <p>Technical, opinionated deep-dives on where the humanoid industry is going, usually with the founders doing the building.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Apple Podcasts</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Podcast</span><span class="res-src">Shaoqing Tan</span></div>
         <h3><a href="https://podcasts.apple.com/us/podcast/embodied-ai-101/id1831534364" target="_blank" rel="noopener">Embodied AI 101<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Short, current deep-dives on manipulation, teleop, and open-source embodied models.</p></div>
+        <p>A new episode most days, each one walking through a single recent paper on manipulation, teleoperation or embodied models.</p></div>
     </div>
   </section>
 
@@ -1871,17 +1874,17 @@
         <h3><a href="https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab" target="_blank" rel="noopener">Essence of Linear Algebra<span class="ext" aria-hidden="true">↗</span></a></h3>
         <p>The visual foundation — vectors, matrices, and what they actually mean. Before any ML.</p></div>
 
-      <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Playlist</span></div>
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Playlist</span><span class="res-src">Curated by Φ</span></div>
         <h3><a href="https://youtube.com/playlist?list=PLfXxLxwuCKLRh_dorpqwbO311rncZAwfZ" target="_blank" rel="noopener">Generative Diffusion Models<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>How diffusion models generate — the math under Diffusion Policy and the VLAs.</p></div>
+        <p>A hand-picked reading order through diffusion, flow matching and optimal transport. The maths under Diffusion Policy and the VLAs.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">Northwestern · Lynch</span></div>
         <h3><a href="https://www.youtube.com/playlist?list=PLggLP4f-rq02vX0OQQ5vrCxbJrzamYDfx" target="_blank" rel="noopener">Modern Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Mechanics, planning, and control — the classical robotics foundation, taught clearly.</p></div>
+        <p>Mechanics, planning and control: the classical robotics foundation, taught clearly and paired with a free textbook and code library.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">MIT · Tedrake</span></div>
         <h3><a href="https://manipulation.csail.mit.edu/" target="_blank" rel="noopener">Robotic Manipulation<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>The closest thing to a textbook for what we actually do. Free notes and PDF, runnable Drake notebooks, and chapters on pick-and-place, bin picking, deep perception and tactile sensing. Start here.</p></div>
+        <p>Effectively the textbook for what we do. Free notes, runnable Drake notebooks, chapters from pick-and-place to tactile sensing. Start here.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">MIT · Tedrake</span></div>
         <h3><a href="https://www.youtube.com/playlist?list=PLkx8KyIQkMfU5szP43GlE_S1QGSPQfL9s" target="_blank" rel="noopener">Underactuated Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
@@ -1889,11 +1892,11 @@
 
       <div class="res so101 reveal"><div class="res-meta"><span class="res-tag">SO-101</span><span class="res-src">Georgia Tech · Tucker</span></div>
         <h3><a href="https://maegantucker.com/ECE4560/" target="_blank" rel="noopener">ECE 4560 — Intro to Robotics<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>Ten progressive labs with a MuJoCo homework repo, <strong>taught on SO-101 arms</strong>. Forward and inverse kinematics, trajectory planning, Lie groups. The nearest thing to a ready-made curriculum for a club with our hardware.</p></div>
+        <p>Ten labs with a MuJoCo repo, <strong>taught on SO-101 arms</strong>. Kinematics, planning, Lie groups: a ready-made curriculum for our hardware.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">UC Berkeley · Levine</span></div>
         <h3><a href="http://rail.eecs.berkeley.edu/deeprlcourse/" target="_blank" rel="noopener">CS 285 — Deep RL<span class="ext" aria-hidden="true">↗</span></a></h3>
-        <p>The canonical graduate deep reinforcement learning course. Lectures free online.</p></div>
+        <p>The canonical graduate deep reinforcement learning course, from policy gradients to offline RL. Every lecture and homework is free online.</p></div>
 
       <div class="res reveal"><div class="res-meta"><span class="res-tag">Course</span><span class="res-src">MIT · Agrawal</span></div>
         <h3><a href="https://pulkitag.github.io/6.8200/" target="_blank" rel="noopener">6.8200 — Computational Sensorimotor Learning<span class="ext" aria-hidden="true">↗</span></a></h3>
