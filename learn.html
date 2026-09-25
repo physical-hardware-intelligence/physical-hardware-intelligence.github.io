@@ -273,8 +273,7 @@
      "label": "Maybe multimodality was never the point",
      "era": "2025"
     }
-   ],
-   "short": "Learning from demos"
+   ]
   },
   {
    "id": "data",
@@ -350,8 +349,7 @@
      "label": "But maybe scale was never the thing",
      "era": "2024 – 25"
     }
-   ],
-   "short": "Generalists"
+   ]
   },
   {
    "id": "repr",
@@ -394,8 +392,7 @@
      "label": "And it still isn't enough",
      "era": "2026"
     }
-   ],
-   "short": "Representations"
+   ]
   },
   {
    "id": "world",
@@ -423,8 +420,7 @@
      "label": "But does prediction quality actually buy control?",
      "era": "2023 – 26"
     }
-   ],
-   "short": "World models"
+   ]
   },
   {
    "id": "rl",
@@ -472,8 +468,7 @@
      "label": "But you cannot see forces",
      "era": "2024 – 25"
     }
-   ],
-   "short": "Learning without demos"
+   ]
   },
   {
    "id": "deploy",
@@ -501,8 +496,7 @@
      "label": "And when you measure carefully, the gains get smaller",
      "era": "2025"
     }
-   ],
-   "short": "Deployment"
+   ]
   }
  ],
  "papers": [
@@ -512,11 +506,9 @@
    "u": "https://arxiv.org/abs/1707.01495",
    "d": "If the robot missed, pretend the place it did reach was the goal all along. Turns a sparse binary reward into something learnable, so nobody has to hand-engineer a reward.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "afford",
-   "read": false
+   "branch": "afford"
   },
   {
    "y": "2018",
@@ -524,11 +516,9 @@
    "u": "https://arxiv.org/abs/1801.01290",
    "d": "Maximize reward while staying as random as possible. Off-policy, so it reuses every past attempt, and stable across seeds — which is why it is the algorithm shipped inside LeRobot.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "afford",
-   "read": false
+   "branch": "afford"
   },
   {
    "y": "2018",
@@ -536,11 +526,9 @@
    "u": "https://arxiv.org/abs/1806.10293",
    "d": "580,000 real grasp attempts across a farm of arms, reaching 96% on unseen objects. It learned to nudge and regrasp on its own, and its cost is the argument for every other branch here.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "brute",
-   "read": false
+   "branch": "brute"
   },
   {
    "y": "2019",
@@ -548,11 +536,9 @@
    "u": "https://arxiv.org/abs/1910.07113",
    "d": "Randomization pushed to its conclusion: let the simulator keep getting harder on its own as the policy improves. The high-water mark of the sim-only era, and it took a compute budget nobody could repeat.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "sim",
-   "read": false
+   "branch": "sim"
   },
   {
    "y": "2020",
@@ -560,11 +546,9 @@
    "u": "https://arxiv.org/abs/2006.04779",
    "d": "Learning from a fixed dataset makes the model overvalue actions nobody ever tried. CQL deliberately underestimates them, so the policy stays near what the data can actually vouch for.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "logged",
-   "read": false
+   "branch": "logged"
   },
   {
    "y": "2021",
@@ -572,11 +556,9 @@
    "u": "https://arxiv.org/abs/2110.06169",
    "d": "The same problem, solved by never asking about an unseen action at all. Simpler than CQL and the usual first thing to reach for offline.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "logged",
-   "read": false
+   "branch": "logged"
   },
   {
    "y": "2023",
@@ -584,11 +566,9 @@
    "u": "https://arxiv.org/abs/2309.13041",
    "d": "Human video has no actions and no rewards, so learn a value function from it instead and never roll out dynamics. The opposing bet to every world model in spine 05.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "logged",
-   "read": false
+   "branch": "logged"
   },
   {
    "y": "2024",
@@ -596,11 +576,9 @@
    "u": "https://arxiv.org/abs/2401.16013",
    "d": "The argument that robot RL was never blocked on algorithms but on implementation. A careful library learns PCB assembly and cable routing in 25 to 50 minutes per policy, on real hardware.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "human",
-   "read": false
+   "branch": "human"
   },
   {
    "y": "2024",
@@ -608,11 +586,9 @@
    "u": "https://arxiv.org/abs/2410.21845",
    "d": "Let a human take over when the policy is about to fail. Near-perfect success in 1 to 2.5 hours of real training, roughly double the imitation baselines. It ships inside our LeRobot install.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "human",
-   "read": false
+   "branch": "human"
   },
   {
    "y": "2026",
@@ -620,11 +596,9 @@
    "u": "https://arxiv.org/abs/2602.21203",
    "d": "Visual SAC, heavily randomized, on an eight-task SO-101 suite that transfers to a real arm. Most tasks converge in under six minutes on one GPU, cheap enough to retry until the transfer works.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "fast",
-   "read": false
+   "branch": "fast"
   },
   {
    "y": "2024",
@@ -632,11 +606,9 @@
    "u": "https://arxiv.org/abs/2408.06265",
    "d": "A 7-DoF hand with vision-based tactile sensors in every fingertip and quasi-direct-drive actuation, 650g and under $2,500 to build. Adding tactile sharply improved bottle opening, cutting and plate handling.",
    "tag": "hardware · tactile",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "force",
-   "read": false
+   "branch": "force"
   },
   {
    "y": "2025",
@@ -644,11 +616,9 @@
    "u": "https://arxiv.org/abs/2507.01008",
    "d": "Most wrists put their joints in series and make them stiff, so small motions need large arm movements. Co-locating the joints and letting them backdrive raised policy success 50-55% and cut task time 3-5x.",
    "tag": "hardware · read this",
-   "tagClass": "",
    "now": true,
    "spine": "rl",
-   "branch": "force",
-   "read": false
+   "branch": "force"
   },
   {
    "y": "2025",
@@ -656,11 +626,9 @@
    "u": "https://arxiv.org/abs/2509.04441",
    "d": "Teleoperation gives the human no force feedback. Linking human fingers to robot fingers mechanically does, so the demonstrator feels contact while collecting vision and tactile data.",
    "tag": "no robot · tactile",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "norobot",
-   "read": false
+   "branch": "norobot"
   },
   {
    "y": "2025",
@@ -668,11 +636,9 @@
    "u": "https://arxiv.org/abs/2510.17792",
    "d": "Motion tracking rewards stiffness, which is why humanoids fail on contact. Reward the compliant response instead: one policy spans a range of stiffnesses, and one demo generalises across box sizes with no retraining.",
    "tag": "control · read this",
-   "tagClass": "",
    "now": true,
    "spine": "rl",
-   "branch": "force",
-   "read": false
+   "branch": "force"
   },
   {
    "y": "2021",
@@ -680,7 +646,6 @@
    "u": "https://arxiv.org/abs/2109.00137",
    "d": "Score candidate actions with an energy function and pick the minimum, instead of regressing one. Handles discontinuities a regressor smooths over, but training it is unstable — the problem diffusion later solved.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
    "branch": "energy"
@@ -691,7 +656,6 @@
    "u": "https://arxiv.org/abs/2112.01511",
    "d": "No action network at all. Pretrained visual features plus a nearest-neighbour lookup over the demonstrations, so the action you execute is one a human actually performed.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
    "branch": "retrieve"
@@ -702,7 +666,6 @@
    "u": "https://arxiv.org/abs/2206.11251",
    "d": "Cluster the demonstrated actions into modes, then let a transformer pick a mode and regress the offset within it. The first explicit answer to multimodality, and VQ-BeT's ancestor.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
    "branch": "quantise"
@@ -713,7 +676,6 @@
    "u": "https://arxiv.org/abs/2403.03181",
    "d": "Tokenize actions with a residual VQ-VAE, so the modes are learned rather than clustered by hand. As expressive as diffusion policy and roughly five times faster at inference.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
    "branch": "quantise"
@@ -724,7 +686,6 @@
    "u": "https://arxiv.org/abs/2303.04137",
    "d": "Generate a whole action trajectory by denoising it from noise, conditioned on recent observations. The method that made handling the many right ways of a task routine rather than averaging them.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
    "branch": "denoise"
@@ -735,7 +696,6 @@
    "u": "https://arxiv.org/abs/2512.01809",
    "d": "Why do diffusion policies really work? Not multimodality, the paper argues, but iterative supervised computation — and a two-step regressor with no noise in it keeps up across their benchmarks.",
    "tag": "policy · myth-busting",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
    "branch": "rethink"
@@ -746,7 +706,6 @@
    "u": "https://arxiv.org/abs/2304.13705",
    "d": "Action chunking: predict a burst of future moves in one pass and execute the whole thing, so compounding error gets fewer chances to act. Still the baseline every new task gets first.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
    "branch": "chunk"
@@ -757,7 +716,6 @@
    "u": "https://arxiv.org/abs/2607.18236",
    "d": "Pooling a vision transformer's patches into one vector throws away where things are. Keep the dense patches instead, and a 53M policy beats a 7.6B model at 0.7% of its size.",
    "tag": "vla · we're testing it",
-   "tagClass": "",
    "now": true,
    "spine": "vla",
    "branch": "shrink"
@@ -768,7 +726,6 @@
    "u": "https://arxiv.org/abs/2212.06817",
    "d": "The transformer that turned robot actions into discrete tokens and trained on 130,000 episodes across 700 tasks. The template every autoregressive VLA still follows.",
    "tag": "vla",
-   "tagClass": "vla",
    "now": false,
    "spine": "vla",
    "branch": "oneModel"
@@ -779,7 +736,6 @@
    "u": "https://openvla.github.io/",
    "d": "An open 7B vision-language-action model trained on Open X-Embodiment, with weights and training code released. The reference point almost every later VLA paper measures itself against.",
    "tag": "vla",
-   "tagClass": "vla",
    "now": false,
    "spine": "vla",
    "branch": "oneModel"
@@ -790,7 +746,6 @@
    "u": "https://www.pi.website/blog/pi0",
    "d": "A vision-language model with a flow-matching action expert bolted on, emitting continuous action chunks at 50 Hz. The blog explains it in plain language; read that before the paper.",
    "tag": "vla",
-   "tagClass": "vla",
    "now": false,
    "spine": "vla",
    "branch": "oneModel"
@@ -801,7 +756,6 @@
    "u": "https://arxiv.org/abs/2503.14734",
    "d": "An open humanoid foundation model split in two: a slow vision-language system that reasons about the instruction, and a fast diffusion transformer that emits the actions.",
    "tag": "vla",
-   "tagClass": "vla",
    "now": false,
    "spine": "vla",
    "branch": "oneModel"
@@ -812,7 +766,6 @@
    "u": "https://huggingface.co/papers/2506.01844",
    "d": "A 450M vision-language-action model trained on community LeRobot datasets, small enough to run on a laptop or a single consumer GPU. One of the policies in our own zoo.",
    "tag": "vla",
-   "tagClass": "vla",
    "now": false,
    "spine": "vla",
    "branch": "shrink"
@@ -823,7 +776,6 @@
    "u": "https://github.com/facebookresearch/dinov2",
    "d": "Self-supervised features that work frozen, with no finetuning, because curated data and a KoLeo term keep the capacity spread out. The backbone Patch Policy and half the field build on.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
    "branch": "allocation"
@@ -834,7 +786,6 @@
    "u": "https://arxiv.org/abs/2605.26379",
    "d": "When does a JEPA actually recover the world's structure rather than some arbitrary encoding of it? Gives conditions under which the learned representation is identifiable up to a known transform.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
    "branch": "theory"
@@ -845,7 +796,6 @@
    "u": "https://arxiv.org/abs/2410.04959",
    "d": "A non-contrastive objective engineered so that full collapse is provably impossible rather than merely unlikely, by constraining how features are allocated instead of adding another architectural trick.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
    "branch": "allocation"
@@ -856,7 +806,6 @@
    "u": "https://arxiv.org/abs/2507.01028",
    "d": "Two lenses on the same question: why do non-contrastive methods avoid collapse at all, and what do the collapse dynamics look like when they fail? Theory catching up with practice.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
    "branch": "theory"
@@ -867,7 +816,6 @@
    "u": "https://www.enigma.inc/posts/obsessed-encoder",
    "d": "JEPA spends its latent on whatever is easiest to predict. A 12-bit watermark ate 1024 dimensions, and anti-collapse regularisers did not stop it.",
    "tag": "ssl · read this",
-   "tagClass": "",
    "now": true,
    "spine": "repr",
    "branch": "notenough"
@@ -878,7 +826,6 @@
    "u": "https://arxiv.org/abs/2602.01456",
    "d": "Replace SIGReg's Gaussian test with a sliced Wasserstein distance. The gradient no longer flattens out exactly where the representation has collapsed, which is where you most need it.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
    "branch": "distribution"
@@ -889,7 +836,6 @@
    "u": "https://arxiv.org/abs/2603.19312",
    "d": "Stable end-to-end JEPA: pixels go in, but it predicts next embeddings, not pixels. Two loss terms instead of six, and it plans 48x faster at 15M params.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
    "branch": "latent"
@@ -900,11 +846,9 @@
    "u": "https://arxiv.org/abs/2602.06949",
    "d": "44k hours of egocentric human video, the largest corpus yet used to pretrain a world model. Latent actions stand in for the labels it never had; distilled to 10.81 FPS.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "pixels",
-   "read": false
+   "branch": "pixels"
   },
   {
    "y": "2026",
@@ -912,7 +856,6 @@
    "u": "https://arxiv.org/abs/2606.13769",
    "d": "Forecast sparse 3D interaction traces instead of pixels, on the argument that a pixel model spends most of its capacity on appearance that control never uses.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
    "branch": "cheaper"
@@ -923,7 +866,6 @@
    "u": "https://rellingsystems.com/research/duration-blindness",
    "d": "Five VLAs told to wait N seconds before acting all start within one inference step, at any N. Adding the temporal prefix drops LIBERO success from 46.7% to 3.9%.",
    "tag": "deployment",
-   "tagClass": "",
    "now": false,
    "spine": "deploy",
    "branch": "layer"
@@ -934,7 +876,6 @@
    "u": "https://www.dyna.co/research/scaling-customer-deployments",
    "d": "Din Tai Fung is rolling Dyna's robots across its restaurants, the first manipulation pilot taken to scaled deployment. Dyna-1 folded 35 napkins an hour at 75% quality; Dyna-2 does 95 at 93%.",
    "tag": "deployment · read this",
-   "tagClass": "",
    "now": true,
    "spine": "deploy",
    "branch": "layer"
@@ -945,7 +886,6 @@
    "u": "https://menlo.ai/research/kepler-v01",
    "d": "A JEPA world encoder trained with SIGReg on 54M frames across four arms. Despite the name it does not predict forward, so you cannot plan with it, and zero-shot transfer trails plain vision.",
    "tag": "ssl · encoder",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
    "branch": "notenough"
@@ -956,11 +896,9 @@
    "u": "https://arxiv.org/abs/2002.05709",
    "d": "The clean statement of contrastive learning: pull two views of an image together, push every other image away. Needs enormous batches, and it wrongly separates two photos of the same kind of thing.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "negatives",
-   "read": false
+   "branch": "negatives"
   },
   {
    "y": "2020",
@@ -968,11 +906,9 @@
    "u": "https://arxiv.org/abs/2006.07733",
    "d": "Drops negatives entirely. A predictor head, a slow-moving target network and a stop-gradient are somehow enough. Nobody could explain why for years.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "asymmetry",
-   "read": false
+   "branch": "asymmetry"
   },
   {
    "y": "2020",
@@ -980,11 +916,9 @@
    "u": "https://arxiv.org/abs/2011.10566",
    "d": "Strips BYOL to the bone and shows the stop-gradient is the load-bearing part. No negatives, no big batches, no momentum encoder.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "asymmetry",
-   "read": false
+   "branch": "asymmetry"
   },
   {
    "y": "2021",
@@ -992,11 +926,9 @@
    "u": "https://arxiv.org/abs/2103.03230",
    "d": "Stop relying on architectural tricks. Push the cross-correlation matrix of the two views toward the identity: agree on the diagonal, decorrelate off it.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "statistics",
-   "read": false
+   "branch": "statistics"
   },
   {
    "y": "2021",
@@ -1004,11 +936,9 @@
    "u": "https://arxiv.org/abs/2105.04906",
    "d": "The most explicit anti-collapse term in the literature: hinge each dimension's variance above a floor, then decorrelate. Collapse becomes impossible by construction rather than by luck.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "statistics",
-   "read": false
+   "branch": "statistics"
   },
   {
    "y": "2020",
@@ -1016,11 +946,9 @@
    "u": "https://arxiv.org/abs/2006.09882",
    "d": "A different idea: cluster online and force the assignments to be equally spread across prototypes. This constrains how information is divided, not what shape the distribution takes.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "allocation",
-   "read": false
+   "branch": "allocation"
   },
   {
    "y": "2021",
@@ -1028,11 +956,9 @@
    "u": "https://arxiv.org/abs/2104.14294",
    "d": "Self-distillation with centering and sharpening. Centering stops one dimension dominating, sharpening stops the output going uniform. The two hold each other in balance.",
    "tag": "ssl",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "allocation",
-   "read": false
+   "branch": "allocation"
   },
   {
    "y": "2025",
@@ -1040,11 +966,9 @@
    "u": "https://arxiv.org/abs/2511.08544",
    "d": "Proves the isotropic Gaussian is the optimal embedding distribution, then enforces it with a sketched statistical test over random projections. One hyperparameter, no stop-gradient, no teacher.",
    "tag": "ssl · keystone",
-   "tagClass": "",
    "now": false,
    "spine": "repr",
-   "branch": "distribution",
-   "read": false
+   "branch": "distribution"
   },
   {
    "y": "1988",
@@ -1052,11 +976,9 @@
    "u": "https://proceedings.neurips.cc/paper/1988/file/812b4ba287f5ee0bc9d43bbf5bbe87fb-Paper.pdf",
    "d": "The origin. A small neural network maps camera pixels straight to a steering angle and drives a van. Every policy on this page is a descendant.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
-   "branch": "copy",
-   "read": false
+   "branch": "copy"
   },
   {
    "y": "2016",
@@ -1064,11 +986,9 @@
    "u": "https://arxiv.org/abs/1604.07316",
    "d": "Proof that naive copying scales. A CNN maps raw pixels to steering with no lane detection and no planner, and drives real roads. The paper's own word for it is surprisingly powerful.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
-   "branch": "copy",
-   "read": false
+   "branch": "copy"
   },
   {
    "y": "2010",
@@ -1076,11 +996,9 @@
    "u": "https://arxiv.org/abs/1011.0686",
    "d": "Names the disease. Because the robot's own actions decide what it sees next, the i.i.d. assumption behind supervised learning breaks. The fix is to keep querying the demonstrator on states the learner actually reaches.",
    "tag": "policy · theory",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
-   "branch": "compound",
-   "read": false
+   "branch": "compound"
   },
   {
    "y": "2022",
@@ -1088,11 +1006,9 @@
    "u": "https://arxiv.org/abs/2205.09991",
    "d": "Plan by iteratively denoising a whole trajectory rather than acting one step at a time. The direct ancestor of Diffusion Policy.",
    "tag": "policy",
-   "tagClass": "",
    "now": false,
    "spine": "policy",
-   "branch": "denoise",
-   "read": false
+   "branch": "denoise"
   },
   {
    "y": "2023",
@@ -1100,11 +1016,9 @@
    "u": "https://arxiv.org/abs/2310.08864",
    "d": "The dataset that made generalists possible: 22 robots, 21 institutions, 527 skills. RT-X trained on it shows positive transfer across platforms.",
    "tag": "dataset",
-   "tagClass": "",
    "now": false,
    "spine": "vla",
-   "branch": "pool",
-   "read": false
+   "branch": "pool"
   },
   {
    "y": "2025",
@@ -1112,11 +1026,9 @@
    "u": "https://arxiv.org/abs/2501.09747",
    "d": "Autoregressive VLAs need actions as discrete tokens, and naive per-timestep binning collapses on high-frequency data. Compressing action sequences with a cosine transform fixes it and cuts training time up to 5x.",
    "tag": "vla",
-   "tagClass": "",
    "now": false,
    "spine": "vla",
-   "branch": "tokens",
-   "read": false
+   "branch": "tokens"
   },
   {
    "y": "2025",
@@ -1124,11 +1036,9 @@
    "u": "https://arxiv.org/abs/2502.19645",
    "d": "How to actually adapt a generalist. Parallel decoding, action chunking, continuous actions and an L1 objective take OpenVLA from 76.5% to 97.1% on LIBERO with 26x the action throughput.",
    "tag": "vla",
-   "tagClass": "",
    "now": false,
    "spine": "vla",
-   "branch": "adapt",
-   "read": false
+   "branch": "adapt"
   },
   {
    "y": "2026",
@@ -1136,7 +1046,6 @@
    "u": "https://generalistai.com/blog/gen-1.5",
    "d": "Show it once and it does the task: 59% one-shot across ten tasks, no gradient updates. Weights move under 0.15%, so it is being reminded of something it nearly knew already.",
    "tag": "vla · read this",
-   "tagClass": "vla",
    "now": true,
    "spine": "vla",
    "branch": "adapt"
@@ -1147,7 +1056,6 @@
    "u": "https://www.skild.ai/blogs/s1",
    "d": "Prompt with a video of the task instead of a sentence, and never touch the weights. 66% on unseen tasks against 9% for language prompting, on horizons up to ten minutes.",
    "tag": "vla · read this",
-   "tagClass": "vla",
    "now": true,
    "spine": "vla",
    "branch": "adapt"
@@ -1158,11 +1066,9 @@
    "u": "https://arxiv.org/abs/2408.14037",
    "d": "Learn how much to weight each dataset instead of pooling uniformly. Optimised mixtures beat uniform weighting by 38% and expert-chosen weights by 32%.",
    "tag": "vla · sceptic",
-   "tagClass": "",
    "now": false,
    "spine": "vla",
-   "branch": "doubt",
-   "read": false
+   "branch": "doubt"
   },
   {
    "y": "2025",
@@ -1170,11 +1076,9 @@
    "u": "https://arxiv.org/abs/2506.13536",
    "d": "Co-training on all of DROID failed to learn the tasks at all. Retrieval aligned on camera pose gained 25% on one task; retrieving the right object without aligning the camera lost 15%.",
    "tag": "vla · sceptic",
-   "tagClass": "",
    "now": false,
    "spine": "vla",
-   "branch": "doubt",
-   "read": false
+   "branch": "doubt"
   },
   {
    "y": "2025",
@@ -1182,11 +1086,9 @@
    "u": "https://arxiv.org/abs/2507.06219",
    "d": "Pretraining on a single embodiment matched or beat pretraining on Open X-Embodiment across three unseen platforms. The paper calls multi-embodiment pretraining non-essential.",
    "tag": "vla · sceptic",
-   "tagClass": "",
    "now": false,
    "spine": "vla",
-   "branch": "doubt",
-   "read": false
+   "branch": "doubt"
   },
   {
    "y": "2018",
@@ -1194,11 +1096,9 @@
    "u": "https://arxiv.org/abs/1803.10122",
    "d": "The paper that named the field. Compress the world into a latent, learn its dynamics with an RNN, then train the controller entirely inside the model's own dream and transfer it back.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "latent",
-   "read": false
+   "branch": "latent"
   },
   {
    "y": "2018",
@@ -1206,11 +1106,9 @@
    "u": "https://arxiv.org/abs/1811.04551",
    "d": "Learn latent dynamics from pixels and plan online in that latent space. Matches model-free methods using far fewer episodes, which is the whole argument for bothering with a model.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "latent",
-   "read": false
+   "branch": "latent"
   },
   {
    "y": "2023",
@@ -1218,11 +1116,9 @@
    "u": "https://arxiv.org/abs/2301.04104",
    "d": "One configuration, 150+ tasks, and the first system to mine diamonds in Minecraft from scratch. Learning behaviour by imagining futures, made robust enough to apply out of the box.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "latent",
-   "read": false
+   "branch": "latent"
   },
   {
    "y": "2024",
@@ -1230,11 +1126,9 @@
    "u": "https://arxiv.org/abs/2402.15391",
    "d": "An 11B world model trained on unlabelled internet video, controllable frame by frame. It learns a latent action space with no action labels at all, which is what makes raw video usable.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "pixels",
-   "read": false
+   "branch": "pixels"
   },
   {
    "y": "2023",
@@ -1242,11 +1136,9 @@
    "u": "https://arxiv.org/abs/2310.16828",
    "d": "A decoder-free world model: never reconstruct the observation, optimise the latent for control instead. One 317M agent covers 80 tasks across embodiments, suggesting fidelity to pixels was the wrong target.",
    "tag": "world model · sceptic",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "control",
-   "read": false
+   "branch": "control"
   },
   {
    "y": "2026",
@@ -1254,11 +1146,9 @@
    "u": "https://arxiv.org/abs/2602.15922",
    "d": "A 14B video-diffusion model predicts frames and actions jointly, so the world model is the policy and no planner exists. Over 2x a VLA's generalisation, at 7 Hz closed-loop.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "control",
-   "read": false
+   "branch": "control"
   },
   {
    "y": "2026",
@@ -1266,7 +1156,6 @@
    "u": "https://www.dyna.co/dyna-2#introduction",
    "d": "1M hours of egocentric human video, no robot data in pre-training, and transfer that scales predictably that far. Joint video-and-action training is what makes it emerge; zero-shot success goes 46% to 87%.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
    "branch": "control"
@@ -1277,11 +1166,9 @@
    "u": "https://technology.robbyant.com/lingbot-va",
    "d": "Interleaves frame prediction and action inference in one autoregressive diffusion sequence, so predicting and acting are the same forward pass. Built for control from scratch rather than fine-tuned from a video generator.",
    "tag": "world model",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "control",
-   "read": false
+   "branch": "control"
   },
   {
    "y": "2023",
@@ -1289,11 +1176,9 @@
    "u": "https://arxiv.org/abs/2307.03659",
    "d": "Breaks the environment into enumerable factors and measures each one separately, in simulation and on a real robot. Produces an ordering of what actually hurts, consistent across both.",
    "tag": "deployment",
-   "tagClass": "",
    "now": false,
    "spine": "deploy",
-   "branch": "notfloors",
-   "read": false
+   "branch": "notfloors"
   },
   {
    "y": "2024",
@@ -1301,11 +1186,9 @@
    "u": "https://arxiv.org/abs/2402.08191",
    "d": "Twenty tasks perturbed along 14 axes. Five state-of-the-art models degrade 30 to 50% per factor and over 75% when factors combine. Distractor count, target colour and lighting hurt most.",
    "tag": "deployment",
-   "tagClass": "",
    "now": false,
    "spine": "deploy",
-   "branch": "notfloors",
-   "read": false
+   "branch": "notfloors"
   },
   {
    "y": "2024",
@@ -1313,11 +1196,9 @@
    "u": "https://arxiv.org/abs/2409.12894",
    "d": "A fuzzing framework, borrowed from software testing, that generates manipulation scenes to break VLAs. Its verdict on seven models: they lack the robustness necessary for practical deployment.",
    "tag": "deployment",
-   "tagClass": "",
    "now": false,
    "spine": "deploy",
-   "branch": "notfloors",
-   "read": false
+   "branch": "notfloors"
   },
   {
    "y": "2024",
@@ -1325,11 +1206,9 @@
    "u": "https://arxiv.org/abs/2405.05941",
    "d": "Rather than building full digital twins, close the control and visual gaps just enough that simulated evaluation ranks policies the way the real world does. Paired sim-and-real trials show it tracks.",
    "tag": "deployment",
-   "tagClass": "",
    "now": false,
    "spine": "deploy",
-   "branch": "predict",
-   "read": false
+   "branch": "predict"
   },
   {
    "y": "2025",
@@ -1337,11 +1216,9 @@
    "u": "https://arxiv.org/abs/2507.05331",
    "d": "Extends Diffusion Policy across a large sim and real corpus, then judges it with blind randomised trials. Pretraining pays off in robustness and data efficiency; the harder contribution is the evaluation pipeline itself.",
    "tag": "deployment · read this",
-   "tagClass": "",
    "now": false,
    "spine": "deploy",
-   "branch": "careful",
-   "read": false
+   "branch": "careful"
   },
   {
    "y": "2018",
@@ -1349,11 +1226,9 @@
    "u": "https://arxiv.org/abs/1811.02790",
    "d": "Turn an iPhone into a 6-DoF controller so anyone on the internet can drive the robot. Crowdsourcing collected 137 hours and 2,200 demos in 22 hours of system uptime.",
    "tag": "teleop",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "teleop",
-   "read": false
+   "branch": "teleop"
   },
   {
    "y": "2023",
@@ -1361,11 +1236,9 @@
    "u": "https://arxiv.org/abs/2309.13037",
    "d": "A 3D-printed miniature of your own arm as the controller: move the small one, the big one copies. Beat VR controllers and spacemice in a user study.",
    "tag": "teleop",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "teleop",
-   "read": false
+   "branch": "teleop"
   },
   {
    "y": "2024",
@@ -1373,11 +1246,9 @@
    "u": "https://arxiv.org/abs/2405.02292",
    "d": "The open-sourced hardware refresh of the puppeteering rig behind ACT. This is the machine most low-cost bimanual data now comes from, ours included in spirit.",
    "tag": "teleop",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "teleop",
-   "read": false
+   "branch": "teleop"
   },
   {
    "y": "2024",
@@ -1385,11 +1256,9 @@
    "u": "https://arxiv.org/abs/2401.02117",
    "d": "Bolt the rig to a wheeled base so demonstrations can cross a room. Co-training with the older static data pushed success up to 90% from 50 demos per task.",
    "tag": "teleop",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "teleop",
-   "read": false
+   "branch": "teleop"
   },
   {
    "y": "2024",
@@ -1397,11 +1266,9 @@
    "u": "https://arxiv.org/abs/2403.12945",
    "d": "Standardise one Franka setup, ship it to 50 collectors in many labs, and have everyone teleoperate for a year. 76,000 trajectories across 564 scenes and 84 tasks.",
    "tag": "teleop · dataset",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "teleop",
-   "read": false
+   "branch": "teleop"
   },
   {
    "y": "2023",
@@ -1409,11 +1276,9 @@
    "u": "https://arxiv.org/abs/2311.16098",
    "d": "An iPhone taped to a reacher-grabber stick. Thirteen hours of recording in 22 New York homes gave 81% success across 109 tasks in ten homes.",
    "tag": "no robot",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "norobot",
-   "read": false
+   "branch": "norobot"
   },
   {
    "y": "2024",
@@ -1421,11 +1286,9 @@
    "u": "https://arxiv.org/abs/2402.10329",
    "d": "A handheld gripper with a fisheye camera that you carry anywhere. No robot present during collection, yet the policies deploy on real arms across platforms.",
    "tag": "no robot",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "norobot",
-   "read": false
+   "branch": "norobot"
   },
   {
    "y": "2025",
@@ -1433,11 +1296,9 @@
    "u": "https://arxiv.org/abs/2505.21864",
    "d": "Extends the idea to dexterous hands with a wearable exoskeleton, then paints a robot hand over the human hand in the video so the images match what the robot will see. 86% average success.",
    "tag": "no robot",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "norobot",
-   "read": false
+   "branch": "norobot"
   },
   {
    "y": "2025",
@@ -1445,11 +1306,9 @@
    "u": "https://arxiv.org/abs/2505.07813",
    "d": "Record bare human hands in the wild, mix in a little robot data. 68.5% in unseen environments, roughly four times a policy trained on robot data alone.",
    "tag": "no robot",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "norobot",
-   "read": false
+   "branch": "norobot"
   },
   {
    "y": "2021",
@@ -1457,11 +1316,9 @@
    "u": "https://arxiv.org/abs/2110.07058",
    "d": "The raw substrate: 3,670 hours of first-person video of people doing ordinary things, 931 wearers, 9 countries. No robot, no actions, enormous scale.",
    "tag": "human video · dataset",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "humanvideo",
-   "read": false
+   "branch": "humanvideo"
   },
   {
    "y": "2022",
@@ -1469,11 +1326,9 @@
    "u": "https://arxiv.org/abs/2203.12601",
    "d": "Pretrain a vision encoder on human video, freeze it, bolt it onto a policy. Twenty percent better than training from scratch, and a real Franka task from 20 demos.",
    "tag": "human video",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "humanvideo",
-   "read": false
+   "branch": "humanvideo"
   },
   {
    "y": "2024",
@@ -1481,11 +1336,9 @@
    "u": "https://arxiv.org/abs/2410.11758",
    "d": "Human video has no action labels, so invent them: learn a discrete vocabulary of what changed between frames, pretrain on that, then map it to real actions. Beat OpenVLA at 30x the pretraining efficiency.",
    "tag": "human video",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "humanvideo",
-   "read": false
+   "branch": "humanvideo"
   },
   {
    "y": "2025",
@@ -1493,11 +1346,9 @@
    "u": "https://arxiv.org/abs/2505.11709",
    "d": "Vision Pro headsets recording 829 hours across 194 tabletop tasks with every hand joint tracked natively. Egocentric video that arrives with the hand pose already solved.",
    "tag": "human video · dataset",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "humanvideo",
-   "read": false
+   "branch": "humanvideo"
   },
   {
    "y": "2026",
@@ -1505,11 +1356,9 @@
    "u": "https://arxiv.org/abs/2602.16710",
    "d": "20,854 hours of action-labelled egocentric video, more than twenty times prior work, plus a log-linear scaling law between human-data scale and loss. Fifty-four percent average gain on a 22-DoF hand.",
    "tag": "human video",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "humanvideo",
-   "read": false
+   "branch": "humanvideo"
   },
   {
    "y": "2023",
@@ -1517,11 +1366,9 @@
    "u": "https://arxiv.org/abs/2310.17596",
    "d": "Cut a few human demos into object-centric pieces and re-warp them onto new object positions, keeping only attempts that succeed. About 200 demos became over 50,000 across 18 tasks.",
    "tag": "sim",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "sim",
-   "read": false
+   "branch": "sim"
   },
   {
    "y": "2024",
@@ -1529,11 +1376,9 @@
    "u": "https://arxiv.org/abs/2406.02523",
    "d": "A large simulated kitchen with generative-AI assets: 100 tasks, 2,500 objects, and 100,000 trajectories produced by running MimicGen inside it.",
    "tag": "sim",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "sim",
-   "read": false
+   "branch": "sim"
   },
   {
    "y": "2024",
@@ -1541,11 +1386,9 @@
    "u": "https://arxiv.org/abs/2403.03949",
    "d": "Scan the real scene into simulation, improve the policy there with reinforcement learning, bring it back. Robustness to object pose reached 91% against 25% for plain imitation from the same 15 demos.",
    "tag": "sim",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "sim",
-   "read": false
+   "branch": "sim"
   },
   {
    "y": "2026",
@@ -1553,11 +1396,9 @@
    "u": "https://www.worldlabs.ai/blog/atlas",
    "d": "One model pretrained across text, image, video and 3D, emitting point clouds and Gaussian splats rather than pixels alone. World Labs pitches it as real-to-sim for robotics. Their own numbers, early access only.",
    "tag": "sim · company post",
-   "tagClass": "",
    "now": true,
    "spine": "data",
-   "branch": "sim",
-   "read": false
+   "branch": "sim"
   },
   {
    "y": "2024",
@@ -1565,11 +1406,9 @@
    "u": "https://arxiv.org/abs/2409.03403",
    "d": "Synthesise new camera angles and even new robot bodies into your existing footage, so a policy stops overfitting to the one viewpoint it was filmed from.",
    "tag": "augment",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "augment",
-   "read": false
+   "branch": "augment"
   },
   {
    "y": "2025",
@@ -1577,11 +1416,9 @@
    "u": "https://arxiv.org/abs/2502.16932",
    "d": "Edit the recorded point cloud rather than re-shooting: move the objects, retarget the motion. One demo per task became hundreds, taking eight real tasks from 11% to 74.6% average success.",
    "tag": "augment",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "augment",
-   "read": false
+   "branch": "augment"
   },
   {
    "y": "2025",
@@ -1589,11 +1426,9 @@
    "u": "https://arxiv.org/abs/2503.18738",
    "d": "Generative scene augmentation from demonstrations collected in a single room, generalising to six entirely new ones. Over 200% improvement on the no-augmentation baseline.",
    "tag": "augment",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "augment",
-   "read": false
+   "branch": "augment"
   },
   {
    "y": "2017",
@@ -1601,11 +1436,9 @@
    "u": "https://arxiv.org/abs/1703.06907",
    "d": "If the simulator cannot look real, make it look absurdly varied instead, so reality becomes just another variation. Localised real objects to within 1.5 cm having trained only on synthetic images.",
    "tag": "gap",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "gap",
-   "read": false
+   "branch": "gap"
   },
   {
    "y": "2018",
@@ -1613,11 +1446,9 @@
    "u": "https://arxiv.org/abs/1812.07252",
    "d": "The clearest measurement of the gap. A pixel policy trained in plain simulation grasps 21% of the time on a real robot; randomisation buys 35%, canonicalising the randomised images buys 70%, real data 87%.",
    "tag": "gap · read this",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "gap",
-   "read": false
+   "branch": "gap"
   },
   {
    "y": "2024",
@@ -1625,11 +1456,9 @@
    "u": "https://arxiv.org/abs/2409.10161",
    "d": "Photorealistic Gaussian-splat rendering of a real scene. Even here, sim-trained policies reach 86.25% against 97.5% for real-trained, and without pixel augmentation the number collapses to 21%.",
    "tag": "gap",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "gap",
-   "read": false
+   "branch": "gap"
   },
   {
    "y": "2024",
@@ -1637,11 +1466,9 @@
    "u": "https://arxiv.org/abs/2410.18647",
    "d": "Forty thousand demos and fifteen thousand real rollouts, to answer what you should collect more of. Past 32 environment-object pairs, a quarter of the demos matched all of them. Diversity scales, volume does not.",
    "tag": "vla · read this",
-   "tagClass": "",
    "now": false,
    "spine": "vla",
-   "branch": "doubt",
-   "read": false
+   "branch": "doubt"
   },
   {
    "y": "2025",
@@ -1649,11 +1476,9 @@
    "u": "https://arxiv.org/abs/2503.24361",
    "d": "Mixing simulated with real data helps, but on a knife edge. Misaligning only the simulated camera pose dropped one task from 95% to 70%.",
    "tag": "gap",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "gap",
-   "read": false
+   "branch": "gap"
   },
   {
    "y": "2026",
@@ -1661,11 +1486,9 @@
    "u": "https://openmoss.ai/Awesome-WAM/",
    "d": "Sorts the whole spine by how prediction and action are coupled: cascaded or joint, autoregressive or diffusion. Where Dyna-2, LingBot and DreamZero sit relative to everyone else, with a leaderboard.",
    "tag": "world model · survey",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "control",
-   "read": false
+   "branch": "control"
   },
   {
    "y": "2026",
@@ -1673,11 +1496,9 @@
    "u": "https://www.rhoda.ai/research/scaling-web-video-pretraining",
    "d": "A bearing-unpacking task on real hardware, 200+ hours of robot time: at-speed completion goes 3.7% to 84.7% as the video model grows. Their own caveat: one task, one embodiment, one seed.",
    "tag": "world model · company post",
-   "tagClass": "",
    "now": false,
    "spine": "world",
-   "branch": "control",
-   "read": false
+   "branch": "control"
   },
   {
    "y": "2026",
@@ -1685,11 +1506,9 @@
    "u": "https://cheng-haha.github.io/GPT-Policy/",
    "d": "A frozen VLM learns a task at deployment from a human video or a few demos, no gradient updates. A constrained controller verifies each action before it executes.",
    "tag": "vla · we're testing it",
-   "tagClass": "vla",
    "now": false,
    "spine": "vla",
-   "branch": "adapt",
-   "read": false
+   "branch": "adapt"
   },
   {
    "y": "2025",
@@ -1697,11 +1516,9 @@
    "u": "https://arxiv.org/abs/2507.07986",
    "d": "A flow policy is a long denoising chain, so value gradients do not propagate through it stably. Freeze it, train a small Gaussian that edits its actions toward higher value: 2-3x the sample efficiency.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "frozen",
-   "read": false
+   "branch": "frozen"
   },
   {
    "y": "2026",
@@ -1709,11 +1526,9 @@
    "u": "https://arxiv.org/abs/2609.18207",
    "d": "A chunked policy acts on a state it saw seconds ago, breaking the Markov property RL needs. An edit policy rewrites the surviving chunk from the current frame, and a critic picks between them.",
    "tag": "rl",
-   "tagClass": "",
    "now": false,
    "spine": "rl",
-   "branch": "frozen",
-   "read": false
+   "branch": "frozen"
   },
   {
    "y": "2026",
@@ -1721,11 +1536,9 @@
    "u": "https://pantheon.inc/research/we-looked-at-the-data",
    "d": "Annotated four open manipulation datasets and found 15+ categories of corruption: camera freezes, actions misaligned with the visible motion, exposure drift, action spikes with nothing moving. We have hit four of them.",
    "tag": "gap · read this",
-   "tagClass": "",
    "now": false,
    "spine": "data",
-   "branch": "gap",
-   "read": false
+   "branch": "gap"
   }
  ]
 }</script>
