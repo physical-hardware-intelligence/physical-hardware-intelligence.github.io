@@ -11,6 +11,22 @@
     intro.remove();
     return;
   }
+  /* Arriving with a hash — every other page links straight to #schedule — means
+     the visitor asked for one section, not a splash. The lock below sets
+     overflow:hidden before the browser can make its jump, so the anchor is
+     swallowed and you land at the top of the page instead. Skip it. */
+  const target = location.hash && document.getElementById(location.hash.slice(1));
+  if (target) {
+    intro.remove();
+    // instant, not the smooth default: arriving from another page should land
+    // there, not animate three thousand pixels down the homepage first.
+    // Twice, because the first jump happens before the webfonts and the hero
+    // SVG have settled, and everything above the target then grows under it.
+    const jump = () => target.scrollIntoView({ behavior: "instant" });
+    requestAnimationFrame(jump);
+    window.addEventListener("load", () => requestAnimationFrame(jump), { once: true });
+    return;
+  }
   document.documentElement.classList.add("intro-lock");
   const release = () => {
     document.documentElement.classList.remove("intro-lock");

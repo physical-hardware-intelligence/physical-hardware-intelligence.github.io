@@ -329,6 +329,40 @@ html.intro-lock,html.intro-lock body{overflow:hidden}
 .sched-next li span{grid-column:2;font-family:var(--serif);font-size:.92rem;opacity:.68}
 
 .sched-foot{font-family:var(--mono);font-size:.72rem;opacity:.5;margin-top:1.8rem}
+.sched-next li.sn-none b{font-weight:500;opacity:.8}
+
+/* ── masthead strip ───────────────────────────────────────────────────────────
+   The next session, on every page that is not the homepage. It rides the
+   eyebrow's baseline, so it costs no vertical space. schedule.js fills it and
+   drops the hidden attribute; with no JS it simply never appears. */
+.masthead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 30px}
+.sched-strip{
+  display:inline-flex;align-items:baseline;gap:.75em;flex:0 1 auto;min-width:0;
+  font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);white-space:nowrap;
+  border-bottom:1px solid transparent;padding-bottom:3px;
+  transition:color .2s var(--ease),border-color .2s var(--ease);
+}
+.sched-strip[hidden]{display:none}
+.sched-strip .ss-label{opacity:.6}
+.sched-strip .ss-when{color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sched-strip .ss-what{
+  font-family:var(--disp);font-size:13.5px;letter-spacing:0;text-transform:none;
+  color:var(--ink);overflow:hidden;text-overflow:ellipsis;
+}
+.sched-strip .ss-room{opacity:.55}
+.sched-strip .ss-ext{font-size:9px;opacity:.55}
+@media (hover:hover){
+  .sched-strip:hover{color:var(--apple);border-color:var(--apple)}
+  .sched-strip:hover .ss-when,.sched-strip:hover .ss-what{color:var(--apple)}
+}
+.sched-strip:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+@media (max-width:620px){
+  .masthead{gap:2px 18px}
+  .sched-strip{font-size:10px;gap:.6em}
+  .sched-strip .ss-what{font-size:12.5px}
+  .sched-strip .ss-room{display:none}
+}
 
 @media(max-width:760px){
   .sched-week li{grid-template-columns:1fr auto;gap:.25rem .8rem;padding:.9rem .1rem}

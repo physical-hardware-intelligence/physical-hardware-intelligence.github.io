@@ -142,6 +142,7 @@
   </a>
   <nav class="nav-links" id="navLinks">
     <a href="../index.html">Home</a>
+    <a href="../index.html#schedule">Schedule</a>
     <a href="../learn.html">Learn</a>
     <a href="../industry.html">Industry</a>
     <a href="index.html" class="active">Blog</a>
@@ -153,7 +154,10 @@
 
 <main id="top">
   <section class="bp-wrap">
-    <h1 class="eyebrow">Blog</h1>
+    <div class="masthead">
+      <h1 class="eyebrow">Blog</h1>
+      <a class="sched-strip" id="schedStrip" href="../index.html#schedule" hidden></a>
+    </div>
     <hr class="bp-rule">
 
     <ol class="post-list">
@@ -217,6 +221,7 @@
   </div>
   <p class="footer-fine">Open source · built by the club.</p>
 </footer>
+<script src="../schedule.js"></script>
 <script>
 (function(){
   var nav=document.getElementById('nav'),t=false;

@@ -178,8 +178,10 @@
       <span class="sec-idx">04</span><span class="sec-label">WHEN WE MEET &middot; ROOM 1012</span>
     </div>
 
+    <!-- ⚠ The <li> items below are the no-JS fallback. schedule.js overwrites
+         both lists on load, so EDIT schedule.js, not this. -->
     <div class="sched-inner reveal">
-      <ul class="sched-week">
+      <ul class="sched-week" id="schedWeek">
         <li>
           <span class="sd-day">Monday</span>
           <span class="sd-time">10:00&thinsp;&ndash;&thinsp;13:00</span>
@@ -202,24 +204,13 @@
         </li>
       </ul>
 
-      <!-- NEXT UP: add or remove <li> entries as sessions are confirmed -->
       <div class="sched-next">
         <span class="sn-label">NEXT UP</span>
-        <ul>
+        <ul id="schedNext">
           <li>
-            <time datetime="2026-09-25">Fri 25 Sep</time>
-            <b>Bimanual arm setup and testing</b>
-            <span>11:00 start</span>
-          </li>
-          <li>
-            <time datetime="2026-09-28">Mon 28 Sep</time>
-            <b>ACT learning session</b>
-            <span>10:30 start</span>
-          </li>
-          <li>
-            <time datetime="2026-09-29">Tue 29 Sep</time>
-            <b>ACT policy evaluations</b>
-            <span>Moved from Fri 25 Sep</span>
+            <time datetime="2026-10-12">Mon 12 Oct</time>
+            <b>Diffusion models</b>
+            <span>Talk by Yashvardhan Gupta</span>
           </li>
         </ul>
       </div>
@@ -249,6 +240,7 @@
   <p class="footer-fine">Open source · built by the club.</p>
 </footer>
 
+<script src="schedule.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
