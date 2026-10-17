@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research · Phi</title>
+<meta name="description" content="Four projects on our SO-101 arms: sim-to-real RL with Squint, two-arm laundry folding, Phi Studio and robo_mimic. What works, what doesn't yet, and the code.">
+<meta name="theme-color" content="#ECE7DC">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Research — Physical Hardware Intelligence">
+<meta property="og:description" content="Four projects on our SO-101 arms: what works, what doesn't yet, and the code.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/research.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<link rel="icon" href="assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .rs-hero{max-width:var(--maxw);margin:0 auto;padding:clamp(88px,11vh,114px) clamp(20px,5vw,44px) 0}
+  .rs-hero h1.eyebrow{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);margin:0 0 clamp(18px,2.4vw,26px)}
+  .rs-title{font-size:clamp(2.1rem,5.2vw,3.6rem);line-height:1.04;letter-spacing:-.02em;max-width:22ch;margin:clamp(10px,2vw,22px) 0 0}
+  .rs-title em{font-weight:500}
+  .rs-dek{max-width:58ch;color:var(--ink-2);margin:clamp(16px,2.2vw,24px) 0 0;font-size:clamp(1.02rem,1.5vw,1.14rem)}
+
+  .rs-wrap{max-width:var(--maxw);margin:0 auto;padding:clamp(34px,4.6vw,56px) clamp(20px,5vw,44px) 0}
+
+  /* index of the four projects */
+  .rs-toc{list-style:none;margin:0;padding:0;border-top:1px solid var(--ink)}
+  .rs-toc li{border-bottom:1px solid var(--line)}
+  .rs-toc a{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:0 clamp(12px,2vw,22px);align-items:baseline;
+    padding:clamp(13px,1.7vw,18px) 0}
+  .rs-toc .n{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+  .rs-toc .t{font-family:var(--disp);font-size:clamp(1.08rem,2vw,1.38rem);font-weight:500;letter-spacing:-.01em;line-height:1.2;
+    background-image:linear-gradient(var(--apple),var(--apple));background-size:0 1px;background-repeat:no-repeat;
+    background-position:0 1.12em;transition:background-size .3s var(--ease),color .2s var(--ease)}
+  @media (hover:hover){ .rs-toc a:hover .t{color:var(--apple);background-size:100% 1px} }
+  .rs-toc a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+
+  /* status label */
+  .st{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
+  .st::before{content:"";width:7px;height:7px;border-radius:50%;border:1.5px solid currentColor;flex:none}
+  .st.live{color:var(--apple)}
+  .st.live::before{background:currentColor}
+
+  /* one project */
+  .pj{max-width:var(--maxw);margin:0 auto;padding:clamp(64px,8vw,104px) clamp(20px,5vw,44px) 0;scroll-margin-top:72px}
+  .pj-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 24px;
+    border-bottom:1px solid var(--ink);padding-bottom:10px}
+  .pj-n{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .pj h2{font-size:clamp(1.75rem,3.9vw,2.7rem);letter-spacing:-.015em;line-height:1.06;margin:clamp(18px,2.4vw,26px) 0 0;max-width:22ch}
+  .pj-dek{font-family:var(--disp);font-style:italic;font-size:clamp(1.08rem,1.8vw,1.28rem);color:var(--ink-2);margin:10px 0 0;max-width:52ch;line-height:1.35}
+  .pj-dek cite{font-style:normal}
+  .pj-body{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(26px,4vw,56px);margin-top:clamp(22px,3vw,34px);align-items:start}
+  .pj-body.solo{grid-template-columns:minmax(0,1fr)}
+  .pj-body.solo .pj-text{max-width:68ch}
+  .pj-text p{margin:0 0 1em}
+  .pj-text p:last-child{margin-bottom:0}
+
+  .pj-h,.pj-text .pj-h{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+    margin:clamp(24px,2.8vw,32px) 0 10px}
+  .pj-text .pj-h:first-child{margin-top:0}
+  .pj-list{list-style:none;margin:0;padding:0}
+  .pj-list li{position:relative;padding:0 0 0 20px;margin:0 0 .7em;line-height:1.55}
+  .pj-list li::before{content:"";position:absolute;left:2px;top:.72em;width:8px;height:1px;background:var(--ink-3)}
+  .pj-list b{font-family:var(--disp);font-weight:500}
+  .pj-list li:last-child{margin-bottom:0}
+  .miss{border-left:2px solid var(--apple);padding-left:16px;color:var(--ink-2)}
+  .pj-text a,.pj-dek a{border-bottom:1px solid var(--line-2);transition:color .2s var(--ease),border-color .2s var(--ease)}
+  @media (hover:hover){ .pj-text a:hover,.pj-dek a:hover{color:var(--apple);border-color:var(--apple)} }
+
+  /* numbers */
+  .nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:clamp(26px,3.4vw,40px) 0 0;border-top:1px solid var(--line-2)}
+  .nums.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .num{padding:14px clamp(10px,1.6vw,18px) 0 0;border-right:1px solid var(--line)}
+  .num + .num{padding-left:clamp(10px,1.6vw,18px)}
+  .num:last-child{border-right:0}
+  .num b{display:block;font-family:var(--disp);font-weight:500;font-size:clamp(1.5rem,3.2vw,2.2rem);letter-spacing:-.02em;line-height:1.05;font-variant-numeric:tabular-nums}
+  .num span{display:block;font-size:.86rem;line-height:1.4;color:var(--ink-2);margin-top:6px}
+
+  /* media */
+  .fig{margin:0}
+  .fig img,.fig video{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line-2)}
+  .fig figcaption{font-size:.86rem;line-height:1.45;color:var(--ink-3);margin-top:9px}
+  .fig + .fig{margin-top:clamp(18px,2.4vw,26px)}
+  .fig.sheet img{max-width:480px}
+
+  /* links + people */
+  .pj-foot{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px 28px;
+    margin-top:clamp(26px,3.4vw,38px);padding-top:14px;border-top:1px solid var(--line)}
+  .pj-links{display:flex;flex-wrap:wrap;gap:8px 22px}
+  .pj-links a{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--ink);border-bottom:1px solid var(--line-2);padding-bottom:2px;
+    transition:color .2s var(--ease),border-color .2s var(--ease)}
+  .pj-links a span{font-size:.9em;margin-left:3px}
+  @media (hover:hover){ .pj-links a:hover{color:var(--apple);border-color:var(--apple)} }
+  .pj-links a:focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:2px}
+  .pj-people{font-size:.9rem;color:var(--ink-3)}
+  .pj-people b{font-weight:400;color:var(--ink-2)}
+
+  .rs-date{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:12px 0 0}
+
+  /* research directions */
+  .ideas{margin:0}
+  .ideas dt{font-family:var(--disp);font-weight:500;font-size:1.04rem;line-height:1.3;margin:0 0 4px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .ideas dd{margin:0 0 1.15em;line-height:1.55}
+  .ideas dd:last-child{margin-bottom:0}
+  .tag{font-family:var(--mono);font-size:9.5px;font-weight:400;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);
+    border:1px solid var(--line-2);padding:2px 6px 1px;border-radius:2px}
+  .ideas dd a{border-bottom:1px solid var(--line-2)}
+
+  /* training curve */
+  .fig.plot{margin:clamp(20px,2.6vw,28px) 0 0}
+  .chart{display:block;width:100%;height:auto;overflow:visible}
+  .chart text{font-family:var(--mono);font-size:10px;fill:var(--ink-3)}
+  .chart .ax{stroke:var(--ink-2);stroke-width:1}
+  .chart .gd{stroke:var(--line);stroke-width:1}
+  .chart .tk{stroke:var(--ink-3);stroke-width:1}
+  .chart .ln{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-linejoin:round}
+  .chart .pt{fill:var(--ink)}
+
+  /* attempts */
+  .tries{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+  .try{width:30px;height:30px;display:grid;place-items:center;font-family:var(--mono);font-size:11px;border:1.5px solid var(--ink);color:var(--ink)}
+  .try.ok{background:var(--ink);color:var(--paper)}
+  .try.x{border-color:var(--apple);color:var(--apple)}
+  .tries-key{font-size:.9rem;line-height:1.5;color:var(--ink-2)}
+
+  /* folding flow */
+  .flow{display:flex;align-items:stretch;gap:10px;margin:clamp(18px,2.4vw,26px) 0}
+  .node{flex:1 1 0;border:1px solid var(--ink);padding:12px 14px 13px;display:flex;flex-direction:column;gap:3px}
+  .node .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+  .node b{font-family:var(--disp);font-weight:500;font-size:1.05rem;line-height:1.2}
+  .node span:last-child{font-size:.86rem;line-height:1.4;color:var(--ink-2)}
+  .node.next{border-style:dashed;border-color:var(--ink-3)}
+  .arr{align-self:center;font-size:1.1rem;color:var(--ink-3)}
+  @media (max-width:620px){ .flow{flex-direction:column} .arr{transform:rotate(90deg)} }
+
+  .reveal{opacity:0}
+  .reveal.vis{animation:rs-in .55s var(--ease) both}
+  @keyframes rs-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  @media (max-width:900px){
+    .pj-body{grid-template-columns:minmax(0,1fr)}
+    .fig.sheet img{max-width:100%}
+  }
+  @media (max-width:620px){
+    .nums,.nums.three{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .num{border-right:0;padding-left:0!important;padding-right:12px;border-bottom:1px solid var(--line);padding-bottom:14px}
+    .num:nth-child(odd){border-right:1px solid var(--line)}
+    .num:nth-child(even){padding-left:14px!important}
+    .rs-toc a{grid-template-columns:28px minmax(0,1fr)}
+    .rs-toc .st{grid-column:2;margin-top:6px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .reveal,.reveal.vis{opacity:1!important;animation:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <a class="brand" href="index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="index.html">Home</a>
+    <a href="research.html" class="active">Research</a>
+    <a href="index.html#schedule">Schedule</a>
+    <a href="learn.html">Learn</a>
+    <a href="industry.html">Industry</a>
+    <a href="blog/index.html">Blog</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main id="top">
+
+  <section class="rs-hero">
+    <div class="masthead">
+      <h1 class="eyebrow">Research</h1>
+    </div>
+    <p class="rs-title">What we&rsquo;re working on.</p>
+  </section>
+
+  <div class="rs-wrap">
+    <ol class="rs-toc reveal">
+      <li><a href="#squint"><span class="n">01</span><span class="t">Sim-to-real RL with Squint</span><span class="st live">On the real arm</span></a></li>
+      <li><a href="#folding"><span class="n">02</span><span class="t">Two-arm laundry folding</span><span class="st">Rig in progress</span></a></li>
+      <li><a href="#studio"><span class="n">03</span><span class="t">Phi Studio</span><span class="st live">On the real arms</span></a></li>
+      <li><a href="#robo-mimic"><span class="n">04</span><span class="t">robo_mimic</span><span class="st live">On the real arm</span></a></li>
+    </ol>
+    <p class="rs-date">Updated 16 Oct 2026</p>
+  </div>
+
+  <!-- ░░ 01 · SQUINT ░░ -->
+  <section class="pj" id="squint">
+    <div class="pj-head reveal">
+      <span class="pj-n">01 · Sim-to-real</span>
+      <span class="st live">On the real arm</span>
+    </div>
+    <h2 class="reveal">Sim-to-real RL with Squint</h2>
+    <p class="pj-dek reveal">Trained only in simulation, then run on our arm.</p>
+
+    <div class="pj-body">
+      <div class="pj-text reveal">
+        <p>We run <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint</a> (Almuzairee and Christensen, 2026), a fast visual RL method, on our SO-101. The policy sees a 16&nbsp;&times;&nbsp;16 wrist-camera image plus its joint angles and targets, and outputs a small change for each joint. Two tasks so far: ReachCube, and PlaceCube (cube into a bin).</p>
+
+        <p class="pj-h">What we did</p>
+        <ul class="pj-list">
+          <li>Our wrist camera sits differently from Squint&rsquo;s. Its view overlaps theirs by 0.41 (IoU), and training never goes below 0.66. So we matched the simulated camera to ours and retrained.</li>
+          <li>The policy runs on a MacBook CPU at 15&nbsp;Hz.</li>
+          <li>We keep a ledger of about 55 differences between Squint&rsquo;s simulator and our arm, each checked in code or measured.</li>
+          <li>Our checkpoint-loading fix was merged into Squint. We also traced a ManiSkill regression (<a href="https://github.com/mani-skill/ManiSkill/issues/1498" target="_blank" rel="noopener">#1498</a>).</li>
+        </ul>
+
+        <figure class="fig plot">
+          <svg class="chart" viewBox="0 0 520 186" role="img" aria-label="PlaceCube success in simulation during training: zero for the first two minutes, 15 of 16 test episodes at 2.7 minutes, 16 of 16 from 7 minutes to the end at 11.5 minutes.">
+            <line class="gd" x1="46" y1="16" x2="500" y2="16"/><line class="gd" x1="46" y1="88.0" x2="500" y2="88.0"/><line class="ax" x1="46" y1="160" x2="500" y2="160"/>
+            <text x="38" y="19.5" text-anchor="end">100%</text><text x="38" y="91.5" text-anchor="end">50%</text><text x="38" y="163.5" text-anchor="end">0</text>
+            <line class="tk" x1="46.0" y1="160" x2="46.0" y2="164"/><text x="46.0" y="177" text-anchor="middle">0</text><line class="tk" x1="121.7" y1="160" x2="121.7" y2="164"/><text x="121.7" y="177" text-anchor="middle">2</text><line class="tk" x1="197.3" y1="160" x2="197.3" y2="164"/><text x="197.3" y="177" text-anchor="middle">4</text><line class="tk" x1="273.0" y1="160" x2="273.0" y2="164"/><text x="273.0" y="177" text-anchor="middle">6</text><line class="tk" x1="348.7" y1="160" x2="348.7" y2="164"/><text x="348.7" y="177" text-anchor="middle">8</text><line class="tk" x1="424.3" y1="160" x2="424.3" y2="164"/><text x="424.3" y="177" text-anchor="middle">10</text><line class="tk" x1="500.0" y1="160" x2="500.0" y2="164"/><text x="500.0" y="177" text-anchor="middle">12 min</text>
+            <polyline class="ln" points="49.8,160.0 89.5,160.0 119.1,160.0 146.9,24.6 175.9,16.0 202.4,24.6 230.1,16.0 259.1,24.6 286.2,24.6 314.0,16.0 343.0,16.0 370.1,16.0 397.2,16.0 425.0,16.0 452.1,16.0 479.8,16.0"/><circle class="pt" cx="49.8" cy="160.0" r="2.6"/><circle class="pt" cx="89.5" cy="160.0" r="2.6"/><circle class="pt" cx="119.1" cy="160.0" r="2.6"/><circle class="pt" cx="146.9" cy="24.6" r="2.6"/><circle class="pt" cx="175.9" cy="16.0" r="2.6"/><circle class="pt" cx="202.4" cy="24.6" r="2.6"/><circle class="pt" cx="230.1" cy="16.0" r="2.6"/><circle class="pt" cx="259.1" cy="24.6" r="2.6"/><circle class="pt" cx="286.2" cy="24.6" r="2.6"/><circle class="pt" cx="314.0" cy="16.0" r="2.6"/><circle class="pt" cx="343.0" cy="16.0" r="2.6"/><circle class="pt" cx="370.1" cy="16.0" r="2.6"/><circle class="pt" cx="397.2" cy="16.0" r="2.6"/><circle class="pt" cx="425.0" cy="16.0" r="2.6"/><circle class="pt" cx="452.1" cy="16.0" r="2.6"/><circle class="pt" cx="479.8" cy="16.0" r="2.6"/>
+          </svg>
+          <figcaption>PlaceCube in simulation: success on 16 test episodes while training, on one RTX&nbsp;4080&nbsp;SUPER.</figcaption>
+        </figure>
+
+        <p class="pj-h">Not working yet</p>
+        <div class="tries" role="img" aria-label="PlaceCube on the real arm, first session: attempts 1 to 4 missed, attempts 5 to 9 placed the cube.">
+          <span class="try x">1</span><span class="try x">2</span><span class="try x">3</span><span class="try x">4</span><span class="try ok">5</span><span class="try ok">6</span><span class="try ok">7</span><span class="try ok">8</span><span class="try ok">9</span>
+        </div>
+        <p class="tries-key">PlaceCube on the real arm, first session (14 Oct). 1: never held the cube. 2&ndash;3: let go early, bin 30&nbsp;cm away. 4: grabbed the bin&rsquo;s wall, cube out of view. 5&ndash;9: placed, cube and bin close.</p>
+        <p class="miss">Away from the start pose, the simulated arm drifts from the real one, by 9.6&nbsp;cm at one grasp.</p>
+
+        <p class="pj-h">Where we&rsquo;re taking it</p>
+        <dl class="ideas">
+          <dt>Fix the arm model <span class="tag">next</span></dt>
+          <dd>Fit the joint offsets and camera mount from our recordings. Then score ReachCube on a fixed nine-point grid and test which ledger rows actually change real success.</dd>
+          <dt>Train on what fails <span class="tag">idea</span></dt>
+          <dd>Widen training to the far-bin and out-of-view starts that failed, and pick starts with <a href="https://arxiv.org/abs/2610.12465" target="_blank" rel="noopener">SGS</a> (Zhang et al., 2026; <a href="learn/deriving-sgs.html">our walkthrough</a>), which favours starts the policy solves only some of the time. SGS was shown with PPO at up to about a million environments. Whether it helps Squint, which is off-policy and runs 1,024 environments, is open. A run takes about 12 minutes.</dd>
+          <dt>Fragile objects <span class="tag">idea</span></dt>
+          <dd>The policy never squeezes: in simulation the cube weighs about 3&nbsp;g, so a touch is enough. Fragile objects need controlled force, and the arm has no force sensor. But the servos can cap their torque and report current, and the simulator reports contact forces. So: penalise contact force above a break limit in training, give the policy the gripper current, and calibrate current against a scale before trying anything fragile.</dd>
+        </dl>
+      </div>
+
+      <div class="reveal">
+        <figure class="fig">
+          <video src="assets/research/squint-ep005-policy-view.mp4" poster="assets/research/squint-ep005-poster.jpg" width="784" height="384"
+                 muted loop playsinline preload="none" data-autoplay
+                 aria-label="A real PlaceCube run from the wrist camera, next to the same frames reduced to 16 by 16 pixels: the gripper finds the red cube, grasps it and drops it into the white bin."></video>
+          <figcaption>One PlaceCube run on the real arm, in real time. Left: the wrist camera. Right: the 16&nbsp;&times;&nbsp;16 image the policy gets.</figcaption>
+        </figure>
+        <figure class="fig sheet">
+          <img src="assets/research/squint-placecube-5of5.png" width="600" height="750" loading="lazy"
+               alt="Twenty wrist-camera frames in five rows: in each run the gripper approaches a red cube, closes on it, carries it over a white bin, and the cube ends in the bin.">
+          <figcaption>All five successful runs. Left to right: start, grasp, over the bin, end.</figcaption>
+        </figure>
+        <figure class="fig">
+          <img src="assets/research/squint-real-vs-sim.png" width="768" height="384" loading="lazy"
+               alt="Four pairs of wrist-camera images at identical joint angles, real next to simulated. The white bin appears in different places in the real and simulated views.">
+          <figcaption>Real and simulated wrist views at the same joint angles. The bin isn&rsquo;t in the same place.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="nums reveal">
+      <div class="num"><b>2&nbsp;min 38&nbsp;s</b><span>to train ReachCube on one RTX&nbsp;4080&nbsp;SUPER</span></div>
+      <div class="num"><b>11&nbsp;/&nbsp;11</b><span>ReachCube runs ending over the cube, judged by eye</span></div>
+      <div class="num"><b>5&nbsp;/&nbsp;5</b><span>placements with cube and bin close</span></div>
+      <div class="num"><b>15&nbsp;Hz</b><span>on a laptop CPU</span></div>
+    </div>
+
+    <div class="pj-foot reveal">
+      <div class="pj-links">
+        <a href="https://github.com/physical-hardware-intelligence/squint/blob/phi/so101/docs/so101-phi.md" target="_blank" rel="noopener">Our fork and setup guide<span aria-hidden="true">↗</span></a>
+        <a href="learn/deriving-squint.html">Deriving Squint</a>
+        <a href="blog/sim-to-real-debunked.html">What broke, and why</a>
+        <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint paper<span aria-hidden="true">↗</span></a>
+        <a href="https://github.com/aalmuzairee/squint/pull/10" target="_blank" rel="noopener">Merged fix<span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="pj-people"><b>Yashvardhan Gupta</b></p>
+    </div>
+  </section>
+
+  <!-- ░░ 02 · FOLDING ░░ -->
+  <section class="pj" id="folding">
+    <div class="pj-head reveal">
+      <span class="pj-n">02 · Imitation learning</span>
+      <span class="st">Rig in progress</span>
+    </div>
+    <h2 class="reveal">Two-arm laundry folding</h2>
+    <p class="pj-dek reveal">Reproducing <cite><a href="https://arxiv.org/abs/2606.27163" target="_blank" rel="noopener">Learning to Fold</a></cite> (Larchenko, 2026) on our arms.</p>
+
+    <div class="pj-body solo">
+      <div class="pj-text reveal">
+        <p>Ilia Larchenko&rsquo;s policy placed second in the real-robot round of the 2026 LeHome Challenge. We want to know if it folds on our arms without retraining, and how much our own data helps.</p>
+
+        <div class="flow" role="img" aria-label="Done: Larchenko's policy on our GPU server, 0.28 seconds per answer. Done: his robot program on our laptop, replay test passed. Next: two arms with cameras, 46 centimetres apart.">
+          <div class="node done"><span class="k">Done</span><b>His policy</b><span>on our GPU server, 0.28&nbsp;s per answer</span></div>
+          <span class="arr" aria-hidden="true">&#8644;</span>
+          <div class="node done"><span class="k">Done</span><b>His robot program</b><span>on our laptop, replay test passed</span></div>
+          <span class="arr" aria-hidden="true">&rarr;</span>
+          <div class="node next"><span class="k">Next</span><b>Two arms, cameras</b><span>46&nbsp;cm apart, with garments</span></div>
+        </div>
+        <p>We also checked his 500 real episodes against our arms&rsquo; joint conventions. They match.</p>
+
+        <p class="pj-h">Where we&rsquo;re taking it</p>
+        <dl class="ideas">
+          <dt>Zero-shot first <span class="tag">next</span></dt>
+          <dd>Build the rig and measure how well his policy folds on our arms without retraining.</dd>
+          <dt>Real-world RL with FlowDPG <span class="tag">planned</span></dt>
+          <dd><a href="https://arxiv.org/abs/2606.22303" target="_blank" rel="noopener">FlowDPG</a> (Shi et al., CoRL 2026; Skild AI and CMU) improves a flow-matching policy with reinforcement learning on the real robot, without backpropagating through the flow. Larchenko&rsquo;s policy has a flow-matching action head, so it qualifies. FlowDPG&rsquo;s reward comes from a learned progress model, SARM, which LeRobot already includes.</dd>
+          <dt>EXPO-FT <span class="tag">future</span></dt>
+          <dd>From <a href="https://arxiv.org/abs/2609.18207" target="_blank" rel="noopener">Real-Time EXPO-FT</a> (Dong, Hung, Sadigh and Finn, 2026): a small editor adjusts candidate action chunks, a critic picks the best, and the policy imitates its own successes. Our <a href="https://github.com/physical-hardware-intelligence/phi/blob/main/experiments/2026-09-26_realtime-expo-ft-so101.md" target="_blank" rel="noopener">spec</a> is written. Nothing has run yet.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="pj-foot reveal">
+      <div class="pj-links">
+        <a href="https://arxiv.org/abs/2606.27163" target="_blank" rel="noopener">Learning to Fold paper<span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="pj-people"><b>Yashvardhan Gupta</b> · <b>Sai Krishna Maligireddy</b> · <b>Parv Patodia</b></p>
+    </div>
+  </section>
+
+  <!-- ░░ 03 · PHI STUDIO ░░ -->
+  <section class="pj" id="studio">
+    <div class="pj-head reveal">
+      <span class="pj-n">03 · Tools</span>
+      <span class="st live">On the real arms</span>
+    </div>
+    <h2 class="reveal">Phi Studio</h2>
+    <p class="pj-dek reveal">One local app for the SO-101 loop: set up, teleoperate, record, inspect, train, evaluate.</p>
+
+    <div class="pj-body">
+      <div class="pj-text reveal">
+        <p>On our real arms it finds each arm&rsquo;s port and camera, teleoperates with a live 3D twin, and records LeRobot datasets.</p>
+        <p>It already found things in our own data. The follower arm lags the leader by 108&nbsp;ms, and 68 of our 120 cube episodes start with at least 1.5&nbsp;s of idle time.</p>
+        <p>Evaluation is blind: tasks are fixed before a run, hardware faults don&rsquo;t count against the policy, and an exact test says whether one policy beats another. Running real checkpoints inside Studio is next.</p>
+      </div>
+
+      <figure class="fig reveal">
+        <video src="assets/research/phi-studio-walkthrough.mp4" poster="assets/research/phi-studio-poster.jpg" width="960" height="600"
+               muted loop playsinline preload="none" data-autoplay
+               aria-label="Phi Studio walkthrough: the rig overview, the dataset library, one dataset's episodes, an episode with cameras, 3D twin and signals, a two-arm folding episode, and the live 3D view"></video>
+        <figcaption>Rig overview, datasets, one episode with cameras, 3D twin and joint signals, and the live 3D view.</figcaption>
+      </figure>
+    </div>
+
+    <div class="pj-foot reveal">
+      <div class="pj-links">
+        <a href="https://github.com/physical-hardware-intelligence/phi-studio" target="_blank" rel="noopener">Code<span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="pj-people"><b>Parv Patodia</b> · <b>Yashvardhan Gupta</b></p>
+    </div>
+  </section>
+
+  <!-- ░░ 04 · ROBO_MIMIC ░░ -->
+  <section class="pj" id="robo-mimic">
+    <div class="pj-head reveal">
+      <span class="pj-n">04 · Teleoperation</span>
+      <span class="st live">On the real arm</span>
+    </div>
+    <h2 class="reveal">robo_mimic</h2>
+    <p class="pj-dek reveal">Drive the arm with your hand, seen by one ordinary webcam.</p>
+
+    <div class="pj-body">
+      <div class="pj-text reveal">
+        <ul class="pj-list">
+          <li>One camera can&rsquo;t tell how far away a hand is, so the hand moves the arm only while a clutch is on, like lifting a mouse off the desk.</li>
+          <li>The gap between thumb and index finger opens and closes the gripper.</li>
+          <li>Hand rotation is off for now. On this five-joint arm, only 7&ndash;37% of tool pitches are reachable.</li>
+        </ul>
+        <p>It drives the real SO-101 as well as the simulated one.</p>
+      </div>
+
+      <figure class="fig reveal">
+        <video src="assets/research/robo-mimic-teleop.mp4" poster="assets/research/robo-mimic-poster.jpg" width="960" height="312"
+               muted loop playsinline preload="none" data-autoplay
+               aria-label="Left: a webcam view of a hand with tracked landmarks. Right: the simulated SO-101 arm following the hand in real time."></video>
+        <figcaption>In simulation. Left: the webcam and 21 hand landmarks. Right: the SO-101 in MuJoCo, following. Unedited.</figcaption>
+      </figure>
+    </div>
+
+    <div class="pj-foot reveal">
+      <div class="pj-links">
+        <a href="https://github.com/physical-hardware-intelligence/robo_mimic" target="_blank" rel="noopener">Code<span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="pj-people"><b>Yashvardhan Gupta</b></p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div>
+      <b>Physical Hardware Intelligence</b>
+      <span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="research.html">Research</a>
+    <a href="learn.html">Learn</a>
+    <a href="https://github.com/physical-hardware-intelligence" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club.</p>
+</footer>
+
+<script>
+(function(){
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){
+    var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
+
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});
+  },{threshold:0.08,rootMargin:'0px 0px -6% 0px'});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+
+  // videos play only while on screen; with reduced motion they show controls instead
+  var still=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var vids=[].slice.call(document.querySelectorAll('video[data-autoplay]'));
+  if(still){ vids.forEach(function(v){v.controls=true;}); return; }
+  var vo=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      var v=e.target;
+      if(e.isIntersecting){ if(v.preload==='none') v.preload='auto'; var p=v.play(); if(p&&p.catch) p.catch(function(){v.controls=true;}); }
+      else v.pause();
+    });
+  },{threshold:0.35});
+  vids.forEach(function(v){vo.observe(v);});
+})();
+</script>
+</body>
+</html>

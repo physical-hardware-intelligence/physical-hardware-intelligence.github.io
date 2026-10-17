@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.classList.add("js");</script>
+<title>Sim-to-real, debunked · Phi</title>
+<meta name="author" content="Yashvardhan Gupta">
+<meta name="description" content="We trained a robot arm entirely in simulation and ran it on our SO-101. Most of what broke was not the physics.">
+<meta name="theme-color" content="#ECE7DC">
+<meta property="og:type" content="article">
+<meta property="article:author" content="Yashvardhan Gupta">
+<meta property="og:title" content="Sim-to-real, debunked">
+<meta property="og:description" content="A policy trained only in simulation, run on our SO-101. What transferred, what broke, and why.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/sim-to-real-debunked.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .bp{max-width:none;margin:0 auto}
+  .bp-wrap{max-width:720px;margin:0 auto;padding:clamp(86px,11vh,112px) clamp(20px,5vw,44px) 0}
+  .bp-back{font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    display:inline-block;margin-bottom:clamp(22px,3vw,32px);border-bottom:1px solid transparent}
+  .bp-back:hover{color:var(--ink);border-color:var(--line-2)}
+  .bp-meta{display:flex;flex-wrap:wrap;gap:6px 20px;font-family:var(--mono);font-size:11.5px;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--ink-3);margin:0 0 18px;align-items:center}
+  .bp-meta .rt{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--line-2);
+    border-radius:2px;color:var(--ink);background:var(--paper-2);letter-spacing:.06em}
+  .bp-meta .rt b{font-family:var(--disp);font-size:14px;font-weight:600;letter-spacing:0;color:var(--apple)}
+  .bp h1{font-family:var(--disp);font-size:clamp(2rem,4.6vw,3rem);font-weight:500;line-height:1.07;letter-spacing:-.021em;margin:0}
+  .bp .dek{font-size:clamp(1.06rem,1.7vw,1.2rem);color:var(--ink-2);margin:20px 0 0;line-height:1.55;max-width:56ch}
+  .bp-rule{border:0;border-top:1px solid var(--ink);margin:clamp(30px,4vw,44px) 0 clamp(26px,3.4vw,38px)}
+
+  .bp-body{font-size:1.06rem;line-height:1.72}
+  .bp-body p{margin:0 0 1.15em}
+  .bp-body .lede{font-size:1.2rem;line-height:1.62}
+  .bp-body h2{font-family:var(--disp);font-size:clamp(1.24rem,2.3vw,1.56rem);font-weight:500;letter-spacing:-.012em;
+    line-height:1.2;margin:clamp(40px,5vw,62px) 0 .6em}
+  .bp-body h2 .hn{font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:.12em;
+    color:var(--ink-3);display:block;margin-bottom:8px}
+  .bp-body strong{font-weight:500;color:var(--ink)}
+  .bp-body em{font-style:italic}
+  .bp-body a{border-bottom:1px solid var(--line-2);transition:border-color .2s}
+  .bp-body a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-body code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);padding:.1em .34em;border-radius:2px;color:var(--ink)}
+  .bp-body .note{margin-top:clamp(30px,4vw,44px);padding-top:20px;border-top:1px solid var(--line);
+    font-size:.98rem;color:var(--ink-2)}
+
+  .gl{border-bottom:1px dotted var(--ink-3);cursor:help;position:relative;
+    background:none;border-left:0;border-right:0;border-top:0;padding:0;font:inherit;color:inherit}
+  .gl::after{content:attr(data-def);position:absolute;left:50%;bottom:calc(100% + 9px);transform:translateX(-50%);
+    width:max-content;max-width:min(300px,70vw);background:var(--ink);color:var(--paper);font-family:var(--serif);
+    font-size:.86rem;font-weight:400;line-height:1.45;letter-spacing:0;text-align:left;text-transform:none;
+    padding:9px 12px;border-radius:3px;z-index:40;opacity:0;visibility:hidden;
+    transition:opacity .16s var(--ease),visibility .16s;pointer-events:none}
+  .gl::before{content:"";position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--ink);z-index:41;opacity:0;visibility:hidden;
+    transition:opacity .16s var(--ease),visibility .16s;pointer-events:none}
+  .gl:hover::after,.gl:hover::before,.gl:focus::after,.gl:focus::before{opacity:1;visibility:visible}
+  .gl:focus{outline:2px solid var(--ink);outline-offset:3px;border-radius:1px}
+
+  .fig{margin:clamp(30px,4vw,46px) 0;padding:0}
+  .fig.wide{margin-left:calc(50% - min(50vw - 22px,470px));width:min(100vw - 44px,940px)}
+  .fig > svg{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line)}
+  .fig figcaption{margin-top:11px;font-size:.9rem;line-height:1.5;color:var(--ink-3);max-width:660px;margin-left:auto;margin-right:auto}
+  .fig .bx{fill:none;stroke:var(--ink);stroke-width:1}
+  .fig .bsx{fill:none;stroke:var(--line-2);stroke-width:1}
+  .fig .dash{fill:none;stroke:var(--line-2);stroke-width:1;stroke-dasharray:5 4}
+  .fig .fp{fill:var(--paper)}
+  .fig .fe{fill:var(--paper-2)}
+  .fig .fa{fill:var(--apple)}
+  .fig .fi{fill:var(--ink)}
+  .fig .ttl{font-family:var(--mono);font-size:10px;letter-spacing:.14em;fill:var(--ink-3)}
+  .fig .big{font-family:var(--disp);font-size:20px;font-weight:500;fill:var(--ink)}
+  .fig .say{font-family:var(--serif);font-size:13.5px;fill:var(--ink-2)}
+  .fig .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.06em;fill:var(--ink-3)}
+  .fig .mn{font-family:var(--mono);font-size:11px;fill:var(--ink-2)}
+  .fig .num{font-family:var(--mono);font-size:16px;fill:var(--ink)}
+  .fig .red{font-family:var(--serif);font-size:13px;font-style:italic;fill:var(--apple)}
+  .fig .st{stroke:var(--ink-2);stroke-width:1;fill:none}
+  .fig .sl{stroke:var(--line-2);stroke-width:1;fill:none}
+  .fig .sa{stroke:var(--apple);stroke-width:1.4;fill:none}
+  .fig .arrow{stroke:var(--ink-2);stroke-width:1;fill:none;stroke-linecap:round;stroke-linejoin:round}
+  .fig .arrow-accent{stroke:var(--apple);stroke-width:1.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+  .shape{width:100%;border-collapse:collapse;margin:clamp(20px,2.6vw,28px) 0;font-size:.93rem}
+  .shape th{font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+    font-weight:500;text-align:left;padding:0 10px 7px 0;border-bottom:1px solid var(--ink)}
+  .shape td{padding:8px 10px 8px 0;border-bottom:1px solid var(--line);color:var(--ink-2);vertical-align:top}
+  .shape td:first-child{color:var(--ink)}
+  .shape td:nth-child(2){font-family:var(--mono);font-size:.86rem;white-space:nowrap;color:var(--ink)}
+  .shape caption{caption-side:bottom;text-align:left;margin-top:10px;font-size:.87rem;line-height:1.5;color:var(--ink-3)}
+
+  .eq{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;margin:1.5em 0;
+    padding:18px 20px;border:1px solid var(--line);background:var(--paper-2)}
+  .eq span{font-family:var(--mono);font-size:.78rem;line-height:1.6;color:var(--ink-3)}
+  .eq b{font-family:var(--disp);font-weight:500;font-size:1.17rem;color:var(--ink);white-space:nowrap}
+  .eq b i{color:var(--apple);font-style:normal}
+  .eq span:last-child{text-align:right}
+
+  .check{list-style:none;margin:1.5em 0;padding:0;border-top:1px solid var(--ink)}
+  .check li{display:grid;grid-template-columns:104px 1fr;gap:18px;padding:13px 0;border-bottom:1px solid var(--line);color:var(--ink-2)}
+  .check b{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--apple);font-weight:500;padding-top:4px}
+
+  .ctl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:14px auto 0;max-width:660px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+  .ctl input[type=range]{flex:1;min-width:190px;accent-color:var(--apple);height:20px}
+  .ctl output{font-size:12px;letter-spacing:0;color:var(--ink);text-transform:none;min-width:116px;text-align:right}
+  .ctl output b{font-family:var(--disp);font-size:17px;font-weight:600;color:var(--apple)}
+
+  @keyframes plan{0%,12%{opacity:.18}24%,76%{opacity:1}88%,100%{opacity:.18}}
+  @keyframes loop{0%{stroke-dashoffset:320}70%,100%{stroke-dashoffset:0}}
+  .a-plan{animation:plan 3.8s var(--ease) infinite}.a-plan.d1{animation-delay:.32s}.a-plan.d2{animation-delay:.64s}
+  .a-loop{stroke-dasharray:320;animation:loop 4s linear infinite}
+
+  .bp-src{max-width:720px;margin:0 auto;padding:clamp(40px,5vw,60px) clamp(20px,5vw,44px) 0}
+  .bp-src h2{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);border-bottom:1px solid var(--line-2);padding-bottom:9px;margin:0 0 16px}
+  .bp-src ol{list-style:none;counter-reset:s;margin:0;padding:0}
+  .bp-src li{counter-increment:s;position:relative;padding:0 0 15px 34px;font-size:.95rem;line-height:1.5}
+  .bp-src li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:2px;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+  .bp-src a{border-bottom:1px solid var(--line-2)}
+  .bp-src a:hover{border-color:var(--apple);color:var(--apple)}
+  .bp-src span{display:block;color:var(--ink-3);font-size:.88rem;margin-top:3px}
+
+  .reveal{opacity:0}.reveal.vis{animation:rv .5s var(--ease) both}
+  @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @media (max-width:620px){
+    .bp-body{font-size:1.02rem}.bp-body .lede{font-size:1.1rem}.fig.wide{margin-left:0;width:100%}
+    .shape{font-size:.85rem}.shape td:nth-child(2){white-space:normal}.eq{grid-template-columns:1fr;gap:8px}.eq span:last-child{text-align:left}
+    .check li{grid-template-columns:76px 1fr;gap:12px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .reveal,.reveal.vis{opacity:1!important;animation:none!important}.a-plan,.a-loop{animation:none!important;opacity:1!important}
+  }
+
+  .fig img,.fig video{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line)}
+  .fig.strip img{image-rendering:auto}
+  .eq b sup{font-size:.62em}
+  .shape td:nth-child(n+2){font-family:var(--mono);font-size:.84rem;color:var(--ink)}
+  .shape.prose td:nth-child(n+2){font-family:var(--serif);font-size:.93rem;color:var(--ink-2);white-space:normal}
+  .bp-body h3{font-family:var(--disp);font-size:1.12rem;font-weight:500;margin:1.8em 0 .5em}
+  .bp-body ul.plain{margin:0 0 1.15em;padding-left:1.1em}
+  .bp-body ul.plain li{margin:0 0 .45em}
+  .check li span{color:var(--ink-2)}
+  /* math */
+  mjx-container{color:var(--ink)}
+  mjx-container[display="true"]{display:block;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:.3rem 0;margin:0!important}
+  .math{margin:1.3em 0;padding:14px 18px;background:var(--paper-2);border:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+  .math .src{align-self:flex-end}
+  /* source tags, e.g. [SAC 2018b §4.2] */
+  .src{font-family:var(--mono);font-size:.74rem;color:var(--ink-3);white-space:nowrap;border:0!important}
+  .src::before{content:"["}.src::after{content:"]"}
+  /* labelled blocks: intuition, derivation, paper, check, measured, hypothesis */
+  .note{margin:1.4em 0;padding:14px 18px 15px;border-left:2px solid var(--line-2);background:transparent}
+  .note>.lbl{display:block;font-family:var(--mono);font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin:0 0 6px}
+  .note p{margin:0 0 .7em}.note p:last-child{margin-bottom:0}
+  .note.int{border-left-color:var(--apple)}.note.int>.lbl{color:var(--apple)}
+  .note.der{background:var(--paper-2);border-left-color:var(--ink-2)}
+  .note.chk{border-left-color:var(--ink)}.note.chk>.lbl{color:var(--ink)}
+  .note.hyp{border-left-style:dashed}
+  /* explorers */
+  .explorer{margin:clamp(26px,3.4vw,38px) 0;padding:16px 18px 18px;border:1px solid var(--ink);background:var(--paper);display:grid;gap:12px}
+  .explorer>.lbl{font-family:var(--mono);font-size:.68rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--apple)}
+  .explorer > svg{display:block;width:100%;height:auto;background:var(--paper-2);border:1px solid var(--line)}
+  .explorer .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .explorer input[type=range]{flex:1;min-width:150px;accent-color:var(--apple)}
+  .explorer output{font-family:var(--mono);font-size:12px;color:var(--ink);min-width:56px;text-transform:none}
+  .explorer button{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--paper-2);color:var(--ink);border:1px solid var(--line-2);padding:5px 10px;border-radius:2px;cursor:pointer}
+  .explorer button:hover{border-color:var(--ink)}
+  .explorer button[aria-pressed=true]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .explorer .read{font-size:.92rem;line-height:1.5;color:var(--ink-2)}
+  .explorer > svg text{font-family:var(--mono);font-size:10px;fill:var(--ink-3)}
+  .sym{text-transform:none!important;letter-spacing:.02em!important}
+  .check b.sym{font-family:var(--serif);font-style:italic;font-size:1.15rem;color:var(--apple);padding-top:0}
+</style>
+<script>
+MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { enableMenu: false }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+</head>
+<body>
+<header class="nav" id="nav">
+  <a class="brand" href="../index.html" aria-label="Phi — Physical Hardware Intelligence, home">
+    <img src="../assets/phi-mark-ink.svg" width="30" height="30" alt="" class="brand-mark">
+  </a>
+  <nav class="nav-links" id="navLinks">
+    <a href="../index.html">Home</a>
+    <a href="../research.html">Research</a>
+    <a href="../index.html#schedule">Schedule</a>
+    <a href="../learn.html">Learn</a>
+    <a href="../industry.html">Industry</a>
+    <a href="index.html" class="active">Blog</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+</header>
+
+<main id="top" class="bp">
+  <article>
+    <div class="bp-wrap">
+      <a class="bp-back" href="index.html">&#8592; Blog</a>
+      <p class="bp-meta"><span class="rt"><b>12 min</b> read</span><span>16 October 2026</span><span>Written by Yashvardhan Gupta</span><span>Physical Hardware Intelligence</span></p>
+      <h1>Sim-to-real, debunked</h1>
+      <p class="dek">We trained a pick-and-place policy entirely in simulation and ran it on our SO-101. Most of what broke was not the physics.</p>
+      <hr class="bp-rule">
+      <div class="bp-body">
+
+<p class="lede">The simulator in this post models our cube as a 3-gram block held by high-friction fingers. Our real cube is printed plastic that we have not weighed yet, held by smooth plastic fingers. We trained a pick-and-place policy on that physics anyway, with no real demonstrations and no fine-tuning on the arm, and ran it on our SO-101.</p>
+
+<p>It missed its first four attempts. Then it put the cube in the bin five times in a row.</p>
+
+<p>Contact caused one of those misses. Most of what broke, before and during that session, sat around the physics: the software between the simulator and the robot, the camera, and the simulator&rsquo;s picture of our own arm. This post is that list.</p>
+
+<h2><span class="hn">01</span>Learning by trial and error</h2>
+
+<p>The method is <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint</a>, a reinforcement learning recipe from UC San Diego. The policy does not copy a human. It learns by trying. A simulator runs 1,024 copies of our arm at once; each copy attempts the task, mostly fails, and gets a score for how close it came. The policy keeps whatever raised the score. (How it works, derived end to end: <a href="../learn/deriving-squint.html">Deriving Squint</a>.)</p>
+
+<p>On one gaming GPU, learning to reach a cube took two and a half minutes. Learning to pick it up and drop it in a bin took eleven and a half. Nothing it learns comes from the real world: on the arm, it sees a real cube for the first time.</p>
+
+<h2><span class="hn">02</span>What the policy actually sees</h2>
+
+<p>Hold on to this for the rest of the post. At every step the policy gets a picture from the camera on its wrist, shrunk to 16 by 16 pixels, and twelve numbers: where each of its six joints is, and where each one is trying to go. From those it decides six small nudges, one per joint. Then it looks again, fifteen times a second on our arm.</p>
+
+<div class="math reveal">\[\big(\underbrace{16\times16\ \text{image}}_{\text{wrist camera}},\ \ \underbrace{q_{1..6},\ q^{\text{target}}_{1..6}}_{\text{12 numbers}}\big)\ \xrightarrow{\ \ \pi\ \ }\ \underbrace{\Delta q_{1..6}}_{\text{6 nudges}}\]</div>
+
+<p>No map, no list of objects, no coordinates. The cube is a few reddish pixels. So a sim-to-real gap is not abstract here: it is anything that makes those 256 pixels or twelve numbers look different on the real arm than in training, or anything that makes a nudge do something different.</p>
+
+<figure class="fig reveal">
+  <video src="../assets/research/squint-ep005-policy-view.mp4" poster="../assets/research/squint-ep005-poster.jpg" width="784" height="384" muted loop playsinline preload="none" data-autoplay
+         aria-label="A real PlaceCube run from the wrist camera, next to the same frames averaged to 16 by 16 pixels: the gripper finds the red cube, grasps it and drops it into the white bin."></video>
+  <figcaption>One successful run on the real arm, in real time. Left: the wrist camera. Right: the 16&nbsp;&times;&nbsp;16 image the policy actually gets.</figcaption>
+</figure>
+
+<h2><span class="hn">03</span>What happened</h2>
+
+<p>One SO-101 follower arm, a USB camera on its wrist, a table covered in black cloth. Training ran on one RTX&nbsp;4080&nbsp;SUPER. The trained policy has about 300,000 parameters and runs on a MacBook Air&rsquo;s CPU in about half a millisecond per decision. We trained three policies, all around our own camera:</p>
+
+<table class="shape prose">
+  <thead><tr><th></th><th>Task</th><th>Training</th><th>In simulation</th></tr></thead>
+  <tbody>
+    <tr><td>A</td><td>reach the cube, close the gripper over it</td><td>2 min 38 s</td><td>100%</td></tr>
+    <tr><td>B</td><td>the same, on random dark-grey backgrounds</td><td>2 min 6 s of training loop</td><td>100%</td></tr>
+    <tr><td>P</td><td>pick the cube up, drop it in a bin</td><td>about 11.5 min</td><td>100%</td></tr>
+  </tbody>
+</table>
+
+<table class="shape">
+  <thead><tr><th>On the real arm</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>A, cube at random spots in the training area</td><td>11 of 11</td></tr>
+    <tr><td>B, the same</td><td>6 of 7</td></tr>
+    <tr><td>P, cube and bin close together</td><td>5 of 5</td></tr>
+    <tr><td>P, bin 30&nbsp;cm away or cube out of view</td><td>0 of 4</td></tr>
+  </tbody>
+  <caption>First numbers from one session: cubes placed by hand and not measured, results judged by eye. Seventeen more cube-into-bin episodes are recorded and not yet scored.</caption>
+</table>
+
+<figure class="fig reveal">
+  <img src="../assets/research/squint-placecube-5of5.png" width="600" height="750" loading="lazy" style="max-width:480px;margin:0 auto"
+       alt="Twenty wrist-camera frames in five rows: in each run the gripper approaches a red cube, closes on it, carries it over a white bin, and the cube ends in the bin.">
+  <figcaption>The five successful runs, from the wrist camera. Left to right: start, grasp, over the bin, last frame.</figcaption>
+</figure>
+
+<p>The four misses taught us more than the training did. Everything below comes from them, and from the bugs we hit getting there.</p>
+
+<h2><span class="hn">04</span>The plumbing broke first</h2>
+
+<p>Between the simulator and the robot sits a translator: code that turns the robot&rsquo;s readings into what the policy expects, and the policy&rsquo;s outputs into motor commands. When it is wrong, the policy is fed nonsense, often with no error at all.</p>
+
+<ul class="check">
+  <li><b>Crash</b><span>The first launch on the real arm stood the arm up and then died with a recursion error, leaving it standing with its motors on. The cause was a regression in the simulator library&rsquo;s sim-to-real wrapper, nothing physical. We reported it upstream (<a href="https://github.com/mani-skill/ManiSkill/issues/1498" target="_blank" rel="noopener">ManiSkill #1498</a>) and worked around it.</span></li>
+  <li><b>Gripper</b><span>A version of LeRobot renamed the robot internally. The code that converts gripper readings into the simulator&rsquo;s units checked for the old name, so it never ran. No error. Closed, the reading was 11 degrees off; at the open end our calibration puts it at about 22.</span></li>
+  <li><b>Jump</b><span>After power-up each servo&rsquo;s stored target reads 0 while the joints sat 799 to 3,095 encoder ticks away (up to about 272 degrees). Turning torque on could have sent them toward 0. Fix: set every target to the current position first.</span></li>
+  <li><b>Load</b><span>The trained model would not load: it was saved from GPU memory, and the laptop has no NVIDIA (CUDA) GPU.</span></li>
+  <li><b>Stale frame</b><span>Each episode&rsquo;s first picture was taken right after the arm returned to its start pose, before we had moved the cube. The policy&rsquo;s first decision was based on where the cube used to be.</span></li>
+</ul>
+
+<div class="note int reveal"><span class="lbl">Lesson</span>
+<p>The first real failure was a software bug. After the crash, a fake arm, with the simulator standing in as its camera, reproduced it in seconds and turned up three more problems before the real arm moved again.</p></div>
+
+<h2><span class="hn">05</span>The eyes</h2>
+
+<p>Everything the policy knows about the world arrives through that 16&nbsp;&times;&nbsp;16 picture.</p>
+
+<p><strong>Black is a camera setting, not a colour.</strong> In simulation, everything except the robot and the objects is painted pure black, like a green screen, so the policy never learns to care about the room. We laid a black cloth on the table to match. In auto-exposure, the camera brightened the dark scene until the cloth looked reddish-brown (red 186, green 110, blue 70 out of 255). Locking exposure, gain and white balance fixed it.</p>
+
+<p><strong>The lock forgets.</strong> After we unplugged the camera and moved rooms, it came back in auto-exposure: the jaws read 222 where the simulator renders 154, and the cloth read 142. Now one command restores the lock at the start of every session, and a one-line check confirms it before a run.</p>
+
+<p><strong>Match where the policy works.</strong> We first matched the camera with the arm folded at rest. But with the arm folded, the simulator hides its jaws below the table, so that comparison was invalid, and at the pose where the policy actually starts the jaws came out 29% too dark. We re-matched at the start pose, comparing the real image with the simulator&rsquo;s image at exactly the same joint angles, region by region.</p>
+
+<p><strong>Real black is never simulated black.</strong> A camera compresses the range between dark and bright, so a roughly ten-to-one difference in reflected light ends up near three-to-one in pixel values (our estimate). With the jaws 20% too dark, the cloth read 18. Raising the gain until the jaws matched pushed the cloth to 75. Only the simulator&rsquo;s background is truly black. We trained model B on random dark-grey backgrounds for this reason; model A, trained on black only, coped anyway.</p>
+
+<p><strong>Where the camera sits.</strong> Our wrist camera sees the gripper on the opposite side of the frame from the one Squint was designed around. By eye, after a calibration tool, it looked close enough. Measured at 16&nbsp;&times;&nbsp;16, the difference was 2.8 times the largest wobble Squint trains with. And the camera&rsquo;s position is baked into the policy at training time, so calibrating it in a tool changes nothing for a model that is already trained. We retrained around our camera.</p>
+
+<p><strong>It cannot see far from where it starts.</strong> In the simulator, from the start pose, the wrist camera sees the table only to about 25&nbsp;cm from the arm&rsquo;s rotation axis: a cube at 21&nbsp;cm is in the first frame, one at 26&nbsp;cm or beyond is not. That is true in simulation too, so it is not a gap by itself. But for much of the work area the policy has to search before it sees anything, which is exactly when the next problem bites.</p>
+
+<h2><span class="hn">06</span>The body</h2>
+
+<p><strong>Where is zero?</strong> The simulator measures positions from a point 3.9&nbsp;cm behind the arm&rsquo;s rotation axis. We had measured cube positions from the axis, which shifts every placement, and every evaluation, by 3.9&nbsp;cm.</p>
+
+<div class="note hyp reveal"><span class="lbl">A lead, not yet a proof</span>
+<p>Near the start pose, the camera&rsquo;s estimate of the cube&rsquo;s position agrees with a ruler to within 1&ndash;2&nbsp;cm. As the arm moves away, the disagreement grows. At one grasp the real gripper was closing on a cube 18&nbsp;cm in front of the axis, while the simulator, given the same joint angles, put the gripper 9.6&nbsp;cm further forward. A cube sitting perfectly still appeared to slide about 4&nbsp;cm in the camera&rsquo;s estimate over 20 steps of arm motion.</p></div>
+
+<figure class="fig wide reveal" id="drift">
+  <svg viewBox="0 0 940 250" role="img" aria-label="Top view of the work area. The rotation axis is at the left. The cube, measured with a ruler, is 18 centimetres in front of it. At the same joint angles the simulator places the gripper at 27.6 centimetres, 9.6 centimetres further forward. The camera's estimate of the still cube moves from 20.1 to 22.0 to 24.5 centimetres over 20 steps.">
+    <line class="sl" x1="80" y1="120" x2="900" y2="120"/>
+    <g class="lbl">
+      <line class="sl" x1="80" y1="120" x2="80" y2="127"/><text x="80" y="143" text-anchor="middle">0</text>
+      <line class="sl" x1="300" y1="120" x2="300" y2="127"/><text x="300" y="143" text-anchor="middle">10</text>
+      <line class="sl" x1="520" y1="120" x2="520" y2="127"/><text x="520" y="143" text-anchor="middle">20</text>
+      <line class="sl" x1="740" y1="120" x2="740" y2="127"/><text x="740" y="143" text-anchor="middle">30 cm</text>
+    </g>
+    <circle class="fi" cx="80" cy="120" r="7"/><text class="lbl" x="80" y="100" text-anchor="middle">rotation axis</text>
+    <rect class="fa" x="464" y="108" width="24" height="24"/>
+    <text class="say" x="476" y="172" text-anchor="middle">real cube and gripper</text><text class="mn" x="476" y="189" text-anchor="middle">18 cm (ruler)</text>
+    <circle class="fp" cx="687.2" cy="120" r="12" style="stroke:var(--ink);stroke-width:1.5;stroke-dasharray:4 3"/>
+    <text class="say" x="687.2" y="172" text-anchor="middle">simulated gripper, same joints</text><text class="mn" x="687.2" y="189" text-anchor="middle">27.6 cm</text>
+    <path class="arrow-accent" d="M476 70 H683.2"/><path class="arrow-accent" d="M675.2 64 L684.2 70 L675.2 76"/><path class="arrow-accent" d="M476 64 V76"/>
+    <text class="red" x="581.6" y="58" text-anchor="middle">9.6 cm too far forward</text>
+    <text class="lbl" x="80" y="226">camera&rsquo;s estimate of the still cube, steps 0, 10, 20</text>
+    <path class="sa" d="M522.2 222 H619.0"/>
+    <circle class="fa" cx="522.2" cy="222" r="4"/><circle class="fa" cx="564.0" cy="222" r="4"/><circle class="fa" cx="619.0" cy="222" r="4"/>
+    <text class="lbl" x="522.2" y="243" text-anchor="middle">20.1</text><text class="lbl" x="564.0" y="243" text-anchor="middle">22.0</text><text class="lbl" x="619.0" y="243" text-anchor="middle">24.5</text>
+  </svg>
+  <figcaption>One grasp, seen from above (failed attempt 3). Positions are distances forward from the arm&rsquo;s rotation axis. The real cube never moved.</figcaption>
+</figure>
+
+<p>The policy copes because it mostly steers by sight: it moves until the cube sits between its jaws in the image. When the target is far away or out of view, it has to lean on its joints, and that is where it misjudges. This one effect plausibly explains the early releases next to a far-away bin and why the simulator and the real camera disagree about where things appear once the arm has moved. Our best guess is that the real joints&rsquo; zero points do not match the simulator&rsquo;s model of the arm. The next experiment measures it directly.</p>
+
+<p><strong>Motors.</strong> Simulated joints track their targets through a stiff simulated controller. Real servos run their own, deliberately softer loop: LeRobot sets their gain to half the factory value. We also shrink every action to 15% and decide 15 times a second instead of training&rsquo;s 10, so the real arm moves at about 22% of training&rsquo;s top speed. The policy does not mind; it just takes more steps (episodes of 60 steps for reaching and 250 for placing, against 50 in training).</p>
+
+<p><strong>Noise.</strong> Training adds noise with a 5-degree spread to every joint reading, so the policy learned not to trust its joints too much. Real readings are much cleaner.</p>
+
+<h2><span class="hn">07</span>The touch</h2>
+
+<p>In simulation the cube weighs about 3 grams and the fingertips have a high friction of 2.0. In that world, touching the cube is enough to lift it, so the policy never learned to squeeze: while &ldquo;holding&rdquo; the cube, its gripper target stays within 0 to 3 degrees of where the fingers actually are, in simulation and on the real arm alike. On top of that, LeRobot caps the real gripper at half torque by default.</p>
+
+<p>Real grasps looked marginal. The first attempt closed around the cube and never held it; later attempts lifted and carried it. The fix is to make the simulator honest (weigh the cube, give it realistic mass and friction, retrain) or to make the real fingers grippier.</p>
+
+<h2><span class="hn">08</span>The world</h2>
+
+<p><strong>It only knows the area it trained on.</strong> In training the cube always appears inside a 20&nbsp;&times;&nbsp;20&nbsp;cm square. In simulation the reaching policy succeeds at 25 of 25 test spots inside that square and 1 of 31 outside it. On the real arm, our one clean reaching failure in the first session was a cube we had placed outside the square; the simulator fails there too.</p>
+
+<p><strong>Distance and layout matter more than position.</strong> With the cube at the same spot, PlaceCube failed with the bin 30&nbsp;cm away and succeeded with the bin closer. In two of those three failures the policy grasped, lifted and carried the cube, then opened the gripper a few centimetres short of the bin.</p>
+
+<figure class="fig wide reveal strip">
+  <img src="../assets/blog/s2r-early-release.png" width="1200" height="200" loading="lazy" alt="Six wrist-camera frames from steps 50 to 80: the gripper holds the red cube near the bin, the cube slips out, and it lands beside the bin.">
+  <figcaption>The cube leaves the gripper a few centimetres short of the bin (steps 50 to 80 of one failed attempt).</figcaption>
+</figure>
+
+<p>With the cube just outside the camera&rsquo;s view and the bin inside it, the policy went for the bin and closed its gripper on the bin&rsquo;s wall. The same layout works six times out of six in simulation, so this one is a real-world gap, and it is the kind the drifting sense of position would cause.</p>
+
+<figure class="fig wide reveal strip">
+  <img src="../assets/blog/s2r-bin-wall.png" width="960" height="320" loading="lazy" alt="Twelve wrist-camera frames: the bin is in view, the cube only briefly at the left edge, and the gripper ends closed on the bin's wall.">
+  <figcaption>With the cube out of view, the policy goes for the bin and grips its wall.</figcaption>
+</figure>
+
+<p><strong>No memory, no clock.</strong> The policy only sees the current frame. In that episode the cube sat at the edge of the picture from step 10 to 34, then left it, and was forgotten. It has no sense of time either: left running after a success, a reaching policy can slowly drift away. Episode length is a choice we make at deployment, not something the policy knows.</p>
+
+<h2><span class="hn">09</span>What was not a gap</h2>
+
+<ul class="check">
+  <li><b>Background</b><span>Model A, trained only on perfectly black backgrounds, reached the cube 11 times out of 11 on a cloth whose pixels read around 18. We had expected this to be fatal.</span></li>
+  <li><b>Physics</b><span>Reaching, grasping, lifting, carrying and placing all transferred. What failed was mostly the simulator&rsquo;s beliefs about our particular rig.</span></li>
+  <li><b>Speed</b><span>The policy looks faster than our imitation-learned policies, but its arm joints are not fast: at most about 13 degrees per second each, against a median of 26 degrees per second while moving in the human teleoperation data our ACT policies learn from. It moves all its joints at once, straight at the goal, and re-decides 15 times a second without pausing.</span></li>
+</ul>
+
+<h2><span class="hn">10</span>What reinforcement learning gets that imitation does not</h2>
+
+<p>What impressed us most was not the success but the recovery. When a grasp slipped, the policy opened and grasped again. When the cube was not in view, it moved the camera around until it found it. Once, with the cube nearly out of reach, it pushed the cube along with one jaw instead of picking it up. Whether that is a strategy or a lucky approach loop is still open; nine longer episodes are recorded and waiting to be watched.</p>
+
+<figure class="fig wide reveal strip">
+  <img src="../assets/blog/s2r-pushing.png" width="900" height="300" loading="lazy" alt="Twelve wrist-camera frames: the red cube moves across the view as one jaw pushes it.">
+  <figcaption>With the cube nearly out of reach, the policy nudges it along with one jaw.</figcaption>
+</figure>
+
+<p>This comes from how it was trained. In simulation the policy trained for 1.5 million steps, much of it in its own failure states: dropped cubes, missed grasps, empty views, with the reward pulling it back toward success from each. An imitation-learned policy mostly sees successful human demonstrations, so it rarely learns what to do once something has gone wrong. And because this policy re-decides every 67 milliseconds, it can correct itself mid-motion; our ACT policies commit to 50 actions, 1.67 seconds, at a time.</p>
+
+<p>The trade-offs are real too: someone has to write a good reward for every task, the policy has no memory, and every assumption the simulator makes about your robot becomes something the policy relies on.</p>
+
+<h2><span class="hn">11</span>Where this approach fits</h2>
+
+<table class="shape prose">
+  <thead><tr><th>Works well</th><th>Needs work</th><th>Out of reach today</th></tr></thead>
+  <tbody>
+    <tr><td>rigid, single-object tabletop tasks with a reward you can write down: reach, push, lift, place, stack, sort by colour; trains in minutes on one GPU</td><td>many objects or long sequences (no memory, reward design), precision finer than our centimetre-scale sim-to-real error, new object shapes, two arms, new camera viewpoints</td><td>cloth, bags, cables, liquids</td></tr>
+  </tbody>
+</table>
+
+<p>Two questions we were asked. <strong>A fixed top camera?</strong> Feasible: it is the simulator&rsquo;s own recipe for the SO-100, our arm&rsquo;s predecessor, using a photo of the real scene as the simulated background. It would remove the blind starts, but the arm becomes a large part of its picture, so the simulator&rsquo;s model of the arm has to be right first. <strong>Two arms, passing an object or zipping a bag?</strong> Passing a rigid object is plausible: the simulator supports several robots in one scene. Zipping a bag is not: the simulator does not model deformable objects, and that stays imitation-learning territory.</p>
+
+<h2><span class="hn">12</span>If you are starting out</h2>
+
+<ul class="check">
+  <li><b>01</b><span>Test the software against a fake arm first. Our first crash reproduced on one in seconds.</span></li>
+  <li><b>02</b><span>Lock your camera, and re-lock it every session. Auto-exposure will turn a black background brown.</span></li>
+  <li><b>03</b><span>Match the camera at the pose the policy works in, not where the arm happens to rest.</span></li>
+  <li><b>04</b><span>Measure at the resolution the policy sees. If it sees 16&nbsp;&times;&nbsp;16, compare at 16&nbsp;&times;&nbsp;16; your eye is not the instrument.</span></li>
+  <li><b>05</b><span>Find out which point the simulator measures positions from before you place anything.</span></li>
+  <li><b>06</b><span>Check the simulator&rsquo;s model of your arm against a ruler, at more than one pose.</span></li>
+  <li><b>07</b><span>Stay inside the training area, and start from a pose where the camera can see the task.</span></li>
+  <li><b>08</b><span>Watch the motors. Read temperatures between runs; ours stayed between 29 and 34&nbsp;&deg;C.</span></li>
+</ul>
+
+<h2><span class="hn">13</span>What is next</h2>
+
+<p>Measure the drifting sense of position directly, and correct the arm&rsquo;s calibration from the recordings we already have: a cube sitting still must appear in one place from every pose. Weigh the real cube and give the simulator realistic mass and friction, then retrain PlaceCube. Run a matched evaluation, with the same nine measured spots for both reaching models and more layouts for PlaceCube. Then imitation learning on the same tasks, on the same arm, for a fair comparison.</p>
+
+
+      </div>
+    </div>
+
+    <section class="bp-src">
+      <h2 class="reveal">Sources</h2>
+      <ol class="reveal">
+        <li><a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Almuzairee and Christensen, <em>Squint: Fast Visual Reinforcement Learning for Sim-to-Real Robotics</em>, 2026</a><span>the method we ran; code at aalmuzairee/squint</span></li>
+        <li><a href="https://github.com/physical-hardware-intelligence/squint/blob/phi/so101/docs/so101-phi.md" target="_blank" rel="noopener">Our fork, branch phi/so101</a><span>every fix, safety guard and tool in this post</span></li>
+        <li><a href="https://github.com/mani-skill/ManiSkill/issues/1498" target="_blank" rel="noopener">ManiSkill issue #1498</a><span>the regression behind our first crash</span></li>
+        <li><a href="https://github.com/aalmuzairee/squint/pull/10" target="_blank" rel="noopener">Squint pull request #10</a><span>our checkpoint-loading fix, merged upstream</span></li>
+        <li><a href="../learn/deriving-squint.html">Deriving Squint</a><span>Soft Actor-Critic and Squint, derived end to end, with every number checked</span></li>
+      </ol>
+    </section>
+  </article>
+</main>
+
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="../assets/phi-mark-ink.svg" width="36" height="36" alt="Phi mark">
+    <div><b>Physical Hardware Intelligence</b><span>Student Interest Group &amp; Khoury Club · Northeastern University, Silicon Valley</span></div>
+  </div>
+  <div class="footer-links">
+    <a href="../index.html">Home</a><a href="../research.html">Research</a><a href="../learn.html">Learn</a>
+    <a href="https://github.com/physical-hardware-intelligence" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://www.linkedin.com/company/physical-hardware-intelligence/" target="_blank" rel="noopener">LinkedIn</a>
+  </div>
+  <p class="footer-fine">Open source · built by the club.</p>
+</footer>
+<script>
+(function(){
+  var nav=document.getElementById('nav'),t=false;
+  function f(){t=false;nav.classList.toggle('scrolled',window.scrollY>10);}
+  window.addEventListener('scroll',function(){if(!t){t=true;requestAnimationFrame(f);}},{passive:true});f();
+  var tg=document.getElementById('navToggle'),lk=document.getElementById('navLinks');
+  if(tg&&lk)tg.addEventListener('click',function(){var o=lk.classList.toggle('open');tg.setAttribute('aria-expanded',o?'true':'false');});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}});},{threshold:.08,rootMargin:'0px 0px -5% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+  }else{document.querySelectorAll('.reveal').forEach(function(el){el.classList.add('vis');});}
+
+  // SAC: softmax of Q/alpha for three actions (exact)
+  var sl=document.getElementById('alpha'),so=document.getElementById('alphaOut');
+  function soft(){
+    if(!sl||!so)return;
+    var a=0.1*Math.pow(50,sl.value/100);            // 0.1 .. 5, log scale
+    var qs=[2,1,0],ex=qs.map(function(q){return Math.exp(q/a);}),z=ex.reduce(function(s,v){return s+v;},0);
+    qs.forEach(function(q,i){
+      var pr=ex[i]/z,bar=document.querySelector('#softBars rect[data-q="'+q+'"]'),txt=document.querySelector('#softBars text[data-out="'+q+'"]');
+      var w=Math.max(2,pr*470); bar.setAttribute('width',w.toFixed(1));
+      txt.setAttribute('x',(96+w+10).toFixed(1)); txt.textContent=(pr*100).toFixed(1)+'%';
+    });
+    so.innerHTML='&alpha; = <b>'+(a<1?a.toFixed(2):a.toFixed(1))+'</b>';
+  }
+  if(sl){sl.addEventListener('input',soft);soft();}
+
+  // SGS: relative sampling rate per configuration (paper Eq. 1-2 with the App. B.2 floor; T = 2)
+  var sx=document.getElementById('sgsx');
+  if(sx){
+    var P={loc:{t:0.66,k:5,e:1e-8},man:{t:0.5,k:1,e:1e-4}},eps=1e-8,T=2;
+    var tI=document.getElementById('xT'),kI=document.getElementById('xK'),tO=document.getElementById('xTOut'),kO=document.getElementById('xKOut');
+    var cur=document.getElementById('xCur'),pk=document.getElementById('xPeak'),rd=document.getElementById('xRead');
+    var btn=[].slice.call(sx.querySelectorAll('button[data-preset]'));
+    function rate(p,k,t,e){var w=Math.pow(p+e,k*t)*Math.pow(1-p+e,k*(1-t));w=Math.max(w,e);return Math.exp(Math.log(w+e)/Math.max(T,1));}
+    function X(p){return 64+540*p;} function Y(v){return 204-180*v;}
+    function draw(){
+      var t=parseFloat(tI.value),k=parseFloat(kI.value),n=400,r=[],m=0,i,p;
+      for(i=0;i<=n;i++){p=i/n;r.push(rate(p,k,t,eps));if(r[i]>m)m=r[i];}
+      var d='';for(i=0;i<=n;i++){d+=(i?' L':'M')+X(i/n).toFixed(1)+','+Y(r[i]/m).toFixed(1);}
+      cur.setAttribute('d',d);
+      var px=k>0?t:0.5;pk.setAttribute('x1',X(px).toFixed(1));pk.setAttribute('x2',X(px).toFixed(1));pk.style.opacity=k>0?1:0;
+      tO.textContent=t.toFixed(2);kO.textContent=k.toFixed(1);
+      var lo=r[0]/m,hi=r[n]/m;
+      function f(v){return v>=0.995?'the same as the peak':(v>0.2?Math.round(v*100)+'% of the peak':'1 in '+Math.round(1/v).toLocaleString('en-US')+' of the peak');}
+      rd.innerHTML=(k===0?'&kappa; = 0: every configuration is drawn equally often (uniform sampling). ':'Peak at a '+Math.round(t*100)+'% success rate. ')+
+        'A configuration at 0% is drawn '+f(lo)+'; at 100%, '+f(hi)+'. T = 2, &epsilon; = '+(eps<1e-6?'10<sup>&minus;8</sup>':'10<sup>&minus;4</sup>')+'.';
+    }
+    btn.forEach(function(b){b.addEventListener('click',function(){var c=P[b.getAttribute('data-preset')];tI.value=c.t;kI.value=c.k;eps=c.e;
+      btn.forEach(function(o){o.setAttribute('aria-pressed',o===b?'true':'false');});draw();});});
+    [tI,kI].forEach(function(el){el.addEventListener('input',function(){btn.forEach(function(o){o.setAttribute('aria-pressed','false');});draw();});});
+    draw();
+  }
+
+  // videos: play while on screen; controls instead under reduced motion
+  var still=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var vids=[].slice.call(document.querySelectorAll('video[data-autoplay]'));
+  if(still){vids.forEach(function(v){v.controls=true;});}
+  else if(vids.length&&'IntersectionObserver' in window){
+    var vo=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;
+      if(e.isIntersecting){if(v.preload==='none')v.preload='auto';var pl=v.play();if(pl&&pl.catch)pl.catch(function(){v.controls=true;});}else v.pause();});},{threshold:.35});
+    vids.forEach(function(v){vo.observe(v);});
+  }
+})();
+</script>
+</body>
+</html>

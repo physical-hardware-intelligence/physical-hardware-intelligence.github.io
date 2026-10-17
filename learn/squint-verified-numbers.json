@@ -1,0 +1,242 @@
+{
+ "versions": {
+  "torch": "2.6.0",
+  "torchvision": "0.21.0",
+  "numpy": "2.2.6"
+ },
+ "conv_shapes": [
+  [
+   1,
+   32,
+   7,
+   7
+  ],
+  [
+   1,
+   64,
+   4,
+   4
+  ],
+  1024
+ ],
+ "params": {
+  "encoder": 34400,
+  "projection": 55190,
+  "actor": 269986,
+  "critic": 1536096,
+  "deployed_encoder_plus_actor": 304386
+ },
+ "ckpt_state_proj_weight_shape": [
+  256,
+  12
+ ],
+ "buffer_GiB": {
+  "16": 1.553,
+  "32": 5.845,
+  "64": 23.011,
+  "128": 91.676
+ },
+ "schedule": {
+  "loop_iterations": 1466,
+  "transitions_collected": 1501184,
+  "random_action_iterations": 5,
+  "iterations_with_updates": 1461,
+  "critic_encoder_alpha_updates": 374016,
+  "actor_updates": 93504,
+  "evaluations": 16,
+  "UTD": 0.25,
+  "samples_drawn_per_iteration": 131072,
+  "samples_drawn_per_transition_collected": 128.0,
+  "buffer_iterations_of_history": 976.5625,
+  "gamma": 0.9,
+  "horizon_1_over_1_minus_gamma": 10.000000000000002,
+  "gamma_pow_10": 0.3486784401000001,
+  "gamma_pow_50": 0.00515377520732012,
+  "tau": 0.01,
+  "target_half_life_updates": 68.96756393652842,
+  "delta_z": 0.4,
+  "alpha_arg_unused_under_autotune": 0.2,
+  "autotune": true
+ },
+ "c51_default_support_r0_g1": {
+  "atoms_landing_exactly_on_grid": 74,
+  "b_at_index_1": 0.9999990463256836,
+  "literal_algorithm_mass_kept_uniform_p": 0.2673,
+  "squint_categorical_mass": 1.0
+ },
+ "c51_double_count_dz1": {
+  "r=0 (atom 1 lands on b=1): total_mass, p_atom1": [
+   1.019391,
+   0.019391
+  ],
+  "r=1 (atom 0 lands on b=1): total_mass, p_atom0": [
+   1.020883,
+   0.020883
+  ]
+ },
+ "c51_squint_mass_r_g0.9": [
+  1.0,
+  1.0,
+  1.0,
+  1.0,
+  1.0,
+  1.0
+ ],
+ "alpha_sign_code": {
+  "policy too sharp: log_pi=+10, entropy estimate -10 < -6": {
+   "dLoss/dlog_alpha": -4.0,
+   "gradient_descent_moves_alpha": "up"
+  },
+  "policy too random: log_pi=-10, entropy estimate 10 > -6": {
+   "dLoss/dlog_alpha": 16.0,
+   "gradient_descent_moves_alpha": "down"
+  }
+ },
+ "alpha_sign_paper_alg1": {
+  "too sharp (H=-10)": "down",
+  "too random (H=10)": "up"
+ },
+ "tanh_logprob_max_abs_diff": 2.3365020751953125e-05,
+ "tanh_entropy": {
+  "max_at_mu0": {
+   "log_sigma": -0.13,
+   "sigma": 0.878,
+   "H_nats": 0.6836,
+   "uniform_log2": 0.6931
+  },
+  "log_sigma_for_H_minus_1_per_dim_at_mu0": -2.411,
+  "sigma_for_H_minus_1": 0.0897,
+  "presets": {
+   "mu=0,log_sigma=-0.13": {
+    "H_per_dim": 0.684,
+    "H_6_dims": 4.1,
+    "P(|a|>0.95)": 0.037,
+    "tanh(mu)": 0.0
+   },
+   "mu=0,log_sigma=-2.41": {
+    "H_per_dim": -0.999,
+    "H_6_dims": -5.99,
+    "P(|a|>0.95)": 0.0,
+    "tanh(mu)": 0.0
+   },
+   "mu=0,log_sigma=2": {
+    "H_per_dim": -7.074,
+    "H_6_dims": -42.45,
+    "P(|a|>0.95)": 0.804,
+    "tanh(mu)": 0.0
+   },
+   "mu=1.5,log_sigma=-2.5": {
+    "H_per_dim": -2.793,
+    "H_6_dims": -16.76,
+    "P(|a|>0.95)": 0.0,
+    "tanh(mu)": 0.905
+   }
+  }
+ },
+ "area_equals_8x8_mean": true,
+ "jitter_one_draw_per_batch": true,
+ "arithmetic": {
+  "sim_arm_deg_per_s_max": 57.3,
+  "paper_real_deg_per_s": 25.78,
+  "phi_real_15Hz_deg_per_s": 12.89,
+  "1-tanh(5*0.1)": 0.538,
+  "1-tanh(5*0.2)": 0.238,
+  "cube_mass_g": {
+   "2.2": 2.13,
+   "2.5": 3.13,
+   "2.8": 4.39
+  }
+ },
+ "real_robot_stats": {
+  "Squint": {
+   "of_80": 73,
+   "wilson95_pct": [
+    83.0,
+    95.7
+   ],
+   "fisher_p_vs_squint_73": null
+  },
+  "SAC": {
+   "of_80": 65,
+   "wilson95_pct": [
+    71.3,
+    88.3
+   ],
+   "fisher_p_vs_squint_73": 0.107
+  },
+  "Squint no jitter": {
+   "of_80": 58,
+   "wilson95_pct": [
+    61.9,
+    81.1
+   ],
+   "fisher_p_vs_squint_73": 0.00353
+  },
+  "DAgger": {
+   "of_80": 53,
+   "wilson95_pct": [
+    55.4,
+    75.7
+   ],
+   "fisher_p_vs_squint_73": 0.000175
+  },
+  "PPO": {
+   "of_80": 50,
+   "wilson95_pct": [
+    51.5,
+    72.3
+   ],
+   "fisher_p_vs_squint_73": 2.34e-05
+  },
+  "BC": {
+   "of_80": 38,
+   "wilson95_pct": [
+    36.9,
+    58.3
+   ],
+   "fisher_p_vs_squint_73": 1.53e-09
+  },
+  "DrQ-v2": {
+   "of_80": 8,
+   "wilson95_pct": [
+    5.2,
+    18.5
+   ],
+   "fisher_p_vs_squint_73": 2.05e-27
+  },
+  "per_task_wilson95_pct": {
+   "10/10": [
+    72.2,
+    100.0
+   ],
+   "8/10": [
+    49.0,
+    94.3
+   ],
+   "6/10": [
+    31.3,
+    83.2
+   ]
+  }
+ },
+ "tableI_squint_minus_sac": {
+  "per_task": [
+   0.6,
+   0.9,
+   1.7,
+   3.4,
+   -1.6,
+   -2.3,
+   -2.7,
+   62.5
+  ],
+  "sum_of_first_seven": 0.0,
+  "stack_can": 62.5,
+  "mean_squint": 96.075,
+  "mean_sac": 88.263
+ },
+ "paper_percent_claims": {
+  "no_jitter_drop_points": 18.75,
+  "dagger_gap_points": 25.0
+ }
+}

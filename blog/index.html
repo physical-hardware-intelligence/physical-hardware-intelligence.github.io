@@ -142,6 +142,7 @@
   </a>
   <nav class="nav-links" id="navLinks">
     <a href="../index.html">Home</a>
+    <a href="../research.html">Research</a>
     <a href="../index.html#schedule">Schedule</a>
     <a href="../learn.html">Learn</a>
     <a href="../industry.html">Industry</a>
@@ -156,15 +157,24 @@
   <section class="bp-wrap">
     <div class="masthead">
       <h1 class="eyebrow">Blog</h1>
-      <a class="sched-strip" id="schedStrip" href="../index.html#schedule" hidden></a>
     </div>
     <hr class="bp-rule">
 
     <ol class="post-list">
       <!-- Order set by Yash: A VLA is not the policy, then SmolVLA, then
-           Diffusion Policy, then ACT. Sai's ACT post goes at the bottom. -->
+           Diffusion Policy, then ACT. Sai's ACT post goes at the bottom.
+           2026-10-16: Sim-to-real, debunked added on top as the featured post. -->
       <li class="reveal">
-        <a class="post-card" href="a-vla-is-not-the-policy.html">
+        <a class="post-card" href="sim-to-real-debunked.html">
+          <div class="pc-head">
+            <h2>Sim-to-real, debunked</h2>
+            <p class="rd">16 October 2026 &#183; 12 min &#8599;</p>
+          </div>
+          <p class="pc-dek">We trained a pick-and-place policy entirely in simulation and ran it on our SO-101. Most of what broke was not the physics.</p>
+        </a>
+      </li>
+      <li class="reveal">
+        <a class="post-row" href="a-vla-is-not-the-policy.html">
           <div class="pc-head">
             <h2>A VLA is not the policy</h2>
             <p class="rd">4 September 2026 &#183; 7 min &#8599;</p>
@@ -221,7 +231,6 @@
   </div>
   <p class="footer-fine">Open source · built by the club.</p>
 </footer>
-<script src="../schedule.js"></script>
 <script>
 (function(){
   var nav=document.getElementById('nav'),t=false;

@@ -166,6 +166,7 @@
   </a>
   <nav class="nav-links" id="navLinks">
     <a href="index.html">Home</a>
+    <a href="research.html">Research</a>
     <a href="index.html#schedule">Schedule</a>
     <a href="learn.html" class="active">Learn</a>
     <a href="industry.html">Industry</a>
@@ -181,17 +182,31 @@
   <section class="learn-hero">
     <div class="masthead">
       <p class="eyebrow">The reading room</p>
-      <a class="sched-strip" id="schedStrip" href="index.html#schedule" hidden></a>
     </div>
   </section>
 
   <nav class="learn-jump" aria-label="Jump to section">
+    <a href="#deep">Deep dives</a>
     <a href="#start">Get started</a>
     <a href="#papers">Read</a>
     <a href="#watch">Watch</a>
     <a href="#listen">Listen</a>
     <a href="#courses">Courses</a>
   </nav>
+
+  <!-- 00 · DEEP DIVES BY THE CLUB: full walkthroughs, every equation derived, every number checked -->
+  <section class="section learn-section" id="deep">
+    <div class="sec-head reveal"><span class="sec-idx">00</span><span class="sec-label">Deep dives by Φ</span></div>
+    <div class="res-grid">
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Deep dive</span><span class="res-src">Φ · sim-to-real RL</span></div>
+        <h3><a href="learn/deriving-squint.html">Deriving Squint</a></h3>
+        <p>Soft Actor-Critic from the ground up, then Squint line by line. Every equation derived, every number checked against the paper and the code. Interactive.</p></div>
+
+      <div class="res reveal"><div class="res-meta"><span class="res-tag">Deep dive</span><span class="res-src">Φ · RL at scale</span></div>
+        <h3><a href="learn/deriving-sgs.html">Deriving Success Guided Sampling</a></h3>
+        <p>Why setups a policy always or never solves teach it nothing, and the sampler that fixes it at a million environments. Interactive.</p></div>
+    </div>
+  </section>
 
   <!-- 01 · START HERE -->
   <section class="section learn-section" id="start">
@@ -1759,7 +1774,6 @@
   <p class="footer-fine">Open source · built by the club.</p>
 </footer>
 
-<script src="schedule.js"></script>
 <script>
   (function(){
     var nav = document.getElementById('nav');
