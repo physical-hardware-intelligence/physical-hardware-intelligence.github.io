@@ -1,0 +1,1268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deriving Squint · Phi</title>
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deriving Squint">
+<meta property="og:description" content="Soft Actor-Critic from the ground up, then Squint line by line: every equation derived or traced to its source, every number checked against the paper and the released code.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/deriving-squint.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Yashvardhan Gupta">
+
+<meta name="description" content="Squint (Almuzairee and Christensen, IEEE RA-L 2026), built up from Soft Actor-Critic: every equation derived or traced to its source, every number checked against the paper, the released code and the original SAC, TD3 and C51 papers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+:root {
+  /* Same lab-notebook system as the SGS breakdown: reading column beside a sticky contents rail; derivations in tinted blocks; three explorers are the only moving parts. */
+  --paper: #f4f6f8;
+  --ink: #18202b;
+  --muted: #586273;
+  --rule: #d5dae2;
+  --tint: #e8ecf1;
+  --accent: #2c5d8f;
+  --c-two: #b5562a;
+  --c-three: #2e7a55;
+  --c-four: #74489f;
+  --c-faint: #c3cad6;
+  --warn: #8a5200;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --measure: 45rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10151c; --ink: #e2e7ee; --muted: #9ba5b5; --rule: #29313c; --tint: #18202a;
+    --accent: #80b2e6; --c-two: #e2895a; --c-three: #66c193; --c-four: #b68ee2; --c-faint: #3a4352; --warn: #e3a84f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10151c; --ink: #e2e7ee; --muted: #9ba5b5; --rule: #29313c; --tint: #18202a;
+  --accent: #80b2e6; --c-two: #e2895a; --c-three: #66c193; --c-four: #b68ee2; --c-faint: #3a4352; --warn: #e3a84f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 1.0625rem; line-height: 1.62; }
+a { color: var(--accent); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.2rem); letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.5rem, 3.6vw, 1.95rem); }
+h3 { font-size: 1.24rem; }
+h2 .num, h3 .num { font-family: var(--f-mono); font-weight: 400; font-size: .62em; color: var(--muted); margin-right: .5rem; vertical-align: .12em; }
+p, ul, ol, dl, figure, table { margin: 0; }
+ul, ol { padding-left: 1.3rem; display: flex; flex-direction: column; gap: .35rem; }
+strong { font-weight: 600; }
+
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; max-width: 74rem; margin: 0 auto; padding-inline: 16px; padding-block: 2rem 5rem; }
+main { min-width: 0; max-width: var(--measure); display: flex; flex-direction: column; gap: 3.4rem; }
+section { display: flex; flex-direction: column; gap: 1.6rem; scroll-margin-top: 1.5rem; }
+.sub { display: flex; flex-direction: column; gap: .9rem; scroll-margin-top: 1.5rem; }
+
+.toc { font-family: var(--f-display); font-size: .97rem; }
+.toc summary { cursor: pointer; font-family: var(--f-mono); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-block: .4rem; }
+.toc ol { list-style: none; padding: 0; margin-top: .5rem; gap: .25rem; }
+.toc a { color: var(--muted); text-decoration: none; display: flex; gap: .5rem; padding-block: .12rem; }
+.toc a:hover { color: var(--ink); }
+.toc a.on { color: var(--accent); }
+.toc .tn { font-family: var(--f-mono); font-size: .74rem; min-width: 1.6rem; padding-top: .16rem; }
+@media (min-width: 1040px) {
+  .wrap { grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; padding-inline: 20px; }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 1.5rem); align-self: start; max-height: calc(100vh - 3rem); overflow: auto; }
+  .toc summary { display: none; }
+}
+
+.hero { display: flex; flex-direction: column; gap: 1.05rem; }
+.eyebrow { font-family: var(--f-mono); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.byline { color: var(--muted); font-size: .98rem; }
+.three { display: grid; grid-template-columns: 6.2rem minmax(0, 1fr); gap: .6rem 1rem; padding-block: 1rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.three dt { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: .28rem; }
+.three dd { margin: 0; }
+@media (max-width: 540px) { .three { grid-template-columns: minmax(0, 1fr); gap: .15rem; } .three dd { margin-bottom: .55rem; } }
+
+.lbl { font-family: var(--f-mono); font-size: .7rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.lbl.int { color: var(--accent); }
+.lbl.chk { color: var(--warn); }
+.lbl.code { color: var(--c-three); }
+.lbl.teach { color: var(--c-four); }
+.note { display: flex; flex-direction: column; gap: .3rem; }
+.blk { background: var(--tint); padding: 1rem 1.15rem; border-radius: 3px; display: flex; flex-direction: column; gap: .7rem; min-width: 0; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .8rem 1.2rem; }
+.legend div { display: flex; flex-direction: column; gap: .15rem; font-size: .92rem; }
+.small { font-size: .9rem; color: var(--muted); }
+.src { font-family: var(--f-mono); font-size: .74rem; color: var(--muted); white-space: nowrap; }
+.src::before { content: "["; } .src::after { content: "]"; }
+q { font-style: italic; }
+
+mjx-container { color: var(--ink); }
+mjx-container[display="true"] { display: block; overflow-x: auto; overflow-y: hidden; max-width: 100%; padding-block: .2rem; margin: 0 !important; }
+
+.tbl { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; line-height: 1.45; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { font-family: var(--f-mono); font-size: .69rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--ink); vertical-align: bottom; }
+th:first-child, td:first-child { padding-left: 0; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+tr.hi td { font-weight: 600; }
+.mono { font-family: var(--f-mono); font-size: .88em; }
+code { font-family: var(--f-mono); font-size: .88em; }
+ol.steps { gap: .55rem; }
+
+.explorer { display: grid; gap: 1.1rem; padding: 1.1rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); min-width: 0; }
+.ex-head { display: flex; flex-direction: column; gap: .3rem; }
+.presets { display: flex; flex-wrap: wrap; gap: .4rem; }
+.presets button { font: 500 .76rem var(--f-mono); padding: .35rem .55rem; border: 1px solid var(--rule); background: var(--tint); color: var(--ink); border-radius: 3px; cursor: pointer; }
+.presets button[aria-pressed="true"] { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .6rem 1.4rem; }
+.ctrl { display: flex; flex-direction: column; gap: .3rem; font-family: var(--f-display); font-size: .95rem; min-width: 0; }
+.ctrl label { display: flex; justify-content: space-between; gap: .5rem; }
+.ctrl output { font-family: var(--f-mono); font-size: .84rem; color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 0 0 .2rem; }
+.pics { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 1rem; }
+.pic { display: flex; flex-direction: column; gap: .35rem; min-width: 0; }
+.pic canvas { width: 100%; max-width: 256px; aspect-ratio: 1; image-rendering: pixelated; image-rendering: crisp-edges; border: 1px solid var(--rule); border-radius: 2px; background: #000; }
+.plot { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.plot svg { width: 100%; height: auto; display: block; }
+.plot svg text { fill: var(--muted); font-family: var(--f-mono); font-size: 13px; }
+.plot .axis { stroke: var(--ink); stroke-width: 1; fill: none; }
+.plot .grid { stroke: var(--rule); stroke-width: 1; fill: none; }
+.plot .main { stroke: var(--accent); stroke-width: 2.4; fill: none; stroke-linejoin: round; }
+.plot .ref { stroke: var(--muted); stroke-width: 1.3; stroke-dasharray: 5 4; fill: none; }
+.plot .bar-p { fill: var(--c-faint); }
+.plot .bar-m { fill: var(--accent); }
+.plot .tick { stroke: var(--c-two); stroke-width: 1.4; }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .7rem 1rem; margin: 0; }
+.readout div { display: flex; flex-direction: column; gap: .1rem; }
+.readout dt { font-family: var(--f-mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.readout dd { margin: 0; font-family: var(--f-mono); font-size: 1rem; font-variant-numeric: tabular-nums; }
+.key { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-family: var(--f-mono); font-size: .72rem; color: var(--muted); }
+.key span { display: inline-flex; align-items: center; gap: .35rem; }
+.key i { display: inline-block; width: .8rem; height: .8rem; border-radius: 2px; }
+.sw-p { background: var(--c-faint); } .sw-m { background: var(--accent); } .sw-t { background: var(--c-two); }
+.ln { display: inline-block; width: 1.4rem; height: 0; border-top: 2.5px solid var(--accent); }
+.ln-ref { border-top: 1.5px dashed var(--muted); }
+
+footer.refs { border-top: 1px solid var(--rule); padding-top: 1.2rem; display: flex; flex-direction: column; gap: .6rem; font-size: .9rem; color: var(--muted); }
+footer.refs ol { gap: .4rem; }
+</style>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { enableMenu: false }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+</head>
+<body>
+<header class="phi-bar" style="position:relative;z-index:60;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 18px;padding:10px clamp(16px,4vw,32px);border-bottom:1px solid var(--rule);background:var(--paper);font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.05em">
+  <a href="../index.html" style="color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:9px"><span style="font-family:var(--f-body),Georgia,serif;font-size:20px;line-height:1">&Phi;</span><span>Physical Hardware Intelligence</span></a>
+  <nav aria-label="Phi" style="display:flex;gap:16px">
+    <a href="../research.html" style="color:var(--muted);text-decoration:none">Research</a>
+    <a href="index.html" style="color:var(--muted);text-decoration:none">Writing</a>
+    <a href="../learn.html" style="color:var(--muted);text-decoration:none">Learn</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<details class="toc" id="toc" open>
+<summary>Contents</summary>
+<nav aria-label="Contents">
+<ol>
+<li><a href="#s1"><span class="tn">1</span>Why this paper exists</a></li>
+<li><a href="#s2"><span class="tn">2</span>SAC from the ground up</a></li>
+<li><a href="#s3"><span class="tn">3</span>Squint, line by line</a></li>
+<li><a href="#s4"><span class="tn">4</span>The SO-101 task set</a></li>
+<li><a href="#s5"><span class="tn">5</span>Domain randomization</a></li>
+<li><a href="#s6"><span class="tn">6</span>Experiments and results</a></li>
+<li><a href="#s7"><span class="tn">7</span>Sim-to-real</a></li>
+<li><a href="#s8"><span class="tn">8</span>Reading it critically</a></li>
+<li><a href="#s9"><span class="tn">9</span>On Φ's arm</a></li>
+<li><a href="#s10"><span class="tn">10</span>Teach it</a></li>
+<li><a href="#s11"><span class="tn">11</span>Cheat sheet</a></li>
+</ol>
+</nav>
+</details>
+
+<main>
+
+<header class="hero">
+<p class="eyebrow">Study guide · arXiv 2602.21203 · IEEE RA-L, accepted 20 August 2026</p>
+<h1>Deriving Squint</h1>
+<p class="byline">A walkthrough of <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint: Fast Visual Reinforcement Learning for Sim-to-Real Robotics</a> by Abdulaziz Almuzairee and Henrik I. Christensen (UC San Diego), built up from Soft Actor-Critic. Every equation is derived or traced to its source. Every number was checked against the paper's LaTeX source, the released code (<a href="https://github.com/aalmuzairee/squint" target="_blank" rel="noopener">aalmuzairee/squint</a> at commit <span class="mono">7086fd5</span>), or the original SAC, TD3, C51, LayerNorm and time-limit papers. Numbers marked computed come from running that code; the script is <a href="squint-verify-numbers.py">published beside this page</a>, with <a href="squint-verified-numbers.json">its output</a>.</p>
+<dl class="three">
+<dt>Problem</dt><dd>Off-policy RL reuses old experience but is slow in wall-clock time. On-policy PPO runs across thousands of simulators, but trains on each batch and then throws it away. Images make every part harder: <q>high-dimensional input images complicate training dynamics, storing them in replay buffers strains memory, and encoding them through convolutional networks adds computational overhead</q> (§I).</dd>
+<dt>Fix</dt><dd>Keep SAC and make each part cheap: 1,024 parallel simulations with 256 updates per step, a distributional (C51) critic, images rendered at 128×128 and averaged down to 16×16 (<q>squinting</q>), LayerNorm after every hidden layer, a 1-million-transition replay buffer on the GPU, and compiled, CUDA-graph, bfloat16 updates.</dd>
+<dt>Result</dt><dd>96.1% mean success over 8 SO-101 tasks in simulation after 15 minutes on one RTX 3090. Zero-shot on the real arm: 73 of 80 trials (91.3%); tuned SAC 65, DAgger 53, PPO 50, BC 38, DrQ-v2 8.</dd>
+</dl>
+
+<div class="blk">
+<p class="lbl int">The idea in one table: one Squint iteration</p>
+<div class="tbl"><table>
+<thead><tr><th>What happens</th><th class="n">Amount</th></tr></thead>
+<tbody>
+<tr><td>simulated arms step together, 0.1 s of robot time each</td><td class="n">1,024</td></tr>
+<tr><td>critic updates before the next step (update-to-data ratio 0.25)</td><td class="n">256</td></tr>
+<tr><td>transitions sampled for those updates (256 × 512)</td><td class="n">131,072</td></tr>
+<tr><td>samples drawn per transition collected</td><td class="n">128</td></tr>
+<tr><td>actor updates (every 4th critic update)</td><td class="n">64</td></tr>
+<tr><td>bytes per stored image at 16×16 (at 128×128)</td><td class="n">768 (49,152)</td></tr>
+<tr><td>1M-transition replay buffer at 16×16 (at 128×128)</td><td class="n">1.55 GiB (91.7 GiB)</td></tr>
+</tbody></table></div>
+<p class="small">From the defaults in <span class="mono">train_squint.py</span> and its own <span class="mono">calc_buffer_memory</span>; §3. An RTX 3090 has 24 GB.</p>
+</div>
+
+<div class="legend" aria-label="How to read this page">
+<div><span class="lbl int">Intuition</span><span>The picture to keep in your head.</span></div>
+<div><span class="lbl">Derivation</span><span>Every step shown.</span></div>
+<div><span class="lbl">Paper</span><span>What the Squint paper states or reports.</span></div>
+<div><span class="lbl code">Code</span><span>What the released code does, with its line.</span></div>
+<div><span class="lbl chk">Check</span><span>What I computed, ran, or found inconsistent.</span></div>
+<div><span class="lbl teach">Teach</span><span>How to say it to a room.</span></div>
+</div>
+<p class="small">Paper sections are the paper's own: I Introduction, II Related Work, III Background, IV Method, V Experiments, VI Results, VII Discussion, VIII Conclusion, then the Appendix. Code lines refer to <span class="mono">train_squint.py</span> unless another file is named, all at <span class="mono">7086fd5</span>. Short on time: read §2.6 to §2.9, §3, §6 and §8.</p>
+
+<div class="note">
+<p class="lbl chk">Notation</p>
+<div class="tbl"><table>
+<thead><tr><th>Symbol</th><th>Means</th><th>In the code</th></tr></thead>
+<tbody>
+<tr><td>\(o_t\)</td><td>16×16 RGB wrist-camera image</td><td><span class="mono">obs['rgb']</span></td></tr>
+<tr><td>\(s_t^{\text{proprio}}\)</td><td>12 numbers: the 6 joint angles (5 arm joints and the gripper) with noise added, and the controller's 6 joint targets</td><td><span class="mono">obs['state']</span></td></tr>
+<tr><td>\(a_t\)</td><td>6 numbers in \([-1,1]\): changes to the joint targets</td><td><span class="mono">actions</span></td></tr>
+<tr><td>\(f_\psi\), \(z_t=f_\psi(o_t)\)</td><td>CNN encoder and its 1,024 features</td><td><span class="mono">CNNEncoder</span></td></tr>
+<tr><td>\(\pi_\phi\)</td><td>actor, a tanh-squashed Gaussian</td><td><span class="mono">Actor</span></td></tr>
+<tr><td>\(Q_{\theta_i},\ Q_{\bar\theta_i}\)</td><td>the two critic heads and their slowly moving copies (targets)</td><td><span class="mono">critic, critic_target</span></td></tr>
+<tr><td>\(\alpha,\ \bar{\mathcal H}\)</td><td>temperature; target entropy</td><td><span class="mono">alpha, target_entropy</span></td></tr>
+<tr><td>\(z_k,\ p_k\)</td><td>C51 atoms (fixed return values) and their probabilities</td><td><span class="mono">q_support, softmax(logits)</span></td></tr>
+<tr><td>\(\gamma,\ \tau\)</td><td>discount; target smoothing rate</td><td><span class="mono">gamma, tau</span></td></tr>
+</tbody></table></div>
+<p class="small">The C51 atoms \(z_k\) and the image features \(z_t\) share a letter in the literature; the subscript tells them apart.</p>
+</div>
+</header>
+
+<!-- ================================================================= 1 -->
+<section id="s1">
+<h2><span class="num">1</span>Why this paper exists</h2>
+<p>Two clocks measure an RL method: environment steps (sample efficiency) and minutes (wall-clock). On a GPU simulator steps are cheap, so the minutes are what slow research down.</p>
+<div class="tbl"><table>
+<thead><tr><th>Family</th><th>Reuses old experience</th><th>Fast in wall-clock on GPU simulators</th></tr></thead>
+<tbody>
+<tr><td>On-policy (PPO)</td><td>no: trains on each fresh batch, then discards it</td><td>yes: it <q>can parallelize trivially across thousands of environments</q>; the de facto standard for sim-to-real</td></tr>
+<tr><td>Off-policy (SAC, TD3, TD-MPC2)</td><td>yes, from a replay buffer</td><td>no: their gains <q>come with computational costs that increase training wall-time</q></td></tr>
+<tr><td>Off-policy tuned for wall-clock (FastTD3, FastSAC)</td><td>yes</td><td>yes, shown for state-based control</td></tr>
+<tr class="hi"><td>Squint</td><td>yes</td><td>yes, from pixels</td></tr>
+</tbody></table></div>
+<p class="small">Quotes and classification from Paper §I. Squint <q>follow[s] PQL, PQN, FastTD3 and FastSAC in focusing on training wall-time</q> (§II).</p>
+<div class="note">
+<p class="lbl">Paper, §I: the headline claim</p>
+<p><q>To the best of our knowledge, Squint is the first method to demonstrate zero-shot sim-to-real transfer of a contact-rich stacking policy, trained entirely from scratch with no demonstrations, in under 15 minutes on a single consumer GPU.</q></p>
+</div>
+<p>Three contributions <span class="src">§I</span>: the method; the <strong>SO-101 Task Set</strong>, 8 manipulation tasks in ManiSkill3 with heavy domain randomization; and real-world validation, with policies trained for 15 minutes and deployed zero-shot.</p>
+</section>
+
+<!-- ================================================================= 2 -->
+<section id="s2">
+<h2><span class="num">2</span>SAC from the ground up</h2>
+<p>Squint is SAC with engineering. The fastest route to understanding it is to rebuild SAC one idea at a time, marking where Squint departs.</p>
+
+<div class="sub" id="s2-1">
+<h3><span class="num">2.1</span>The problem</h3>
+<p>The paper frames visual RL as a POMDP \(\langle\mathcal S,\mathcal O,\mathcal A,\mathcal T,R,\gamma\rangle\): the agent sees an observation, not the state, and seeks a policy that maximizes <span class="src">§III</span></p>
+\[\mathbb E_\pi\Big[\sum_{t=0}^{\infty}\gamma^t r_t\Big],\qquad r_t=R(s_t,a_t).\]
+<div class="note">
+<p class="lbl">Derivation: what \(\gamma=0.9\) means in seconds</p>
+<p>A reward \(k\) steps away is weighted \(\gamma^k\). All future weights sum to \(\sum_{k\ge0}\gamma^k=\frac{1}{1-\gamma}=10\) steps, one second at 10 control steps per second. One second away: \(0.9^{10}=0.35\). Five seconds away, the end of an episode: \(0.9^{50}=0.005\).</p>
+</div>
+<div class="note">
+<p class="lbl code">Code</p>
+<p><span class="mono">gamma: float = 0.9</span> <span class="src">L141</span>. The paper does not state γ. (SAC's own table uses 0.99.)</p>
+</div>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>Squint's critic mostly values the next second. The dense, staged rewards of §4.2 pay at every step, so each stage of a five-second task has a reward inside that one-second view.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-2">
+<h3><span class="num">2.2</span>Q-values and the Bellman equation</h3>
+<p>\(Q^\pi(s,a)\) is the expected discounted return after taking \(a\) in \(s\) and following \(\pi\) after. It satisfies a one-step recursion, which is what makes it learnable:</p>
+\[Q^\pi(s,a)=\mathbb E_{s'}\Big[r(s,a)+\gamma\,\mathbb E_{a'\sim\pi}\,Q^\pi(s',a')\Big].\]
+<p>Temporal-difference learning fits a network \(Q_\theta\) to the right-hand side, the <strong>target</strong> \(y=r+\gamma\,Q(s',a')\). Using the network's own estimate inside its target is called bootstrapping.</p>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p><q>What I just got, plus what I believe comes next.</q> One transition is enough to learn from. The price: errors in the belief feed back into the target, which is why the stabilizers of §2.5 exist.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-3">
+<h3><span class="num">2.3</span>Off-policy learning and the replay buffer</h3>
+<p>The target needs a stored transition \((s,a,r,s')\) and a fresh next action \(a'\sim\pi(\cdot|s')\) from the <em>current</em> policy. It never asks which policy chose \(a\). So every transition ever collected stays useful: store them in a replay buffer \(\mathcal D\) and sample minibatches. That reuse is the sample efficiency. The paper's §I names the price: these gains <q>come with computational costs that increase training wall-time</q>.</p>
+</div>
+
+<div class="sub" id="s2-4">
+<h3><span class="num">2.4</span>Continuous actions need an actor</h3>
+<p>With discrete actions the best action is \(\arg\max_a Q(s,a)\). With six continuous numbers there is no cheap argmax, so a second network, the actor \(\pi_\phi\), learns to output actions that score high on \(Q\), by following the critic's slope with respect to the action:</p>
+\[\nabla_\phi\,Q\big(s,\pi_\phi(s)\big)=\nabla_a Q(s,a)\big|_{a=\pi_\phi(s)}\,\nabla_\phi\pi_\phi(s).\]
+<p>This is the DDPG-style policy gradient; SAC's estimator <q>extends the DDPG style policy gradients to any tractable stochastic policy</q> <span class="src">SAC 2018a §4.2</span>.</p>
+</div>
+
+<div class="sub" id="s2-5">
+<h3><span class="num">2.5</span>Three stabilizers, and what Squint keeps</h3>
+<div class="tbl"><table>
+<thead><tr><th>Problem</th><th>Standard fix</th><th>Source</th><th>Squint</th></tr></thead>
+<tbody>
+<tr><td>the target moves whenever the network moves</td><td>a slowly moving copy for targets: \(\bar\theta\leftarrow\tau\theta+(1-\tau)\bar\theta\)</td><td>target networks, Mnih et al. 2015; this moving-average form in SAC 2018b §4.2 and TD3 §5.2</td><td>\(\tau=0.01\), after every update <span class="src">L143, L929</span></td></tr>
+<tr><td>maximizing a noisy \(Q\) overestimates it</td><td>clipped double Q: \(y=r+\gamma\min_{i=1,2}Q_{\bar\theta_i}(s',a')\)</td><td>TD3 §4.2; also used by SAC (2018a §4.2, 2018b §6)</td><td><strong>dropped</strong>: each head's target comes from its own target head (§3.4); the actor uses the mean of the two <span class="src">L823</span></td></tr>
+<tr><td>updating the actor on an inaccurate critic can diverge</td><td>delayed updates: <q>only update the policy and target networks after a fixed number of updates d to the critic</q></td><td>TD3 §5.2</td><td>actor every 4th critic update; targets every update <span class="src">L131, L923, L927</span></td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl">Derivation: how far the target lags</p>
+<p>After \(k\) more updates, today's online weights carry weight \(\tau(1-\tau)^k\) in the target. That weight halves when \((1-\tau)^k=\tfrac12\): \(k=\frac{\ln 0.5}{\ln 0.99}=69\) updates, about a quarter of one iteration's 256.</p>
+</div>
+<div class="note">
+<p class="lbl">Paper, §IV</p>
+<p><q>We further investigate the effect of Clipped Double Q-learning (CDQ) and find a slight improvement in using the average rather than CDQ.</q> TD3 had accepted the min's bias on purpose: its underestimation is <q>far preferable to overestimation bias</q> (TD3 §4.2). Squint's evidence for dropping it is its own ablation (Fig. 4).</p>
+</div>
+</div>
+
+<div class="sub" id="s2-6">
+<h3><span class="num">2.6</span>Maximum-entropy RL</h3>
+<p>SAC changes the objective itself: it pays the policy for staying random <span class="src">SAC 2018a §3.2</span>:</p>
+\[J(\pi)=\sum_{t}\mathbb E_{(s_t,a_t)\sim\rho_\pi}\Big[r(s_t,a_t)+\alpha\,\mathcal H\big(\pi(\cdot|s_t)\big)\Big],\qquad \mathcal H(\pi(\cdot|s))=\mathbb E_{a\sim\pi}\big[-\log\pi(a|s)\big].\]
+<p>Values change to match <span class="src">SAC 2018b §4.1</span>:</p>
+\[V(s)=\mathbb E_{a\sim\pi}\big[Q(s,a)-\alpha\log\pi(a|s)\big],\qquad \mathcal T^\pi Q(s,a)=r(s,a)+\gamma\,\mathbb E_{s'}\big[V(s')\big].\]
+<p>And the policy improves by moving toward the Boltzmann distribution of its critic, projected back onto the family it can represent <span class="src">SAC 2018b §4.1</span>:</p>
+\[\pi_{\text{new}}=\arg\min_{\pi'\in\Pi}\ D_{\mathrm{KL}}\!\left(\pi'(\cdot|s)\,\middle\|\,\frac{\exp\big(\tfrac1\alpha Q^{\pi_{\text{old}}}(s,\cdot)\big)}{Z(s)}\right).\]
+<p class="small">SAC 2018a writes the same equations without α, <q>as it can always be subsumed into the reward by scaling it by \(\alpha^{-1}\)</q> (§3.2).</p>
+<div class="note">
+<p class="lbl">Derivation: why the ideal policy is \(\pi\propto e^{Q/\alpha}\)</p>
+<p>At one state, maximize</p>
+\[\mathbb E_\pi[Q]+\alpha\mathcal H(\pi)=\sum_a\pi(a)\big(Q(a)-\alpha\log\pi(a)\big)\]
+<p>subject to \(\sum_a\pi(a)=1\). Setting the derivative of the Lagrangian to zero: \(Q(a)-\alpha\log\pi(a)-\alpha+\lambda=0\), so \(\pi(a)\propto\exp\big(Q(a)/\alpha\big)\). Substituting back, the value is \(V=\alpha\log\sum_a e^{Q(a)/\alpha}\): a soft maximum, which becomes \(\max_a Q(a)\) as \(\alpha\to0\).</p>
+</div>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p><q>Do well, and stay as random as you can afford.</q> The ideal policy is a distribution that puts more probability on better actions. \(\alpha\) is the exchange rate between reward and randomness; at \(\alpha\to0\) it is ordinary RL. SAC 2018a §3.2 lists the payoffs: the policy explores widely <q>while giving up on clearly unpromising avenues</q>, it can keep several modes of near-optimal behavior, and in their experiments it learned faster.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-7">
+<h3><span class="num">2.7</span>SAC's three losses (the 2018b form Squint uses)</h3>
+<p>SAC 2018b drops the first paper's separate value network (its footnote: they <q>later found it to be unnecessary</q>) and learns the temperature. Three losses, three sets of weights.</p>
+<p><strong>Critic</strong>, the soft Bellman residual <span class="src">SAC 2018b §4.2; Squint Eq. 1–2</span>:</p>
+\[J_Q(\theta)=\mathbb E_{(s,a,r,s')\sim\mathcal D}\Big[\tfrac12\big(Q_\theta(s,a)-y\big)^2\Big],\]
+\[y=r+\gamma\Big(Q_{\bar\theta}(s',\tilde a')-\alpha\log\pi_\phi(\tilde a'|s')\Big),\qquad \tilde a'\sim\pi_\phi(\cdot|s').\]
+<p class="small">Squint's Eq. 2 omits the ½, which changes nothing about the minimizer.</p>
+<p><strong>Actor</strong>: the KL of §2.6, multiplied by \(\alpha\) <span class="src">SAC 2018b §4.2; Squint Eq. 3</span>:</p>
+\[J_\pi(\phi)=\mathbb E_{s\sim\mathcal D,\ \epsilon\sim\mathcal N}\Big[\alpha\log\pi_\phi\big(f_\phi(\epsilon;s)\,|\,s\big)-Q_\theta\big(s,f_\phi(\epsilon;s)\big)\Big].\]
+<div class="note">
+<p class="lbl">Derivation: from the KL to the actor loss</p>
+\[\begin{aligned}D_{\mathrm{KL}}\big(\pi\,\|\,e^{Q/\alpha}/Z\big)&=\mathbb E_{a\sim\pi}\big[\log\pi(a|s)-\tfrac1\alpha Q(s,a)\big]+\log Z(s),\\ \alpha\,D_{\mathrm{KL}}&=\mathbb E_{a\sim\pi}\big[\alpha\log\pi(a|s)-Q(s,a)\big]+\alpha\log Z(s).\end{aligned}\]
+<p>The last term does not depend on \(\phi\), so it drops. Writing \(a=f_\phi(\epsilon;s)\) lets the gradient pass through the sample (§2.8).</p>
+</div>
+<p><strong>Temperature.</strong> SAC 2018b §5 recasts the goal: find <q>a stochastic policy with maximal expected return that satisfies a minimum expected entropy constraint</q>, a floor \(\bar{\mathcal H}\) on the average entropy. \(\alpha\) is the dual variable of that constraint, trained with <span class="src">SAC 2018b §6</span></p>
+\[J(\alpha)=\mathbb E_{a\sim\pi}\big[-\alpha\log\pi(a|s)-\alpha\bar{\mathcal H}\big].\]
+<div class="note">
+<p class="lbl">Derivation: why that loss moves \(\alpha\) the right way</p>
+<p>Take \(\hat{\mathcal H}=-\log\pi(a|s)\), a one-sample estimate of entropy. Then \(J=\alpha(\hat{\mathcal H}-\bar{\mathcal H})\) and \(\partial J/\partial\alpha=\hat{\mathcal H}-\bar{\mathcal H}\). Gradient descent: \(\alpha\leftarrow\alpha-\lambda(\hat{\mathcal H}-\bar{\mathcal H})\). If the policy is less random than the target (\(\hat{\mathcal H}\lt\bar{\mathcal H}\)), \(\alpha\) <strong>rises</strong>, randomness pays more, and entropy climbs back. If it is too random, \(\alpha\) falls.</p>
+</div>
+<div class="note">
+<p class="lbl code">Code</p>
+<p>Squint learns \(\log\alpha\) starting at 0, so <strong>\(\alpha\) starts at 1.0</strong> <span class="src">L659–660</span>; the argument <span class="mono">alpha = 0.2</span> is used only when auto-tuning is off <span class="src">L135–137, L663</span>. The loss <span class="mono">(-log_alpha.exp() * (log_pi + target_entropy)).mean()</span> <span class="src">L799</span> equals \(\alpha(\hat{\mathcal H}-\bar{\mathcal H})\): the same rule. The target is \(\bar{\mathcal H}=-\dim\mathcal A=-6\) <span class="src">L658</span>, SAC 2018b's own choice: <q>\(-\dim(\mathcal A)\) (e.g., −6 for HalfCheetah-v1)</q> (its hyperparameter table).</p>
+</div>
+<div class="note">
+<p class="lbl chk">Check: ran the code's loss</p>
+<p>With \(\log\pi=+10\) (too sharp: \(\hat{\mathcal H}=-10\lt-6\)) the gradient on \(\log\alpha\) is −4, so descent raises \(\alpha\). With \(\log\pi=-10\) (too random) it is +16, so descent lowers \(\alpha\). Correct. The paper's Algorithm 1 prints the opposite sign (§8.1).</p>
+</div>
+</div>
+
+<div class="sub" id="s2-8">
+<h3><span class="num">2.8</span>The tanh-Gaussian policy</h3>
+<p>The actor outputs a mean \(\mu_\phi(s)\) and a log standard deviation for each of the 6 action numbers. A sample is noise pushed through the network, so gradients flow through it (the reparameterization trick, <span class="src">SAC 2018a §4.2</span>), then squashed into \((-1,1)\):</p>
+\[u=\mu_\phi(s)+\sigma_\phi(s)\odot\epsilon,\quad \epsilon\sim\mathcal N(0,I),\qquad a=\tanh(u).\]
+<p>Squashing changes the density. The Jacobian \(\mathrm d a/\mathrm d u=\mathrm{diag}(1-\tanh^2 u)\) is diagonal, so <span class="src">SAC 2018a App. C</span></p>
+\[\log\pi(a|s)=\log\mathcal N\big(u;\mu,\sigma^2\big)-\sum_{i=1}^{6}\log\big(1-\tanh^2(u_i)\big).\]
+<div class="tbl"><table>
+<thead><tr><th>Piece</th><th>Squint's choice</th><th class="n">Line</th></tr></thead>
+<tbody>
+<tr><td>correction</td><td><span class="mono">log_prob -= log(action_scale·(1 − tanh²) + 1e-6)</span>, summed over 6 dims; scale is 1 because actions live in \([-1,1]\)</td><td class="n">L326–329</td></tr>
+<tr><td>log σ range</td><td>\(\log\sigma=-5+\tfrac72\big(\tanh(\text{raw})+1\big)\in[-5,2]\), so \(\sigma\in[0.0067,\ 7.39]\)</td><td class="n">L299–310</td></tr>
+<tr><td>action at deployment</td><td>\(a=\tanh(\mu)\): the mean, no sampling</td><td class="n">L314–317</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>The code's log-likelihood against the exact density of \(\tanh(u)\) at four points: largest difference \(2.3\times10^{-5}\), all from the \(10^{-6}\) inside the log.</p>
+</div>
+<div class="note">
+<p class="lbl chk">Check: what −6 asks for, and why wider is not more random</p>
+<p>Through the squash, the entropy of \(a\) at \(\mu=0\) peaks at \(\sigma\approx0.88\) (0.684 nats, just under a uniform distribution's \(\log2=0.693\)) and then <em>falls</em>: wider Gaussians pile their samples against ±1. At \(\log\sigma=2\), 80% of samples land beyond ±0.95 and the entropy is −7.1 nats. Squint's target of −6 over 6 dimensions is −1 nat each, which at \(\mu=0\) means \(\sigma\approx0.09\) (\(\log\sigma=-2.41\)). Computed by numerical integration.</p>
+</div>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>tanh squeezes the whole real line into \((-1,1)\). Without the correction the policy would score its entropy bonus on the Gaussian, not on the actions it actually takes. Try the presets below.</p>
+</div>
+
+<div class="explorer" id="ex-tanh" aria-labelledby="ex-tanh-title">
+<div class="ex-head"><p class="lbl int" id="ex-tanh-title">Explorer: one action dimension of the actor</p>
+<p class="small">The curve is the density of \(a=\tanh(u)\), \(u\sim\mathcal N(\mu,\sigma^2)\), scaled to its peak. The dashed line is the deployed action \(\tanh(\mu)\).</p></div>
+<div class="cgrid">
+<div class="ctrl"><label for="tg-mu"><span>mean \(\mu\)</span> <output id="tg-mu-o">0.00</output></label><input type="range" id="tg-mu" min="-3" max="3" step="0.01" value="0"></div>
+<div class="ctrl"><label for="tg-ls">log σ (Squint's range −5 to 2) <output id="tg-ls-o">−2.41</output></label><input type="range" id="tg-ls" min="-5" max="2" step="0.01" value="-2.41"></div>
+</div>
+<div class="presets" role="group" aria-label="Presets">
+<button type="button" data-tg="0,-2.41">at the target: −1 nat per dim</button>
+<button type="button" data-tg="0,-0.13">most random: σ ≈ 0.88</button>
+<button type="button" data-tg="0,2">widest: piles at ±1</button>
+<button type="button" data-tg="1.5,-2.5">near the limit</button>
+</div>
+<div class="plot"><svg id="tg-svg" viewBox="0 0 640 260" role="img" aria-label="Density of the squashed action"></svg>
+<div class="key"><span><span class="ln"></span>density of \(a\)</span><span><span class="ln ln-ref"></span>deployed action \(\tanh(\mu)\)</span></div></div>
+<dl class="readout" aria-live="polite">
+<div><dt>σ</dt><dd id="tg-r-s">0.090</dd></div>
+<div><dt>deployed action</dt><dd id="tg-r-a">0.000</dd></div>
+<div><dt>entropy per dim (nats)</dt><dd id="tg-r-h">0</dd></div>
+<div><dt>6 dims like this</dt><dd id="tg-r-h6">0</dd></div>
+<div><dt>vs target −6, α moves</dt><dd id="tg-r-dir">&ndash;</dd></div>
+<div><dt>samples with |a| &gt; 0.95</dt><dd id="tg-r-sat">0%</dd></div>
+</dl>
+<p class="small">Entropy is \(\mathcal H(a)=\mathcal H(u)+\mathbb E_u[\log(1-\tanh^2u)]\), integrated numerically. The direction follows the code's rule in §2.7.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-9">
+<h3><span class="num">2.9</span>A critic that predicts a distribution (C51)</h3>
+<p>Instead of one number, the critic predicts a probability for each of \(N\) fixed return values, the <strong>atoms</strong> <span class="src">Bellemare et al. 2017 §4.1</span>:</p>
+\[z_k=V_{\min}+k\,\Delta z,\qquad \Delta z=\frac{V_{\max}-V_{\min}}{N-1},\]
+\[p_k(s,a)=\operatorname{softmax}_k\big(\theta(s,a)\big),\qquad Q(s,a)=\sum_k p_k\,z_k.\]
+<p>Squint: \(N=101\) atoms on \([-20,20]\), so \(\Delta z=0.4\) <span class="src">L147–151</span>. The name comes from the original paper's 51-atom agent: <q>from here onwards, C51</q> <span class="src">Bellemare et al. 2017 §5.2</span>.</p>
+<p>The Bellman update moves every atom, \(\hat{\mathcal T}z_j=r+\gamma z_j\). The moved atoms land between the fixed ones, so each one's probability is split between its two neighbours in proportion to closeness <span class="src">Bellemare et al. 2017 §4.2</span>:</p>
+\[\big(\Phi\hat{\mathcal T}Z\big)_i=\sum_{j=0}^{N-1}\left[1-\frac{\big|[\hat{\mathcal T}z_j]_{V_{\min}}^{V_{\max}}-z_i\big|}{\Delta z}\right]_0^1 p_j(s',a').\]
+<p>The loss is the cross-entropy of the predicted distribution against that projected target \(m\): \(-\sum_i m_i\log p_i(s,a)\).</p>
+<div class="note">
+<p class="lbl">Derivation: the projection keeps the mean</p>
+<p>Atom \(j\) lands at \(b_j=(\hat{\mathcal T}z_j-V_{\min})/\Delta z\) with neighbours \(l=\lfloor b_j\rfloor\), \(u=l+1\), receiving weights \(u-b_j\) and \(b_j-l\). Its contribution to the mean:</p>
+\[\begin{aligned}p_j\big[(u-b_j)z_l+(b_j-l)z_u\big]&=p_j\big(V_{\min}+\Delta z\,[(u-b_j)\,l+(b_j-l)\,u]\big)\\&=p_j\big(V_{\min}+\Delta z\,b_j\big)=p_j\,\hat{\mathcal T}z_j.\end{aligned}\]
+<p>So the mean of the projected target equals the mean of the moved atoms (after clipping to the support). The explorer below shows both means.</p>
+</div>
+<div class="note">
+<p class="lbl code">Code: the soft version</p>
+<p>Squint folds the entropy bonus into the reward before shifting: the moved atoms are \(\big(r-\gamma\alpha\log\pi(\tilde a'|s')\big)+\gamma z_j\) <span class="src">L417, L762–763</span>, the critic target of §2.7 applied atom by atom.</p>
+</div>
+<div class="note">
+<p class="lbl">Paper, §IV</p>
+<p><q>We find that the choice of a distributional critic greatly improves wall time speed, even though it requires more computation than a standard Critic.</q> The paper does not test why. Bellemare et al. 2017 discuss it in §6.1, <q>Why does learning a distribution matter?</q></p>
+</div>
+<div class="note">
+<p class="lbl chk">Check: when a moved atom lands exactly on the grid</p>
+<p>In the original Algorithm 1, if \(b_j\) is a whole number then floor = ceil and both weights are zero: that atom's probability is <strong>dropped</strong>. With \(r=0,\gamma=1\), on Squint's float32 support, 74 of the 101 atoms land exactly, and the literal rule keeps only 26.7% of a uniform distribution. Squint shifts one index when \(b_j\) is whole <span class="src">L424–426</span> and keeps all of it in the same test. But its second line reuses a flag computed before the first line changed <span class="mono">lower</span>, so a hit at exactly \(b_j=1\) is counted <strong>twice</strong>. On a test support where \(\Delta z=1\) is exact (−50 to 50), Squint's own <span class="mono">categorical()</span> returned a total probability of exactly \(1+p_j\) in both cases tried (1.0194 and 1.0209). On the default support this needs a target landing exactly 0.4 above \(V_{\min}\) in float32; in the \(r=0,\gamma=1\) test, \(b_1\) came out as 0.99999905, not 1. An edge case, not a measured training problem. The fix is one line: test <span class="mono">upper == lower</span> again.</p>
+</div>
+
+<div class="explorer" id="ex-c51" aria-labelledby="ex-c51-title">
+<div class="ex-head"><p class="lbl int" id="ex-c51-title">Explorer: one C51 target, built step by step</p>
+<p class="small">Grey bars: the target critic's distribution at the next state. Orange ticks: where atoms land after \(r+\gamma z\). Blue bars: the projected target the critic is trained toward. 101 atoms on \([-20,20]\), as in Squint.</p></div>
+<div class="cgrid">
+<div class="ctrl"><label for="c-r">reward incl. entropy term <output id="c-r-o">0.50</output></label><input type="range" id="c-r" min="-3" max="3" step="0.01" value="0.5"></div>
+<div class="ctrl"><label for="c-g">discount γ <output id="c-g-o">0.90</output></label><input type="range" id="c-g" min="0.5" max="1" step="0.01" value="0.9"></div>
+<div class="ctrl"><label for="c-c">next-state value, centre <output id="c-c-o">5.0</output></label><input type="range" id="c-c" min="-18" max="18" step="0.1" value="5"></div>
+<div class="ctrl"><label for="c-w">its spread <output id="c-w-o">2.0</output></label><input type="range" id="c-w" min="0.2" max="8" step="0.1" value="2"></div>
+</div>
+<div class="presets" role="group" aria-label="Projection rule">
+<button type="button" id="c-mode-sq" aria-pressed="true">Squint's projection</button>
+<button type="button" id="c-mode-lit" aria-pressed="false">literal Algorithm 1</button>
+</div>
+<div class="presets" role="group" aria-label="Presets">
+<button type="button" data-c="0.5,0.9,5,2">typical</button>
+<button type="button" data-c="0,1,0,3">exact grid hits</button>
+<button type="button" data-c="3,1,18,1">clipping at 20</button>
+</div>
+<div class="plot"><svg id="c-svg" viewBox="0 0 640 260" role="img" aria-label="Distributional target"></svg>
+<div class="key"><span><i class="sw-p"></i>next-state distribution</span><span><i class="sw-t"></i>moved atoms</span><span><i class="sw-m"></i>projected target</span></div></div>
+<dl class="readout" aria-live="polite">
+<div><dt>total probability</dt><dd id="c-r-mass">1.000</dd></div>
+<div><dt>mean of moved atoms</dt><dd id="c-r-mt">0</dd></div>
+<div><dt>mean of projection</dt><dd id="c-r-mp">0</dd></div>
+<div><dt>probability clipped</dt><dd id="c-r-clip">0%</dd></div>
+</dl>
+<p class="small">Computed live in double precision, so the literal rule's losses differ from the float32 figures above. Squint's rule is replicated line for line, including the reused flag.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-10">
+<h3><span class="num">2.10</span>Learning from pixels: who trains the encoder</h3>
+<p><q>We follow DrQ and DrQ-v2 in encoding \(\mathbf o_t\) with a single shared CNN encoder \(f_\psi\) ... The encoder \(f_\psi\) is trained end-to-end by the critic gradients</q> <span class="src">§III</span>; <q>The encoder is only updated by the critic's TD-loss</q> <span class="src">§IV</span>.</p>
+<div class="note">
+<p class="lbl code">Code</p>
+<p>The critic's optimizer holds the critic and encoder weights; the actor's holds only the actor <span class="src">L717–720</span>. The actor receives the features from the critic step, detached <span class="src">L812, L817</span>.</p>
+</div>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>The encoder learns whatever features help predict returns. The actor reads those features but cannot reshape them.</p>
+</div>
+<div class="note">
+<p class="lbl">Paper, §IV</p>
+<p>An honest note from the authors: the shared encoder and the separate one-layer projections follow <q>prior state-of-the-art visual RL methods, though our ablations reveal they yield negligible performance gains on our task set.</q></p>
+</div>
+</div>
+
+<div class="sub" id="s2-11">
+<h3><span class="num">2.11</span>Update-to-data ratio</h3>
+<p><strong>UTD</strong> = gradient updates per transition collected. Squint: \(256/1024=0.25\) <span class="src">§IV; L85, L121</span>. A related number, samples drawn per transition collected: \(256\times512/1024=128\).</p>
+<div class="note">
+<p class="lbl">Paper, §IV and §VII</p>
+<p>Prior wall-clock work used a very low UTD ratio. The paper's reading of its own sweep: <q>while very low UTD ratios (&lt;0.06) work for humanoids, manipulation domains seem to benefit from larger UTD ratios, seemingly (0.25) in our task set</q> (§IV). §VII shows higher UTD also helps state-based SAC on these tasks (Fig. 7).</p>
+</div>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>The simulator hands over 1,024 fresh transitions per tick. The UTD is how hard you study before the next tick arrives.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-12">
+<h3><span class="num">2.12</span>LayerNorm</h3>
+<p>For a layer's \(H\) summed inputs \(a_i\) <span class="src">Ba et al. 2016 §3, §3.1</span>:</p>
+\[\mu=\frac1H\sum_{i=1}^{H}a_i,\qquad \sigma=\sqrt{\frac1H\sum_{i=1}^{H}(a_i-\mu)^2},\qquad h=f\Big(\frac{g}{\sigma}\odot(a-\mu)+b\Big),\]
+<p>with learned gain \(g\) and bias \(b\) (PyTorch's <span class="mono">nn.LayerNorm</span> also adds \(10^{-5}\) under the square root). The statistics come from one example's layer, not from the batch.</p>
+<div class="note">
+<p class="lbl">Paper, §IV</p>
+<p><q>All our linear layers are followed by Layer Normalization layers</q>, which <q>improve training speed, similar to the findings of</q> RLPD (Ball et al. 2023), BRO (Nauman et al. 2024) and FastSAC.</p>
+</div>
+<div class="note">
+<p class="lbl code">Code</p>
+<p>Every hidden linear layer is followed by LayerNorm: both projections <span class="src">L268, L271</span>, the actor trunk <span class="src">L286–288</span>, the critic trunk <span class="src">L376–378</span>. The output layers (mean, log σ, atom logits) are not <span class="src">L290–291, L379</span>, and neither are the convolutions.</p>
+</div>
+</div>
+</section>
+
+<!-- ================================================================= 3 -->
+<section id="s3">
+<h2><span class="num">3</span>Squint, line by line</h2>
+
+<div class="sub" id="s3-0">
+<h3><span class="num">3.0</span>The diff from SAC</h3>
+<div class="tbl"><table>
+<thead><tr><th>SAC (2018b)</th><th>Squint</th><th>The paper's evidence</th></tr></thead>
+<tbody>
+<tr><td>one environment step, then one gradient step</td><td>1,024 environments, 256 updates per step (UTD 0.25)</td><td><q>can reduce training time significantly</q> (§IV, Fig. 4)</td></tr>
+<tr><td>scalar critic, squared error</td><td>C51 critic, 101 atoms, cross-entropy</td><td><q>greatly improves wall time speed</q> (§IV)</td></tr>
+<tr><td>minimum of two critics</td><td>mean of two in the actor; per-head targets</td><td><q>a slight improvement in using the average</q> (§IV)</td></tr>
+<tr><td>no normalization listed</td><td>LayerNorm after every hidden layer</td><td><q>improve training speed</q> (§IV)</td></tr>
+<tr><td>actor every gradient step</td><td>actor every 4th update</td><td>code and Algorithm 1; no ablation in the text</td></tr>
+<tr><td>batch 256, γ 0.99, τ 0.005</td><td>batch 512, γ 0.9, τ 0.01</td><td>batch: <q>the same stable training efficiency, while minimizing wall time for every update</q>; γ and τ: code only</td></tr>
+<tr><td>&ndash;</td><td>16×16 image, rendered at 128 and area-averaged; CNN trained by the critic</td><td>smaller images train faster at <q>identical sample efficiency</q>; squinting beats rendering small (§IV)</td></tr>
+<tr><td>&ndash;</td><td>torch.compile, CUDA graphs, bfloat16 updates</td><td><q>more than a 5x speedup</q> (§IV)</td></tr>
+</tbody></table></div>
+<p class="small">SAC column: SAC 2018b's hyperparameter table, §6 (two Q-functions, minimum) and Algorithm 1 (every gradient step updates critic, actor, α and targets); 2018a §4.2 (one environment step, then gradient steps).</p>
+</div>
+
+<div class="sub" id="s3-1">
+<h3><span class="num">3.1</span>The loop</h3>
+<ol class="steps">
+<li><strong>Observe.</strong> Each of 1,024 environments renders a 128×128 wrist image, averages it down to 16×16, then colour jitter is applied <span class="src">L599–604</span>.</li>
+<li><strong>Act.</strong> While the step counter is below 5,000, uniformly random actions: 5 iterations, 5,120 transitions <span class="src">L876–877</span>. After that, a sample from \(\pi_\phi\) <span class="src">L879</span>; exploration comes only from the stochastic policy.</li>
+<li><strong>Step.</strong> All environments advance one control step: 0.1 s of robot time, 10 physics steps at 100 Hz <span class="src">base_random_env.py L148</span>.</li>
+<li><strong>Store.</strong> Each \((o,s,a,r,o',s')\) goes into a first-in-first-out buffer of 1M transitions on the GPU <span class="src">L899–908, L732; §IV</span>.</li>
+<li><strong>Learn.</strong> 256 times: sample 512 transitions; update critic and encoder; update \(\alpha\); on every 4th pass update the actor; move the targets by \(\tau=0.01\) <span class="src">L914–929</span>.</li>
+<li><strong>Evaluate</strong> every 100,000 steps on 16 environments with the deterministic action \(\tanh(\mu)\), and save a checkpoint <span class="src">L860–873, L97, L87</span>.</li>
+</ol>
+<div class="tbl"><table>
+<thead><tr><th>Totals for the default 1.5M steps (computed)</th><th class="n">Count</th></tr></thead>
+<tbody>
+<tr><td>loop iterations: 1,464 + 2 (<q>+2 for final eval</q>, L858)</td><td class="n">1,466</td></tr>
+<tr><td>transitions collected</td><td class="n">1,501,184</td></tr>
+<tr><td>iterations with updates (from iteration 5, when the step 5,120 exceeds 5,000)</td><td class="n">1,461</td></tr>
+<tr><td>critic, encoder and α updates (each)</td><td class="n">374,016</td></tr>
+<tr><td>actor updates</td><td class="n">93,504</td></tr>
+<tr><td>evaluations (at step 0, then at each 100,000 passed)</td><td class="n">16</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s3-2">
+<h3><span class="num">3.2</span>Squinting: the idea in the name</h3>
+<div class="note">
+<p class="lbl">Paper, §IV</p>
+<p>Rendering at 128×128 and area-downsampling to 16×16 (<q>squinting</q>) beats rendering at 16×16 directly: it <q>provides natural anti-aliasing and preserves scene structure</q>. Across resolutions, the paper finds <q>identical sample efficiency, but varying wall time</q>: the smaller, the faster.</p>
+</div>
+<div class="note">
+<p class="lbl code">Code</p>
+<p><span class="mono">F.interpolate(rgb.float(), size=(16, 16), mode='area').to(torch.uint8)</span> <span class="src">utils.py L38</span>. Checked: for 128 → 16 this equals the mean of each 8×8 block exactly, then truncation to an integer.</p>
+</div>
+<div class="note">
+<p class="lbl">Derivation: why averaging anti-aliases</p>
+<p>Each policy pixel is the mean of 64 rendered pixels, so a thin edge covering 10 of them contributes 10/64 of its colour. A renderer without anti-aliasing decides each pixel from one sample point instead: the edge is either fully in or out, and it flickers as the arm moves by sub-pixel amounts.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Policy image</th><th class="n">Bytes per image</th><th class="n">Rendered pixels per policy pixel</th><th class="n">1M-transition buffer (computed)</th></tr></thead>
+<tbody>
+<tr class="hi"><td>16×16 (Squint)</td><td class="n">768</td><td class="n">64</td><td class="n">1.55 GiB</td></tr>
+<tr><td>32×32</td><td class="n">3,072</td><td class="n">16</td><td class="n">5.84 GiB</td></tr>
+<tr><td>64×64</td><td class="n">12,288</td><td class="n">4</td><td class="n">23.0 GiB</td></tr>
+<tr><td>128×128</td><td class="n">49,152</td><td class="n">1</td><td class="n">91.7 GiB</td></tr>
+</tbody></table></div>
+<p class="small">Squint's own <span class="mono">calc_buffer_memory</span> <span class="src">utils.py L85–106</span>: each image twice (current and next; the code's own TODO says it <q>should only store one</q>, L724), 12 state floats twice, 6 action floats and 3 more floats per transition.</p>
+
+<div class="explorer" id="ex-sq" aria-labelledby="ex-sq-title">
+<div class="ex-head"><p class="lbl int" id="ex-sq-title">Explorer: squint it yourself</p>
+<p class="small">Left: Squint's area average. Right: one sample at each pixel's centre, standing in for a renderer drawing at that size without anti-aliasing. Real: the 128×128 wrist frame our arm fed the policy at the first step of a PlaceCube episode (14 October). Simulator: a ManiSkill PlaceCube reset.</p></div>
+<div class="presets" role="group" aria-label="Image source">
+<button type="button" data-src="real" aria-pressed="true">real wrist camera</button>
+<button type="button" data-src="sim" aria-pressed="false">simulator</button>
+</div>
+<div class="presets" role="group" aria-label="Resolution">
+<button type="button" data-res="128" aria-pressed="false">128</button>
+<button type="button" data-res="64" aria-pressed="false">64</button>
+<button type="button" data-res="32" aria-pressed="false">32</button>
+<button type="button" data-res="16" aria-pressed="true">16</button>
+<button type="button" data-res="8" aria-pressed="false">8</button>
+</div>
+<div class="pics">
+<div class="pic"><canvas id="sq-area" width="256" height="256" aria-label="Area-averaged image"></canvas><span class="small">area average (squinting)</span></div>
+<div class="pic"><canvas id="sq-point" width="256" height="256" aria-label="Point-sampled image"></canvas><span class="small">point sample (render small)</span></div>
+</div>
+<dl class="readout" aria-live="polite">
+<div><dt>numbers per image</dt><dd id="sq-r-n">768</dd></div>
+<div><dt>pixels averaged per pixel</dt><dd id="sq-r-k">64</dd></div>
+<div><dt>1M-transition buffer</dt><dd id="sq-r-buf">1.55 GiB</dd></div>
+</dl>
+<p class="small">On the real robot, 16×16 and 32×32 both scored 73/80; below 16×16, policies trained in simulation but failed to transfer, <q>mainly due to overfitting</q> (§VII, Table V).</p>
+</div>
+</div>
+
+<div class="sub" id="s3-3">
+<h3><span class="num">3.3</span>The networks</h3>
+<div class="tbl"><table>
+<thead><tr><th>Block</th><th>Layers</th><th>Output</th><th class="n">Parameters</th></tr></thead>
+<tbody>
+<tr><td>Encoder \(f_\psi\)</td><td>pixels scaled to \([-0.5,0.5]\); Conv 3→32, 4×4, stride 2, ReLU; Conv 32→64, 4×4, stride 1, ReLU; flatten <span class="src">L244–249, L259</span></td><td>32×7×7 → 64×4×4 → 1,024</td><td class="n">34,400</td></tr>
+<tr><td>Projection (actor and critic each own one)</td><td>image: Linear 1024→50, LN, tanh; state: Linear 12→256, LN, ReLU; concatenate <span class="src">L263–275</span></td><td>306</td><td class="n">55,190</td></tr>
+<tr><td>Actor</td><td>projection; 3 × (Linear 256, LN, ReLU); mean head 256→6; log-σ head 256→6 <span class="src">L278–291</span></td><td>6 + 6</td><td class="n">269,986</td></tr>
+<tr><td>Critic (2 heads, batched with <span class="mono">vmap</span>)</td><td>projection; per head (input 306 + 6 actions) 3 × (Linear 512, LN, ReLU), Linear 512→101 <span class="src">L372–391</span></td><td>2 × 101 logits</td><td class="n">1,536,096</td></tr>
+<tr class="hi"><td>Deployed policy</td><td>encoder + actor</td><td>6 actions</td><td class="n">304,386</td></tr>
+</tbody></table></div>
+<p class="small">Counts computed by building the classes with 12 state numbers and 6 actions (our retrained checkpoint's state layer is 256×12, confirming the 12). The 16×16 encoder is its own branch; 32 and 64 pixel inputs get deeper stacks <span class="src">L230–243</span>. Linear weights are orthogonal, convolutions orthogonal with ReLU gain, biases zero <span class="src">L210–219</span>.</p>
+</div>
+
+<div class="sub" id="s3-4">
+<h3><span class="num">3.4</span>The critic step, exactly</h3>
+<p>With \(\tilde a'\sim\pi_\phi(\cdot|z',s')\) and its log-likelihood computed without gradients, for each head \(i\in\{1,2\}\):</p>
+\[t_j=\big(r-\gamma\,\alpha\log\pi_\phi(\tilde a'|z',s')\big)+\gamma z_j,\qquad m^{(i)}=\Phi\big(t;\ \bar p^{(i)}(z',s',\tilde a')\big),\]
+\[\mathcal L=\sum_{i=1}^{2}\mathbb E_{\text{batch}}\Big[-\sum_k m^{(i)}_k\log p^{(i)}_k(z,s,a)\Big].\]
+<p>Gradients flow into both heads, the critic's projection and the encoder, under bfloat16 autocast <span class="src">L751–793</span>. The next-state features \(z'\) come from the online encoder under no-grad; there is no target encoder <span class="src">L753–756, L697–702</span>.</p>
+<div class="note">
+<p class="lbl chk">Check: per-head targets, not an average</p>
+<p>The paper's Algorithm 1, which says it omits the distributional critic, builds one target from the <em>average</em> of the two target critics and trains both heads on it. The code builds head \(i\)'s target from target head \(i\) alone; nothing mixes across heads in the critic step <span class="src">L410–449, L765–781</span>. The averaging happens only in the actor step.</p>
+</div>
+</div>
+
+<div class="sub" id="s3-5">
+<h3><span class="num">3.5</span>The actor and temperature steps</h3>
+<p><strong>Actor</strong>, every 4th critic step: a reparameterized \(\tilde a\sim\pi_\phi(\cdot|\mathrm{sg}(z),s)\), the critic's weights frozen but its slope with respect to \(\tilde a\) kept <span class="src">L814–825, L393–408</span>:</p>
+\[\mathcal L_\pi=\mathbb E\Big[\alpha\log\pi_\phi(\tilde a|z,s)-\tfrac12\big(Q_{\theta_1}(z,s,\tilde a)+Q_{\theta_2}(z,s,\tilde a)\big)\Big],\qquad Q_{\theta_i}=\sum_k p^{(i)}_k z_k.\]
+<p><strong>Temperature</strong>, after every critic step, using the same batch's features from just before that step: \(\mathcal L_\alpha=-\alpha\big(\log\pi+\bar{\mathcal H}\big)\) <span class="src">L795–806</span>.</p>
+</div>
+
+<div class="sub" id="s3-6">
+<h3><span class="num">3.6</span>Episode ends: always bootstrap</h3>
+<p><span class="mono">bootstrap_at_done = "always"</span> stores <span class="mono">done = False</span> for every transition <span class="src">L139, L888–890</span>, and the episode's true final observation replaces the reset one <span class="src">L895–897</span>. Terminations are ignored, so episodes end only at the 50-step limit <span class="src">L623</span>, and all 1,024 end and restart together.</p>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>A time limit is a rule of the training setup, not of the task: the world does not end at step 50. Treating it as an ending would teach the critic that value drops to zero at an arbitrary moment. Pardo et al. 2018 §3 give exactly this rule: target \(r\) at environmental terminations, \(r+\gamma\hat v(s')\) <q>otherwise (including timeouts)</q>.</p>
+</div>
+</div>
+
+<div class="sub" id="s3-7">
+<h3><span class="num">3.7</span>Every setting, beside SAC's</h3>
+<div class="tbl"><table>
+<thead><tr><th>Setting</th><th class="n">SAC 2018b</th><th class="n">Squint</th><th class="n">Line</th></tr></thead>
+<tbody>
+<tr><td>learning rate (all networks)</td><td class="n">3e-4</td><td class="n">3e-4</td><td class="n">125–129</td></tr>
+<tr><td>discount γ</td><td class="n">0.99</td><td class="n">0.9</td><td class="n">141</td></tr>
+<tr><td>replay buffer</td><td class="n">1M</td><td class="n">1M, on the GPU</td><td class="n">117, 732</td></tr>
+<tr><td>batch</td><td class="n">256</td><td class="n">512</td><td class="n">119</td></tr>
+<tr><td>hidden layers</td><td class="n">2 × 256</td><td class="n">actor 3 × 256, critic 3 × 512</td><td class="n">281, 374</td></tr>
+<tr><td>target smoothing τ, interval</td><td class="n">0.005, 1</td><td class="n">0.01, 1</td><td class="n">143, 133</td></tr>
+<tr><td>gradient steps</td><td class="n">1 per environment step</td><td class="n">256 per 1,024 environment steps</td><td class="n">121, 85</td></tr>
+<tr><td>entropy target</td><td class="n">−dim(A)</td><td class="n">−dim(A) = −6</td><td class="n">658</td></tr>
+<tr><td>temperature start</td><td class="n">not listed</td><td class="n">1.0</td><td class="n">659</td></tr>
+<tr><td>actor delay</td><td class="n">none</td><td class="n">every 4th update</td><td class="n">131</td></tr>
+<tr><td>atoms, support</td><td class="n">&ndash;</td><td class="n">101, [−20, 20]</td><td class="n">147–151</td></tr>
+<tr><td>random-action steps</td><td class="n">not listed</td><td class="n">5,000</td><td class="n">123</td></tr>
+<tr><td>render, policy image</td><td class="n">&ndash;</td><td class="n">128, 16</td><td class="n">107, 109</td></tr>
+<tr><td>total steps</td><td class="n">&ndash;</td><td class="n">1.5M (README: about 15 minutes)</td><td class="n">115</td></tr>
+<tr><td>torch.compile, CUDA graphs</td><td class="n">&ndash;</td><td class="n">on, on</td><td class="n">155, 157</td></tr>
+</tbody></table></div>
+<p class="small">The paper's text states the 1,024 environments, 256 updates, batch 512, 1M buffer, 128 → 16 rendering, 10 Hz control and the ×0.15, 30 Hz deployment. Everything else here comes from the code. 1M / 1,024 ≈ 977 iterations, so the buffer holds roughly the last two thirds of a run.</p>
+</div>
+
+<div class="sub" id="s3-8">
+<h3><span class="num">3.8</span>The speed stack</h3>
+<div class="tbl"><table>
+<thead><tr><th>Piece</th><th>What it buys</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>torch.compile + CUDA graphs + bfloat16 autocast in the updates</td><td>kernel fusion, less CPU launch overhead, cheaper convolutions: <q>more than a 5x speedup</q></td><td>§IV; L752, L836–844</td></tr>
+<tr><td>replay buffer on the GPU</td><td>sampling needs no host-to-GPU copies; possible because the 16×16 buffer is 1.55 GiB</td><td>§IV; L732</td></tr>
+<tr><td>batch 512, smaller than FastTD3's and FastSAC's</td><td>less wall time per update at the same efficiency</td><td>§IV</td></tr>
+<tr><td>10 Hz control with large per-step limits (±0.1 rad arm, ±0.2 rad gripper)</td><td>fewer steps per second of task; arm joints up to 57°/s in simulation</td><td>§IV; so101.py L97–109</td></tr>
+<tr><td>where the time goes</td><td>60% gradient updates, 38% simulation and rendering</td><td>§VII, Fig. 7</td></tr>
+</tbody></table></div>
+<p class="small">The codebase builds on LeanRL and CleanRL (§IV).</p>
+</div>
+</section>
+
+<!-- ================================================================= 4 -->
+<section id="s4">
+<h2><span class="num">4</span>The SO-101 task set</h2>
+
+<div class="sub" id="s4-1">
+<h3><span class="num">4.1</span>Eight tasks, one recipe</h3>
+<p>Every task: objects placed uniformly at random in a 20 × 20 cm square centred 30 cm in front of the robot's base origin, random yaw, 50-step episodes (5 s at 10 Hz), wrist camera plus the 12 state numbers, domain randomization on <span class="src">§V; task files</span>. In Place the cube and the bin both spawn in that square, never overlapping, and the bin is turned to a random angle.</p>
+<div class="tbl"><table>
+<thead><tr><th>Task</th><th>Success, as the code tests it</th><th class="n">Train time (README)</th></tr></thead>
+<tbody>
+<tr><td>Reach Cube / Can</td><td>gripper tip (midpoint of the two jaw tips) within 2 cm of a point 2 cm above the object's top; arm still (every arm joint ≤ 0.15 rad/s); gripper more than 90% closed</td><td class="n">2 / 2 min</td></tr>
+<tr><td>Lift Cube / Can</td><td>object raised at least 1 mm; grasped (each jaw pushing with ≥ 0.5 N, within 110° of its opening direction); the arm's joint targets within 0.2 rad (norm over the 5 arm joints) of the start pose</td><td class="n">3 / 4 min</td></tr>
+<tr><td>Place Cube / Can</td><td>object's centre within the bin's half-sizes along the world x and y axes; arm touching neither object nor bin; arm still</td><td class="n">5 / 6 min</td></tr>
+<tr><td>Stack Cube / Can</td><td>cube A within 2 cm sideways and 1 cm vertically of resting on B; A slower than 2 cm/s; arm not touching A; arm still</td><td class="n">6 / 9 min</td></tr>
+</tbody></table></div>
+<p class="small">Grasp, touch (≥ 0.01 N) and still tests: <span class="mono">so101.py</span> L146–185. Success: each task's <span class="mono">evaluate()</span>. The paper's <q>predefined rest position</q> for Lift is, in code, the start keyframe. Times: the README's <q>Time to Training Convergence</q> column.</p>
+</div>
+
+<div class="sub" id="s4-2">
+<h3><span class="num">4.2</span>Rewards, term by term</h3>
+<p>All four shape distance as \(1-\tanh(5d)\): 1 at contact, 0.54 at 10 cm, 0.24 at 20 cm. ManiSkill's default reward mode is <span class="mono">normalized_dense</span>, which divides each task's reward by its maximum, so a success step is worth 1.</p>
+<div class="tbl"><table>
+<thead><tr><th>Task (÷ max)</th><th>Reward, in the order the code assigns it</th></tr></thead>
+<tbody>
+<tr><td>Reach (÷4)</td><td>\(1-\tanh(5d_{\text{goal}})\) + gripper closedness (0 to 1) + 1 if reached; set to 4 on success; then −3 if touching the table, −1 if touching the object</td></tr>
+<tr><td>Lift (÷3)</td><td>\(1-\tanh(5d_{\text{obj}})\) + 1 if grasped + \(e^{-2\lVert q_{\text{target}}-q_{\text{start}}\rVert}\) if grasped; −3 table; −1 while not lifted. No success bonus</td></tr>
+<tr><td>Place (÷9)</td><td>reaching \(2(1-\tanh 5d)\). Grasped: replaced by 3 + place terms (≤ 5). Object's centre over the bin: replaced by 4 + place terms + 1 if released + gripper openness + arm stillness (≤ 8 while held, ≤ 9 once released). Success: 9. Then −6 table, −3 bin, −1 while not lifted</td></tr>
+<tr><td>Stack (÷9)</td><td>reaching \(2(1-\tanh 5d)\). Grasped: 3 + place terms. On B, still touching A: 4 + place terms + openness. On B, released: 7 + the mean of A's and the arm's stillness. Success: 9. Then −6 table, −1 while not lifted</td></tr>
+</tbody></table></div>
+<p class="small">Place terms: \(1-\tanh(5d)\) to the resting goal, plus \(1-\tanh(10\,d_z)\). Place's height target is the resting height plus the bin wall plus 3 cm until the object is within the bin's half-diagonal sideways, then the resting height; Stack's is 3 cm above the resting height on B until within 4 cm. Stillness is \(1-\tanh(10v)\). Code: each task's <span class="mono">compute_dense_reward</span>.</p>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>Staircases. Each stage pays more than the last, the success stage is a flat top that pays every step, and the −1 for an object still on the table makes dawdling expensive. With a one-second horizon (§2.1), the staircase is what pulls the agent through a five-second task.</p>
+</div>
+<div class="note">
+<p class="lbl chk">Check: what these tests leave out</p>
+<p>Grasping needs only 0.5 N per jaw, and nothing pays for squeezing harder; the simulated cube weighs 2.1 to 4.4 g (2.2 to 2.8 cm at 200 kg/m³) and the jaws have friction 2.0 <span class="src">so101.py L30</span>. Place's success test has no height or object-speed condition, so it can register at the moment of release while the cube is still falling, and it measures the footprint along world axes even though the bin is rotated.</p>
+</div>
+</div>
+
+<div class="sub" id="s4-3">
+<h3><span class="num">4.3</span>What goes in and out</h3>
+<p><strong>In:</strong> the 16×16 image, plus 12 numbers: the 6 joint angles with fresh Gaussian noise (σ = 5°) at every step, and the controller's 6 current joint targets <span class="src">reach.py L314–324</span>. <strong>Out:</strong> 6 numbers in \([-1,1]\), each scaled to a change of at most 0.1 rad (arm) or 0.2 rad (gripper) and added to the controller's previous <em>target</em>, not to the measured angle (<span class="mono">pd_joint_target_delta_pos</span>, <span class="src">so101.py L97–109</span>).</p>
+</div>
+</section>
+
+<!-- ================================================================= 5 -->
+<section id="s5">
+<h2><span class="num">5</span>Domain randomization, by when it changes</h2>
+<div class="tbl"><table>
+<thead><tr><th>When</th><th>What</th><th>Range</th><th>Code</th></tr></thead>
+<tbody>
+<tr><td rowspan="3">once per training run</td><td>ambient light, per environment</td><td>uniform 0.2 to 0.5 per colour channel</td><td>base_random_env L164–171</td></tr>
+<tr><td>wrist camera field of view</td><td>71°, ± up to 1°</td><td>L499, L513–517</td></tr>
+<tr><td>object and bin sizes, friction, density</td><td>cube edge 2.2 to 2.8 cm (Stack's base cube 2.5 to 3.5); can 2.8 to 3.8 cm wide, 5 to 7 cm tall; bin 7–9 × 9–11 × 2.4–3.6 cm; friction 0.1 to 0.5; 200 kg/m³</td><td>task configs</td></tr>
+<tr><td rowspan="3">every episode</td><td>object (and bin) position and yaw</td><td>uniform in the 20 × 20 cm square</td><td>task <span class="mono">_initialize_episode</span></td></tr>
+<tr><td>gripper stiffness, damping</td><td>500 to 2000; 50 to 200</td><td>L63–65, L214–238</td></tr>
+<tr><td>starting joints</td><td>start pose + N(0, 0.02 rad)</td><td>L55; task files</td></tr>
+<tr><td rowspan="3">every step</td><td>camera pose around its mount</td><td>uniform ±2 mm and ±1° per axis</td><td>L83–85, L532–577, L592–598</td></tr>
+<tr><td>colour jitter</td><td>brightness, contrast, saturation × 0.7 to 1.3; hue ± 0.05</td><td>utils.py L55–57</td></tr>
+<tr><td>joint-angle noise in the observation</td><td>N(0, 5°)</td><td>task configs</td></tr>
+<tr><td>always</td><td>background</td><td>every pixel that is not the robot or a task object becomes black</td><td>L57–60, L305–323</td></tr>
+</tbody></table></div>
+<p class="small">The paper's list matches: camera position, rotation and FOV, lighting, colour jitter, object sizes, frictions and <q>gripper closing speed</q> (stiffness and damping in code) (§V). Not randomized: robot colour and the two directional lights.</p>
+<div class="note">
+<p class="lbl chk">Check: what "once per run" means</p>
+<p>The first group is drawn when the scene is built. ManiSkill's default is that the environment <q>reconfigures upon creation, and never again</q> (ManiSkill 3.0.1 <span class="mono">sapien_env.py</span>), and Squint's training environments keep that default <span class="src">L93, L590–591</span>. So each of the 1,024 environments keeps its own lighting, field of view and object sizes for the whole run: 1,024 fixed variants. The evaluation environments rebuild at every reset <span class="src">L95</span>.</p>
+</div>
+<div class="note">
+<p class="lbl chk">Check: colour jitter is one draw per tick</p>
+<p>torchvision's ColorJitter on a batched tensor draws one set of factors per call, applying the four adjustments in a random order. Verified with torchvision 0.21.0: 8 identical images come out identical. So all 1,024 environments share one jitter per tick, and it changes every tick. Evaluation images are jittered too <span class="src">L604</span>.</p>
+</div>
+<div class="note">
+<p class="lbl">Paper, §V</p>
+<p><q>Furthermore, we apply additive isotropic Gaussian noise (σ = 5°) to joint positions in the proprioceptive state to ensure robustness to any joint position mismatches between simulation and real world setups.</q></p>
+</div>
+</section>
+
+<!-- ================================================================= 6 -->
+<section id="s6">
+<h2><span class="num">6</span>Experiments and results</h2>
+
+<div class="sub" id="s6-1">
+<h3><span class="num">6.1</span>Protocol and baselines</h3>
+<p>8 tasks × 5 seeds × 15 minutes each (the paper names a single RTX 3090 for Squint). For the real robot, <q>the best seed from each method on each task</q>, 10 trials per task <span class="src">§V; Fig. 6 caption</span>.</p>
+<div class="tbl"><table>
+<thead><tr><th>Baseline</th><th>What it is, as the paper defines it (§V)</th></tr></thead>
+<tbody>
+<tr><td>SAC</td><td>an optimized SAC for parallel simulators, with Squint's tuned hyperparameters but without its architectural differences</td></tr>
+<tr><td>PPO</td><td>an optimized PPO, the de facto standard for visual sim-to-real</td></tr>
+<tr><td>DrQ-v2</td><td>the sample-efficiency standard for visual off-policy RL, kept sequential with one environment as originally designed</td></tr>
+<tr><td>BC</td><td>behaviour cloning from expert demonstrations</td></tr>
+<tr><td>DAgger</td><td>state-to-visual DAgger: a state-based SAC expert distilled into a visual actor; its training time includes the expert's</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s6-2">
+<h3><span class="num">6.2</span>Simulation (Table I: success % after 15 minutes, mean ± 95% CI over 5 seeds)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Task</th><th class="n">Squint</th><th class="n">SAC</th><th class="n">PPO</th><th class="n">DrQ-v2</th><th class="n">BC</th></tr></thead>
+<tbody>
+<tr><td>Reach Cube</td><td class="n">100.0 ± 0.0</td><td class="n">99.4 ± 1.1</td><td class="n">88.0 ± 10.3</td><td class="n">12.3 ± 8.3</td><td class="n">61.2 ± 9.2</td></tr>
+<tr><td>Reach Can</td><td class="n">100.0 ± 0.0</td><td class="n">99.1 ± 1.8</td><td class="n">96.6 ± 2.4</td><td class="n">23.6 ± 17.6</td><td class="n">56.2 ± 12.5</td></tr>
+<tr><td>Lift Cube</td><td class="n">99.8 ± 0.4</td><td class="n">98.1 ± 2.4</td><td class="n">92.8 ± 4.5</td><td class="n">0.0 ± 0.0</td><td class="n">46.2 ± 3.1</td></tr>
+<tr><td>Lift Can</td><td class="n">98.8 ± 2.5</td><td class="n">95.4 ± 3.5</td><td class="n">96.2 ± 4.7</td><td class="n">0.0 ± 0.0</td><td class="n">53.8 ± 12.9</td></tr>
+<tr><td>Place Cube</td><td class="n">97.5 ± 3.1</td><td class="n">99.1 ± 1.7</td><td class="n">29.0 ± 33.8</td><td class="n">0.0 ± 0.0</td><td class="n">38.8 ± 8.3</td></tr>
+<tr><td>Place Can</td><td class="n">96.3 ± 3.0</td><td class="n">98.6 ± 1.8</td><td class="n">71.1 ± 18.3</td><td class="n">0.0 ± 0.0</td><td class="n">28.8 ± 8.5</td></tr>
+<tr><td>Stack Cube</td><td class="n">95.0 ± 6.1</td><td class="n">97.7 ± 1.6</td><td class="n">4.9 ± 9.7</td><td class="n">0.0 ± 0.0</td><td class="n">26.2 ± 9.2</td></tr>
+<tr><td>Stack Can</td><td class="n">81.2 ± 8.8</td><td class="n">18.7 ± 23.2</td><td class="n">3.0 ± 6.1</td><td class="n">0.0 ± 0.0</td><td class="n">23.8 ± 13.3</td></tr>
+<tr class="hi"><td>All tasks</td><td class="n">96.1 ± 1.6</td><td class="n">88.3 ± 3.4</td><td class="n">60.2 ± 4.0</td><td class="n">4.5 ± 2.9</td><td class="n">41.9 ± 4.2</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl chk">Check: where the lead over SAC comes from</p>
+<p>Squint minus SAC, task by task: +0.6, +0.9, +1.7, +3.4, −1.6, −2.3, −2.7, and +62.5 on Stack Can. The first seven sum to exactly 0.0. All of Squint's average lead over tuned SAC in simulation comes from Stack Can.</p>
+</div>
+</div>
+
+<div class="sub" id="s6-3">
+<h3><span class="num">6.3</span>Real robot (Table II: successes out of 10)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Task</th><th class="n">Squint</th><th class="n">SAC</th><th class="n">PPO</th><th class="n">DrQ-v2</th><th class="n">BC</th></tr></thead>
+<tbody>
+<tr><td>Reach Cube</td><td class="n">10</td><td class="n">10</td><td class="n">7</td><td class="n">4</td><td class="n">8</td></tr>
+<tr><td>Reach Can</td><td class="n">10</td><td class="n">10</td><td class="n">10</td><td class="n">4</td><td class="n">7</td></tr>
+<tr><td>Lift Cube</td><td class="n">10</td><td class="n">10</td><td class="n">6</td><td class="n">0</td><td class="n">6</td></tr>
+<tr><td>Lift Can</td><td class="n">9</td><td class="n">9</td><td class="n">7</td><td class="n">0</td><td class="n">6</td></tr>
+<tr><td>Place Cube</td><td class="n">10</td><td class="n">8</td><td class="n">9</td><td class="n">0</td><td class="n">7</td></tr>
+<tr><td>Place Can</td><td class="n">10</td><td class="n">6</td><td class="n">4</td><td class="n">0</td><td class="n">0</td></tr>
+<tr><td>Stack Cube</td><td class="n">8</td><td class="n">6</td><td class="n">3</td><td class="n">0</td><td class="n">2</td></tr>
+<tr><td>Stack Can</td><td class="n">6</td><td class="n">6</td><td class="n">4</td><td class="n">0</td><td class="n">2</td></tr>
+<tr class="hi"><td>Total of 80</td><td class="n">73 (91.3%)</td><td class="n">65 (81.3%)</td><td class="n">50 (62.5%)</td><td class="n">8 (10.0%)</td><td class="n">38 (47.5%)</td></tr>
+</tbody></table></div>
+<div class="tbl"><table>
+<thead><tr><th>Real-robot comparisons (Tables III to V)</th><th class="n">Successes of 80</th></tr></thead>
+<tbody>
+<tr><td>Squint</td><td class="n">73 (91.3%)</td></tr>
+<tr><td>state-to-visual DAgger</td><td class="n">53 (66.3%)</td></tr>
+<tr><td>Squint without colour jitter</td><td class="n">58 (72.5%)</td></tr>
+<tr><td>Squint at 32×32 instead of 16×16</td><td class="n">73 (91.3%)</td></tr>
+</tbody></table></div>
+<p class="small">The paper rounds 91.25 to 91.3, 81.25 to 81.3 and 66.25 to 66.3. Its <q>outperforms DAgger's success rate by 25%</q> is 25 percentage points; its <q>decreases by 18%</q> without jitter is 18.75 points.</p>
+</div>
+
+<div class="sub" id="s6-4">
+<h3><span class="num">6.4</span>Design choices and timing (what the text says)</h3>
+<p>The design-choice figure (Fig. 4, 5 seeds × 8 tasks) does not give its values in the text, so only the paper's stated conclusions are listed (§IV unless noted):</p>
+<ul>
+<li>1,024 environments with 256 updates <q>can reduce training time significantly</q>.</li>
+<li>Batch 512 gives the same efficiency as larger batches at less wall time per update.</li>
+<li>The distributional critic <q>greatly improves wall time speed</q>; the mean of two critics is slightly better than their minimum.</li>
+<li>Shared encoder and separate projections: <q>negligible performance gains</q> on this task set.</li>
+<li>LayerNorm improves training speed.</li>
+<li>Lower resolution trains faster at identical sample efficiency; squinting beats rendering at 16×16, and <q>cuts down training time, while achieving similar real world success rates as higher image resolutions</q>.</li>
+<li>A 1M buffer improves asymptotic success by 7% over 100K.</li>
+<li>Higher UTD and the PyTorch optimizations also help state-based SAC; 10 Hz control trains faster than higher rates (§VII, Fig. 7).</li>
+</ul>
+</div>
+</section>
+
+<!-- ================================================================= 7 -->
+<section id="s7">
+<h2><span class="num">7</span>Sim-to-real</h2>
+<div class="tbl"><table>
+<thead><tr><th>Piece</th><th>What the paper does</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>digital twin</td><td>tasks designed to match the real setup, <q>thereby reducing the visual gap</q></td><td>§V</td></tr>
+<tr><td>wrist camera only</td><td>shown in prior work to give better representations than third-person cameras</td><td>§V</td></tr>
+<tr><td>deployment</td><td>actions × 0.15, control tripled to 30 Hz, for <q>smoother trajectories</q>; the deterministic action \(\tanh(\mu)\); episodes default to 200 steps</td><td>§IV; deploy.py L67–73, L517–524</td></tr>
+<tr><td>visual robustness</td><td><q>even slight lighting changes in the real robot setup were degrading the performance</q>; colour jitter is worth 15 of 80 trials</td><td>§VII, Table IV</td></tr>
+<tr><td>resolution floor</td><td>below 16×16, training succeeds in simulation but transfer fails, <q>mainly due to overfitting</q></td><td>§VII</td></tr>
+<tr><td>gripper</td><td>can grasping was hard to transfer: <q>tipping and insufficient gripper friction</q></td><td>Appendix</td></tr>
+<tr><td>why imitation lost</td><td>BC and DAgger learn from a state-based expert, while the wrist camera needs active vision and <q>a different exploration movement than an all-seeing state agent would take</q></td><td>§VII</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl">Derivation: how fast the arm moves</p>
+<p>In simulation: up to 0.1 rad per step × 10 steps/s = 57.3°/s per arm joint. On the paper's robot: 0.1 × 0.15 × 30 = 25.8°/s. On ours at 15 Hz: 12.9°/s. The policy's input has no clock (an image and 12 joint numbers), so a slower arm just takes more steps to arrive.</p>
+</div>
+<div class="note">
+<p class="lbl">Paper, Appendix: the limitations the authors list</p>
+<p>Visual robustness; sample efficiency; gripper design; single-task only (multi-task, multi-view and multi-agent left open); a symmetric critic that sees the same inputs as the actor (privileged critics left open); more and larger benchmarks; imitation learning under active vision; co-training with real data.</p>
+</div>
+</section>
+
+<!-- ================================================================= 8 -->
+<section id="s8">
+<h2><span class="num">8</span>Reading it critically</h2>
+
+<div class="sub" id="s8-1">
+<h3><span class="num">8.1</span>Inconsistencies I found</h3>
+<div class="note">
+<p class="lbl chk">1. Algorithm 1's temperature update has the wrong sign</p>
+<p>It reads \(\alpha\leftarrow\alpha-\nabla_\alpha\frac1{|B|}\sum(\mathcal H^{\text{target}}-\mathcal H)\cdot\alpha\). The gradient is \(\mathcal H^{\text{target}}-\mathcal H\): when the policy is too sharp (\(\mathcal H\lt\mathcal H^{\text{target}}\)) it is positive, so \(\alpha\) falls and the policy gets sharper still. The released code minimizes \(-\alpha(\log\pi+\bar{\mathcal H})\), which is correct SAC (§2.7, checked by running it). The pseudocode is wrong; the code is right.</p>
+</div>
+<div class="note">
+<p class="lbl chk">2. Algorithm 1 averages the critic targets; the code does not</p>
+<p>Algorithm 1 trains both critics on \(y=r+\frac\gamma2\sum_i\big(Q_{\bar\theta_i}-\alpha\log\pi\big)\). The code trains head \(i\) on a distribution built from target head \(i\) only (§3.4). The pseudocode says it omits the distributional critic, so this may be a simplification, but the two are different estimators.</p>
+</div>
+<div class="note">
+<p class="lbl chk">3. An edge case in the C51 projection</p>
+<p>The index fix double-counts an atom landing exactly on grid index 1 (§2.9, shown with Squint's own function on an exactly representable support). Unlikely on the default support; a one-line fix.</p>
+</div>
+<div class="note">
+<p class="lbl chk">4. "Around the gripper's starting position", approximately</p>
+<p>The paper places objects <q>in a 0.2m x 0.2m xy box around the gripper's starting xy position</q> (§V). The code centres the box at (0.30, 0) m from the robot's base origin (<span class="mono">spawn_box_pos</span> in every task). In Squint's model at the start pose, the gripper tip sits at (0.23, −0.04) m, so the box is centred about 7 to 8 cm further out. A wording issue, not an error.</p>
+</div>
+<div class="note">
+<p class="lbl chk">5. Smaller wording gaps</p>
+<p><q>All our linear layers are followed by Layer Normalization</q>: the output layers are not (§2.12). Place's success test uses world axes for a rotated bin and has no height test (§4.2).</p>
+</div>
+</div>
+
+<div class="sub" id="s8-2">
+<h3><span class="num">8.2</span>How much the real-robot numbers can carry</h3>
+<div class="tbl"><table>
+<thead><tr><th>Method</th><th class="n">Successes of 80</th><th class="n">95% Wilson interval</th><th class="n">vs Squint, Fisher exact p</th></tr></thead>
+<tbody>
+<tr class="hi"><td>Squint</td><td class="n">73</td><td class="n">83.0 to 95.7%</td><td class="n">&ndash;</td></tr>
+<tr><td>SAC (tuned)</td><td class="n">65</td><td class="n">71.3 to 88.3%</td><td class="n">0.11</td></tr>
+<tr><td>Squint, no jitter</td><td class="n">58</td><td class="n">61.9 to 81.1%</td><td class="n">0.0035</td></tr>
+<tr><td>DAgger</td><td class="n">53</td><td class="n">55.4 to 75.7%</td><td class="n">0.0002</td></tr>
+<tr><td>PPO</td><td class="n">50</td><td class="n">51.5 to 72.3%</td><td class="n">&lt; 0.0001</td></tr>
+<tr><td>BC</td><td class="n">38</td><td class="n">36.9 to 58.3%</td><td class="n">&lt; 0.0001</td></tr>
+</tbody></table></div>
+<p>Computed from the table counts (two-sided Fisher exact tests). <strong>The real-robot lead over PPO, DAgger, BC and the no-jitter ablation is statistically solid; the lead over tuned SAC is not</strong> (p = 0.11). Squint's clear wins over SAC are Stack Can in simulation and wall-clock speed. Per task, 10 trials are thin: 10/10 has a 95% interval of 72 to 100%, 8/10 of 49 to 94%.</p>
+<p>Two more caveats. Every method ran its best of 5 seeds on the real robot (§V), which likely raises every method's absolute numbers (inference), and the selection criterion is not stated. The real trial protocol (object placements, lighting) is not described beyond 10 trials per task.</p>
+</div>
+
+<div class="sub" id="s8-3">
+<h3><span class="num">8.3</span>In the code, not in the paper</h3>
+<p>γ = 0.9; τ = 0.01 every update; learning rates 3e-4; 101 atoms on [−20, 20]; actor delay 4; target entropy −6 with α starting at 1.0; 5,000 random-action steps; widths 50, 256 and 512; log σ in [−5, 2]; orthogonal initialization; always bootstrapping; 1.5M total steps; 50-step episodes; the randomization ranges of §5; the reward terms of §4.2. To reproduce Squint, read the code, not only the paper.</p>
+</div>
+</section>
+
+<!-- ================================================================= 9 -->
+<section id="s9">
+<h2><span class="num">9</span>On Φ's arm (13 to 14 October 2026)</h2>
+<p>We ran Squint on our own SO-101 follower. We retrained it for our camera mount on a shared lab GPU: ReachCube in 2 min 38 s (200,000 steps), PlaceCube, with our background randomization, in about 11.5 minutes (the full 1.5M). We deployed from a MacBook Air (Apple M4) CPU at 0.5 ms per decision, 15 Hz (training runs at 10 Hz), actions × 0.15, with 60-step ReachCube and 250-step PlaceCube episodes (training uses 50). These are our measurements, not the paper's.</p>
+<div class="tbl"><table>
+<thead><tr><th>Test</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>ReachCube, Squint's black background (A)</td><td>11 / 11, cube at random spots (not measured), judged by eye at an end-of-episode hold</td></tr>
+<tr><td>ReachCube A, one cube spot, scored from logs</td><td>0 / 4 by Squint's 2 cm rule: closest approach 3.4 to 3.7 cm every time. Pending ground truth, since the cube's position comes from the camera model and the tip's from the simulator's kinematics, not a ruler</td></tr>
+<tr><td>ReachCube, our randomized background (B)</td><td>6 / 7; the miss first saw the cube at step 34, the latest of any episode, and ended off it. Positions were not matched to A's, so no A-vs-B difference can be claimed</td></tr>
+<tr><td>PlaceCube, closer layouts (one with the cube out of view at the start)</td><td>5 / 5 into the bin (5 of 9 attempts overall); closed on the cube at steps 33 to 50, about 2 to 3 s</td></tr>
+<tr><td>PlaceCube, bin about 30 cm out or cube out of view</td><td>0 / 4: one that closed around the cube but never held it (stepped by hand, not at 15 Hz), two early releases beside the bin, one grasp of the bin's wall (that layout succeeds 6/6 in simulation)</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl chk">What we learned beyond the paper</p>
+<ul>
+<li><strong>The camera matters exactly as §7 warns.</strong> Under auto-exposure our black cloth read reddish-brown; we set exposure, gain and white balance by hand and brought the real image close to the simulator's at the start pose (jaws at 0.80 of the sim's brightness, the cloth at about 18 of 255, not black). The settings must be reapplied after every power cycle.</li>
+<li><strong>A kinematics lead.</strong> At one grasp, our only measurement so far, the simulator's forward kinematics put the gripper tip 9.6 cm ahead of where the real gripper was. At the start pose, the camera's estimate of one ruler-measured cube was 1 to 2 cm off, and it creeps forward as the arm moves. Suspected cause: joint-calibration offsets (not yet proven). The policy still reached and grasped, we think because it steers by the image.</li>
+<li><strong>The release incentive.</strong> Place pays at most 5 while carrying, up to 8 the moment the cube's centre is over the bin while held, and 9 at success (§4.2). Our early releases fell just beside the near edge, consistent with that incentive plus the position error (hypothesis).</li>
+<li><strong>The grasp is a touch.</strong> While holding, the policy's gripper target stayed within about 0 to 3° of the jaws' actual angle: it never learned to squeeze, which §4.2's reward explains: nothing pays for a harder grip (the real cube's mass and the jaw friction are unmeasured).</li>
+</ul>
+<p class="small">Our fork, with every fix and tool used on the arm: <a href="https://github.com/physical-hardware-intelligence/squint/blob/phi/so101/docs/so101-phi.md">physical-hardware-intelligence/squint</a>. The full story: <a href="sim-to-real-debunked.html">Sim-to-real, debunked</a>.</p>
+</div>
+</section>
+
+<!-- ================================================================= 10 -->
+<section id="s10">
+<h2><span class="num">10</span>Teach it</h2>
+
+<div class="sub" id="s10-1">
+<h3><span class="num">10.1</span>The paper in 60 seconds</h3>
+<div class="blk">
+<p class="lbl teach">Say this</p>
+<p>Robots learn fastest in simulation, and the fastest simulators run thousands of robots on one GPU. The standard learner there, PPO, trains on each batch of experience and then throws it away. SAC keeps its experience and reuses it, but it is usually slow in minutes, and slower still from images. Squint keeps SAC and removes the bottlenecks one by one: a thousand simulated arms, a few hundred updates per step, a critic that predicts a distribution of returns, LayerNorm in every hidden layer, and images rendered sharp then averaged down to 16 by 16 pixels, so a million of them fit on the GPU. Fifteen minutes on one consumer GPU, eight manipulation tasks, and 73 of 80 real-robot trials with no real-world training data.</p>
+</div>
+</div>
+
+<div class="sub" id="s10-2">
+<h3><span class="num">10.2</span>Six ideas, one minute each</h3>
+<div class="tbl"><table>
+<thead><tr><th>Idea</th><th>The line to say</th><th>Then show</th></tr></thead>
+<tbody>
+<tr><td>Bellman target</td><td>"What I got now, plus what I believe comes next."</td><td>\(y=r+\gamma Q(s',a')\)</td></tr>
+<tr><td>Maximum entropy</td><td>"Do well, and stay as random as you can afford. α is the price of randomness."</td><td>\(r+\alpha\mathcal H\); \(\pi\propto e^{Q/\alpha}\)</td></tr>
+<tr><td>Learned α</td><td>"Too sharp: randomness gets more valuable. Too random: less."</td><td>\(J(\alpha)=\mathbb E[-\alpha\log\pi-\alpha\bar{\mathcal H}]\), target −6</td></tr>
+<tr><td>tanh-Gaussian</td><td>"Sample, squash, and correct the probability for the squash."</td><td>the explorer in §2.8</td></tr>
+<tr><td>C51</td><td>"Predict a histogram of returns; shift it by the reward, shrink it by γ, snap it back onto the bins."</td><td>the explorer in §2.9</td></tr>
+<tr><td>Squinting</td><td>"Render sharp, then blur down: each of the 256 pixels is an average of 64."</td><td>the explorer in §3.2</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s10-3">
+<h3><span class="num">10.3</span>Misconceptions to correct</h3>
+<div class="tbl"><table>
+<thead><tr><th>Heard</th><th>Correct</th></tr></thead>
+<tbody>
+<tr><td>"SAC's randomness is just exploration noise."</td><td>The policy is trained to be random where it is cheap, and α is tuned to hit a target entropy (§2.6–2.7).</td></tr>
+<tr><td>"The entropy bonus pushes σ as wide as possible."</td><td>Through tanh, entropy peaks at σ ≈ 0.88 and falls beyond it; Squint's −6 target asks for σ ≈ 0.09 at μ = 0 (§2.8).</td></tr>
+<tr><td>"Low resolution must hurt transfer."</td><td>16×16 and 32×32 tied on the real robot, 73/80 each; only below 16×16 did transfer fail (§6.3, §7).</td></tr>
+<tr><td>"Off-policy is slower in wall-clock."</td><td>Tuned with parallel simulation, it beat PPO here: 96.1% vs 60.2% after 15 minutes (§6).</td></tr>
+<tr><td>"The distributional critic is for risk."</td><td>Here it is used for speed; the actor sees only its mean (§3.5).</td></tr>
+<tr><td>"The actor trains the encoder too."</td><td>Only the critic does; the actor gets detached features (§2.10).</td></tr>
+<tr><td>"Squint clearly beats SAC on the real robot."</td><td>73 vs 65 of 80 is p = 0.11 (§8.2); the clear win is in simulation on Stack Can, and in speed.</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s10-4">
+<h3><span class="num">10.4</span>Questions to ask the room</h3>
+<div class="tbl"><table>
+<thead><tr><th>Ask</th><th>Answer</th></tr></thead>
+<tbody>
+<tr><td>Why can a 1M-image buffer live on the GPU?</td><td>768 bytes per 16×16 image: 1.55 GiB, against 91.7 GiB at 128×128.</td></tr>
+<tr><td>How far ahead does γ = 0.9 look?</td><td>About 10 steps: one second at 10 Hz.</td></tr>
+<tr><td>Entropy falls below the target. What does α do?</td><td>It rises.</td></tr>
+<tr><td>Why project in C51?</td><td>Moved atoms land between the fixed atoms.</td></tr>
+<tr><td>Why bootstrap at the 50-step limit?</td><td>A time limit is not the end of the task.</td></tr>
+<tr><td>Squint beat SAC 73 to 65 on the real robot. Significant?</td><td>No: p = 0.11 with 80 trials each.</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s10-5">
+<h3><span class="num">10.5</span>Whiteboard order</h3>
+<ol class="steps">
+<li>The return and γ (a one-second horizon).</li>
+<li>The Bellman target; replay; the actor for continuous actions.</li>
+<li>Add entropy: soft value, Boltzmann policy, three losses.</li>
+<li>The tanh-Gaussian and its correction.</li>
+<li>Swap the scalar critic for C51.</li>
+<li>Squint's loop: 1,024 environments, 256 updates, squinting, LayerNorm, the GPU buffer.</li>
+<li>Results, with the significance caveat.</li>
+</ol>
+</div>
+</section>
+
+<!-- ================================================================= 11 -->
+<section id="s11">
+<h2><span class="num">11</span>Cheat sheet</h2>
+<div class="blk">
+<p class="lbl">Equations</p>
+\[y=r+\gamma\big(Q_{\bar\theta}(s',\tilde a')-\alpha\log\pi(\tilde a'|s')\big)\]
+\[J_\pi=\mathbb E\big[\alpha\log\pi(\tilde a|s)-Q(s,\tilde a)\big]\qquad J(\alpha)=\mathbb E\big[-\alpha\log\pi-\alpha\bar{\mathcal H}\big]\]
+\[a=\tanh(\mu+\sigma\epsilon),\qquad \log\pi(a)=\log\mathcal N(u)-\textstyle\sum_i\log(1-\tanh^2u_i)\]
+\[z_k=-20+0.4k,\ \ k=0,\dots,100\qquad t_j=r-\gamma\alpha\log\pi'+\gamma z_j\qquad \mathcal L=-\textstyle\sum_k m_k\log p_k\]
+</div>
+<div class="tbl"><table>
+<thead><tr><th>Number</th><th>Value</th></tr></thead>
+<tbody>
+<tr><td>environments; updates per step; UTD</td><td>1,024; 256; 0.25</td></tr>
+<tr><td>batch; buffer; total steps</td><td>512; 1M (1.55 GiB); 1.5M (about 15 min on an RTX 3090)</td></tr>
+<tr><td>γ; τ; actor delay; learning rates</td><td>0.9; 0.01; 4; 3e-4</td></tr>
+<tr><td>α start; target entropy</td><td>1.0; −6</td></tr>
+<tr><td>atoms; support</td><td>101; [−20, 20], Δz = 0.4</td></tr>
+<tr><td>image</td><td>16×16, the mean of 8×8 blocks of a 128×128 render</td></tr>
+<tr><td>networks (parameters)</td><td>encoder 34,400; actor 269,986; critic 1,536,096; deployed 304,386</td></tr>
+<tr><td>control</td><td>simulation 10 Hz, ±0.1 rad arm and ±0.2 rad gripper per step; real × 0.15 at 30 Hz</td></tr>
+<tr><td>results</td><td>simulation 96.1%; real 73/80 (SAC 65, DAgger 53, PPO 50, BC 38, DrQ-v2 8)</td></tr>
+</tbody></table></div>
+</section>
+
+<footer class="refs">
+<p class="lbl">Sources, all read for this page</p>
+<ol>
+<li>A. Almuzairee and H. I. Christensen, <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint: Fast Visual Reinforcement Learning for Sim-to-Real Robotics</a>, IEEE RA-L (accepted 20 August 2026), arXiv 2602.21203. LaTeX source read in full.</li>
+<li>Code: <a href="https://github.com/aalmuzairee/squint" target="_blank" rel="noopener">github.com/aalmuzairee/squint</a> at 7086fd5: <span class="mono">train_squint.py</span>, <span class="mono">utils.py</span>, <span class="mono">envs/base_random_env.py</span>, <span class="mono">envs/robot/so101.py</span>, the four task files, <span class="mono">deploy.py</span>, README.</li>
+<li>T. Haarnoja et al., <a href="https://arxiv.org/abs/1801.01290" target="_blank" rel="noopener">Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor</a>, ICML 2018 (SAC 2018a): §3.2, §4.1, §4.2, App. C.</li>
+<li>T. Haarnoja et al., <a href="https://arxiv.org/abs/1812.05905" target="_blank" rel="noopener">Soft Actor-Critic Algorithms and Applications</a>, arXiv 1812.05905 (SAC 2018b): §4.1, §4.2, §5, §6, Algorithm 1, App. D hyperparameter table.</li>
+<li>S. Fujimoto, H. van Hoof and D. Meger, <a href="https://arxiv.org/abs/1802.09477" target="_blank" rel="noopener">Addressing Function Approximation Error in Actor-Critic Methods</a> (TD3), ICML 2018: §4.2, §5.2.</li>
+<li>M. G. Bellemare, W. Dabney and R. Munos, <a href="https://arxiv.org/abs/1707.06887" target="_blank" rel="noopener">A Distributional Perspective on Reinforcement Learning</a> (C51), ICML 2017: §4.1, §4.2 and Algorithm 1, §5.2, §6.1.</li>
+<li>J. L. Ba, J. R. Kiros and G. E. Hinton, <a href="https://arxiv.org/abs/1607.06450" target="_blank" rel="noopener">Layer Normalization</a>, arXiv 1607.06450: §3, §3.1.</li>
+<li>F. Pardo, A. Tavakoli, V. Levdik and P. Kormushev, <a href="https://arxiv.org/abs/1712.00378" target="_blank" rel="noopener">Time Limits in Reinforcement Learning</a>, ICML 2018: §3.</li>
+<li>ManiSkill 3.0.1 <span class="mono">sapien_env.py</span> (<span class="mono">reconfiguration_freq</span> docstring, default reward mode) and torchvision 0.21.0 <span class="mono">ColorJitter</span>, as installed with Squint on our machine.</li>
+<li>Computed numbers: <a href="squint-verify-numbers.py">squint-verify-numbers.py</a> and its output, <a href="squint-verified-numbers.json">squint-verified-numbers.json</a>.</li>
+</ol>
+<p>Everything marked Check, every derived quantity and every computed number is ours, not the authors'. Prepared by Yashvardhan Gupta for Φ, 15 October 2026.</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+(function () {
+  // Contents: a rail on wide screens, collapsed on phones; highlight the section in view.
+  var toc = document.getElementById('toc');
+  var mq = window.matchMedia('(min-width: 1040px)');
+  function syncToc() { toc.open = mq.matches; }
+  syncToc();
+  if (mq.addEventListener) mq.addEventListener('change', syncToc);
+  var links = Array.prototype.slice.call(toc.querySelectorAll('a'));
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id); });
+      });
+    }, { rootMargin: '-15% 0px -75% 0px' });
+    links.forEach(function (a) { var s = document.querySelector(a.getAttribute('href')); if (s) obs.observe(s); });
+  }
+  function $(id) { return document.getElementById(id); }
+  function press(group, btn) { group.forEach(function (b) { b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); }); }
+  function fmt(x, d) { var s = x.toFixed(d); if (/^-0(\.0+)?$/.test(s)) s = s.slice(1); return s.replace('-', '−'); }
+
+  // ---------------- Explorer: tanh-Gaussian ----------------
+  (function () {
+    var mu = $('tg-mu'), ls = $('tg-ls');
+    var LOG2 = Math.log(2);
+    function log1mtanh2(u) { var a = Math.abs(u); return 2 * (LOG2 - a - Math.log1p(Math.exp(-2 * a))); }
+    function normpdf(x, m, s) { var z = (x - m) / s; return Math.exp(-0.5 * z * z) / (s * Math.sqrt(2 * Math.PI)); }
+    function normcdf(x) { // Abramowitz and Stegun 7.1.26, error below 1.5e-7
+      var t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+      var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x / 2);
+      return x >= 0 ? 0.5 * (1 + y) : 0.5 * (1 - y);
+    }
+    function draw() {
+      var m = +mu.value, lsv = +ls.value, s = Math.exp(lsv);
+      $('tg-mu-o').textContent = fmt(m, 2); $('tg-ls-o').textContent = fmt(lsv, 2);
+      // H(a) = H(u) + E[log(1 - tanh^2 u)], trapezoid over mu +- 12 sigma
+      var Hu = 0.5 * Math.log(2 * Math.PI * Math.E * s * s), n = 6001, lo = m - 12 * s, hi = m + 12 * s, h = (hi - lo) / (n - 1), E = 0;
+      for (var i = 0; i < n; i++) { var u = lo + i * h, w = (i === 0 || i === n - 1) ? 0.5 : 1; E += w * normpdf(u, m, s) * log1mtanh2(u); }
+      E *= h;
+      var H = Hu + E;
+      var W = 640, Ht = 260, L = 44, R = 12, T = 14, B = 40, PW = W - L - R, PH = Ht - T - B;
+      var N = 600, mx = 0, vals = [];
+      for (var k = 0; k < N; k++) {
+        var a = -0.9995 + 1.999 * k / (N - 1), uu = 0.5 * Math.log((1 + a) / (1 - a));
+        var d = normpdf(uu, m, s) / (1 - a * a); vals.push([a, d]); if (d > mx) mx = d;
+      }
+      var path = vals.map(function (v, i) { var x = L + (v[0] + 1) / 2 * PW, y = T + (1 - v[1] / mx) * PH; return (i ? 'L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1); }).join(' ');
+      var g = [];
+      [-1, -0.5, 0, 0.5, 1].forEach(function (a) { var x = L + (a + 1) / 2 * PW; g.push('<path class="grid" d="M' + x.toFixed(1) + ' ' + T + 'V' + (Ht - B) + '"/>'); g.push('<text x="' + x.toFixed(1) + '" y="' + (Ht - B + 18) + '" text-anchor="middle">' + fmt(a, 1) + '</text>'); });
+      g.push('<path class="axis" d="M' + L + ' ' + T + 'V' + (Ht - B) + 'H' + (W - R) + '"/>');
+      g.push('<text x="' + (L + PW / 2) + '" y="' + (Ht - 6) + '" text-anchor="middle">action a = tanh(u)</text>');
+      var ad = Math.tanh(m), xd = L + (ad + 1) / 2 * PW;
+      g.push('<path class="ref" d="M' + xd.toFixed(1) + ' ' + T + 'V' + (Ht - B) + '"/>');
+      g.push('<path class="main" d="' + path + '"/>');
+      $('tg-svg').innerHTML = g.join('');
+      var t = 0.5 * Math.log(1.95 / 0.05); // atanh(0.95)
+      var sat = (1 - normcdf((t - m) / s)) + normcdf((-t - m) / s);
+      $('tg-r-s').textContent = s < 0.1 ? s.toFixed(4) : s.toFixed(3);
+      $('tg-r-a').textContent = fmt(ad, 3);
+      $('tg-r-h').textContent = fmt(H, 3);
+      $('tg-r-h6').textContent = fmt(6 * H, 2);
+      $('tg-r-dir').textContent = Math.abs(6 * H + 6) < 0.05 ? 'stays' : (6 * H < -6 ? 'up' : 'down');
+      $('tg-r-sat').textContent = (100 * sat).toFixed(1) + '%';
+    }
+    mu.addEventListener('input', draw); ls.addEventListener('input', draw);
+    Array.prototype.forEach.call(document.querySelectorAll('[data-tg]'), function (b) {
+      b.addEventListener('click', function () { var v = b.getAttribute('data-tg').split(','); mu.value = v[0]; ls.value = v[1]; draw(); });
+    });
+    draw();
+  })();
+
+  // ---------------- Explorer: C51 projection ----------------
+  (function () {
+    var N = 101, VMIN = -20, VMAX = 20, DZ = (VMAX - VMIN) / (N - 1), z = [];
+    for (var k = 0; k < N; k++) z.push(VMIN + k * DZ);
+    var r = $('c-r'), gm = $('c-g'), c = $('c-c'), w = $('c-w'), mode = 'sq';
+    var bSq = $('c-mode-sq'), bLit = $('c-mode-lit');
+    function project(p, rr, g, squint) {
+      var m = new Array(N).fill(0);
+      for (var j = 0; j < N; j++) {
+        var tz = Math.min(Math.max(rr + g * z[j], VMIN), VMAX), b = (tz - VMIN) / DZ, lo = Math.floor(b), up = Math.ceil(b);
+        if (squint) { // train_squint.py L424-426, including the flag computed before lower changes
+          var isInt = (up === lo);
+          if (lo > 0 && isInt) lo = lo - 1;
+          if (lo === 0 && isInt) up = up + 1;
+        }
+        m[lo] += p[j] * (up - b); m[up] += p[j] * (b - lo);
+      }
+      return m;
+    }
+    function draw() {
+      var rr = +r.value, g = +gm.value, cc = +c.value, ww = +w.value;
+      $('c-r-o').textContent = fmt(rr, 2); $('c-g-o').textContent = fmt(g, 2); $('c-c-o').textContent = fmt(cc, 1); $('c-w-o').textContent = fmt(ww, 1);
+      var p = z.map(function (v) { var d = (v - cc) / ww; return Math.exp(-0.5 * d * d); }), sp = p.reduce(function (a, b) { return a + b; }, 0);
+      p = p.map(function (v) { return v / sp; });
+      var m = project(p, rr, g, mode === 'sq');
+      var mass = m.reduce(function (a, b) { return a + b; }, 0), mt = 0, mp = 0, clip = 0;
+      for (var j = 0; j < N; j++) { var raw = rr + g * z[j]; mt += p[j] * Math.min(Math.max(raw, VMIN), VMAX); if (raw < VMIN || raw > VMAX) clip += p[j]; mp += m[j] * z[j]; }
+      var W = 640, H = 260, L = 44, R = 12, T = 14, B = 40, PW = W - L - R, PH = H - T - B;
+      var top = Math.max(Math.max.apply(null, p), Math.max.apply(null, m)) * 1.08;
+      function X(v) { return L + (v - VMIN) / (VMAX - VMIN) * PW; }
+      function Y(v) { return T + (1 - v / top) * PH; }
+      var bw = PW / N * 0.9, gr = [];
+      [-20, -10, 0, 10, 20].forEach(function (v) { var x = X(v); gr.push('<path class="grid" d="M' + x.toFixed(1) + ' ' + T + 'V' + (H - B) + '"/>'); gr.push('<text x="' + x.toFixed(1) + '" y="' + (H - B + 18) + '" text-anchor="middle">' + fmt(v, 0) + '</text>'); });
+      for (var i = 0; i < N; i++) gr.push('<rect class="bar-p" x="' + (X(z[i]) - bw / 2).toFixed(1) + '" y="' + Y(p[i]).toFixed(1) + '" width="' + bw.toFixed(2) + '" height="' + (Y(0) - Y(p[i])).toFixed(1) + '"/>');
+      for (var i2 = 0; i2 < N; i2++) { var hgt = Y(0) - Y(m[i2]); if (hgt > 0.2) gr.push('<rect class="bar-m" x="' + (X(z[i2]) - bw * 0.3).toFixed(1) + '" y="' + Y(m[i2]).toFixed(1) + '" width="' + (bw * 0.6).toFixed(2) + '" height="' + hgt.toFixed(1) + '"/>'); }
+      for (var j2 = 0; j2 < N; j2 += 2) { if (p[j2] < 2e-3) continue; var tx = X(Math.min(Math.max(rr + g * z[j2], VMIN), VMAX)); gr.push('<path class="tick" d="M' + tx.toFixed(1) + ' ' + (H - B) + 'v-7"/>'); }
+      gr.push('<path class="axis" d="M' + L + ' ' + T + 'V' + (H - B) + 'H' + (W - R) + '"/>');
+      gr.push('<text x="' + (L + PW / 2) + '" y="' + (H - 6) + '" text-anchor="middle">return value (atom)</text>');
+      $('c-svg').innerHTML = gr.join('');
+      $('c-r-mass').textContent = mass.toFixed(3);
+      $('c-r-mt').textContent = fmt(mt, 3);
+      $('c-r-mp').textContent = fmt(mp, 3);
+      $('c-r-clip').textContent = (100 * clip).toFixed(1) + '%';
+    }
+    [r, gm, c, w].forEach(function (el) { el.addEventListener('input', draw); });
+    bSq.addEventListener('click', function () { mode = 'sq'; press([bSq, bLit], bSq); draw(); });
+    bLit.addEventListener('click', function () { mode = 'lit'; press([bSq, bLit], bLit); draw(); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-c]'), function (b) {
+      b.addEventListener('click', function () { var v = b.getAttribute('data-c').split(','); r.value = v[0]; gm.value = v[1]; c.value = v[2]; w.value = v[3]; draw(); });
+    });
+    draw();
+  })();
+
+  // ---------------- Explorer: squinting ----------------
+  (function () {
+    var srcs = { real: 'data:image/png;base64,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', sim: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAIAAABMXPacAAANBklEQVR4Ae3Bz24b19nA4d+RZI1Us6TjiDKPJNuqEyAJMNkGXWUxYJqgOUWLOUWAbrn2QpfyLngLs+shgniVYEIEWfQGOsnSLdQUJwZSECECq0Jis+3g41eq4pBD/TEpU8+jvPdcO8k5RwFrLeVorSlBee+5NuSco5i1ltK01pSgvPdcA+ccxay1zEJrTTnKe89yc85RzFrLLLTWzEJ571lizjkKWGuZhdaa2SnvPUvJOUcBay2z0FpzVsp7z5JxzlHMWktpWmvOR3nvWRrOOYpZaylNa81FUN57loNzjgLWWkrTWnNxlPeel51zjgLWWkrTWnPRlPeel5dzjmLWWkrTWnMJlPeel5FzjmLWWkrTWnNplPeel45zjgLWWkrTWnPJlPeel4hzjgLWWkrTWvNCKO89LwXnHAWstZSmteYFUt57rj7nHAWstZSjteaFU0mSRFHEleWco4C1lnK01syJSpIEiKKIq8Y5RwFrLeVorZkrlSQJuSiKuCKccxSw1lKO1poFoJIkYSiKIhaec45xrLWUprVmMagkSRiKoogF5pyjgLWWcrTWLBKVJAkjoihi8TjnKGCtpRytNYtHJUnCSVEUsTCccxSw1lKO1ppFpZIk4ZQoilgAzjnGsdZSjtaaxaaSJGGcKIqYH+cc41hrKUdrzVWgkiShQBRFvHDOOQpYaylBa83VoZIkoUAURbxYzjnGsdZSgtaaq0YlSUKxKIp4IZxzjGOtpQStNVeTSpKEiaIo4jI55xjHWks5WmuuLJUkCdNEUcQlcM5RwFpLCVprrjiVJAklRFHEhXLOMY61lhK01iyeNv/xkBmoJEkoJ4oiLoJzjnGstZSgtWYhtfmvh5SlkiShnCiKOB/nHONYaylBa82iavO/HlKKSpKE0qIo4kycc4xjraUErTULrE2hh0yhkiRhFlEUMSPnHONYa5lGa81iazPFQyZRSZIwoyiKKMc5xzjWWqbRWrPw2pTykEIqSRJmF0UREznnGMdayzRaa66CNrN5yBgqSRLOJIoiCjjnOMVayzRaa66INmfxkP+lkiThTKIo4hTnHKdYaylBa80V0eYsbBC44+OHnKCSJOGsoihiyDnHONZaptFac6W0mY0NAobc8THwkP+jvPfdbpeziqLIOcc41lqm0Vpz1bSZjQ0CTnHHxw/5D+W9B7rdLmfS6/U4xVrLNFprrqA2s7FBQAF3fPwQlPeeXLfbZUa9Xo+TrLVMo7XmamozGxsETKO89wx1u11K6/V6jLDWMo3WmiurzWxsEFCC8t4zotvtUkKv12OEtZaJtNZcZW1mY4OAcpT3npO63S4T9Xo9hqy1TKS15oprMxsbBJShFKAA7z0ndbtdCvR6PXLWWibSWnP1tZmNDQLKUIqcIue9Z0S322WcXq8HWGuZRmvNy6JNWTYImEopRiiGvPeM6Ha7nNTr9ay1TKO15uXSphQbBEylFCcpRnjvGdHtdhnq9XrWWibSWvOSajOFDQImU4pxFCd57xnR7XaBKIqYSGvNS63NJDYImEApiilO8d5Tmtaa5dBmPBsETKAUEynG8d4zjdaaZdJmDBsEFFGKEhQFvPcU0FqzlNqcYIOAIkpRjqKY915rDXjvyWmtWWJt/ssGAWMpRXlKKa7Nos1/2CBgLKUoSSlyimuzaIMNAk5TipKUYoTi2ux8EPD/lKIkpThFce1MfBDwb0pRklKMo7h2Dn5jg6mUooA+OlJcOze/scFYSlFAHx2RU1y7CH5jg/+hFAX00RFDimsXx29s8G9KUUwfHTFCce2i+c1NCuijI05SXLsEfnOTk/TREeMorl0av7lJTh8dUUBxba4U1+ZKcW2uFNfmSnFtrhTX5kpxba4U1+ZKcW2uFNfmSrEARIQRBwcHLA3F/IgIpyiltNYfffQRy0ExJyLCOLu7u5ubm8YYloPihRMRCgRBcPfuXcAYw3JQvFgiQrFGo1GpVABjDMtB8QKJCBO9/vrr5IwxLAfFCyEiFPjd735H7ssvv7x9+zY5YwzLQXH5RIQCN27c+PDDDxnKsoycMYbloLhkIkKx7e3tarUahiG5LMvIGWNYDorLJCIUU0q99tprQBiG5LIsI2eMYTkoLo2IMNGtW7e2traAMAzJZVkGGGNYGorLISJMc+/evfX1dSAMQ3JZlgHGGJaG4hKICNNsbm7u7u6SC8OQXJZlgDGGpaG4UCLCSb///e+Pj48fPXrESdvb29VqlaEwDMllWWaMYWkoLo6IcNIbb7zx1ltvraysdDodRqysrDx48IARYRiSy7LMGMPSUFwQEaG0Wq1Wr9cZEYYhuSzLjDEsDcVFEBFmcf/+/Rs3bjAiDENy+/v7LBPFuYkIs/jZz362s7PDSWEYktvf32eZKM5HRJjRq6+++sorr5B79dVX//GPfwDGGJaS4hxEhHJu3rz53nvvkfvzn/+slCL37bffNhoNwBjDUlKclYhQWqPR+OUvf8lQlmWcZIxhKSnOREQobX19/d69e0AYhuSyLGOEMYZlpZidiDCLra2tW7duAWEYksuyjBHGGJaVYkYiwoz29/fX1taAMAzJZVnGCGMMy0oxCxFhRrVarV6vMxSGIbksyxgyxrCsFKWJCLNrNBqVSoWhMAzJZVlGbm1t7YMPPmBZKcoREWa3sbGxt7fHiDAMyWVZRs4YwxJTlCAinMnW1tatW7c4KQxDIMsycsYYlphiGhHhpN/85jcbGxvff//9Z599RrG1tbW9vb21tTWG7t69+7e//S0MQ3JZlgHGGJaYYiIR4aQHuWq1urKy8sc//pFitVqtXq8z4tmzZ6urq2EYksuyDDDGsMQUxUSEU27fvv2LX/xiZ2fn0aNHTLS7u7u5uckpYRiSy7LMGMNEIsLQwcEBLx1FARHhHCqVSqPRoEAYhuT29/cpJiKMqFarrVaLGYkIIw4ODlgkinFEhPOp1+u1Wo0CYRiS29/fp4CIcFK1WiXXarUoR0Q4qVqttlotFobiFBHhfNbX1+/evauUooAxholEhFOq1SpDrVaLaUSEU6rVKtBqtVgMipNEhHO7naPAysrKr3/9a4qJCKfcvHlzdXWVEa1WiwIiQoFqtUqu1WqxABQjRISLsLu7u7m5SQFjDMVEhKF6vT4YDP75z38CKysr5Pr9PkMHBweMIyIUqFarDLVaLeZNkRMRLkilUmk0GhQzxlBARBja2tra2dn5+c9/DgwGg+fPn//lL3958uQJs6vX64PB4Mcff3z27NnKygojWq0Wc6UAEeHiNBqNSqVCMWMM44gIQ1rr7e3t+/fvHx8ff/rpp3Ec//TTT5988gkzWl9fbzQatVptc3Pzxx9/BDY3N7MsY0Sr1WJ+lIhwcTY2NnZ3d5VSFDDGUEBEyO3u7m5tbd2/f391dfXJkyf9fv/58+dff/01Z/LOO+/cuXPn0aNHQBzHP/3003fffZdlGSNarRZzokSEi3M7RzFjDAVEBNjd3d3a2nrw4MHnn38ONJtNcp1OhzOJ47jX6/X7/aOjI+DNN98cDAZPnjx5/Pjx06dPyVUqlY8++oh5UCLCBVlbW9vZ2VlfX6eYMYYCIrK/v7+3t7e9vZ2mabPZJJemabPZ7HQ6nMne3t4333wTxzG5TqcTx/FgMHjy5Mnjx4+fPn1KrtVqMQ9KRLggtVqtXq8zkTGGcURkf39/b29ve3sbSNO02WySS9O02Wx2Oh3OZGtr69133+WUwWDQ7/e/+uqrp0+fAq1Wi3lQIsIFaTQalUqFYsYYCnz88cd7e3vb29tpmvb7/TiOgTRN+/1+HMdAp9PhTG7duhVFEdDpdOI4BtI07ff7cRwPBoN+v59l2dHRUavVYh6UiHARbt682Wg0lFIUM8ZQ7PDwkHHSNG02m51OhzOpVCo//PBDHMfkOp1OHMcMDQaDfr+fZdkf/vAH5kGJCBfhdo6JjDEUe/z48RdffNFsNsl1Op04jhnqdDqcSaVS+dWvfsUpaZr2+/04jgeDQb/ff/vtt5kHJSKc29ra2s7Ozvr6OhMZY5jm8PAwTdNms0mu0+nEcdzpdDirIAg+/PBDRqRp2u/34zhmaG1tbWdnh3lQIsK51Wq1er3ORMYYyvnrX/+6srKSpmmz2QTSNO33+5xVEATHx8dxHANpmvb7/TiOOenevXvMiRIRzq3RaFQqFSYyxjCLw8NDIE3TZrPZ6XQ4q9XV1d/+9rdpmvb7/TiOGUrTtNlsrq+vNxoN5keJCOdTqVTu3LmjlGIiYwwzOjw8JNfpdDir1dXVZ8+exXHMUJqmzWYzCII7d+4wb0pEOJ96vV6r1ZjGGMOMDg8PgW+//fZPf/oT5xDHMSNu3LihtWYxKBHhHDY2Nra3t9fX15nIGMM5iAjn8P777//9739//vw58Oabb66uru7u7rIYlIhwDrVarV6vc8rq6uqzZ88YMsZwDiLCORwcHLCo/gWw3xYo3YaOygAAAABJRU5ErkJggg==' };
+    var data = {}, cur = 'real', res = 16;
+    var srcBtns = Array.prototype.slice.call(document.querySelectorAll('[data-src]'));
+    var resBtns = Array.prototype.slice.call(document.querySelectorAll('[data-res]'));
+    function load(key, done) {
+      var img = new Image();
+      img.onload = function () { var cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; var cx = cv.getContext('2d'); cx.drawImage(img, 0, 0, 128, 128); data[key] = cx.getImageData(0, 0, 128, 128).data; done(); };
+      img.src = srcs[key];
+    }
+    function down(d, n, area) {
+      var k = 128 / n, out = new Uint8ClampedArray(n * n * 4);
+      for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+        var o = (y * n + x) * 4, s0 = 0, s1 = 0, s2 = 0;
+        if (area) {
+          for (var dy = 0; dy < k; dy++) for (var dx = 0; dx < k; dx++) { var i = ((y * k + dy) * 128 + (x * k + dx)) * 4; s0 += d[i]; s1 += d[i + 1]; s2 += d[i + 2]; }
+          out[o] = Math.floor(s0 / (k * k)); out[o + 1] = Math.floor(s1 / (k * k)); out[o + 2] = Math.floor(s2 / (k * k));
+        } else {
+          var c0 = ((y * k + Math.floor(k / 2)) * 128 + (x * k + Math.floor(k / 2))) * 4;
+          out[o] = d[c0]; out[o + 1] = d[c0 + 1]; out[o + 2] = d[c0 + 2];
+        }
+        out[o + 3] = 255;
+      }
+      return out;
+    }
+    function paint(id, px, n) {
+      var small = document.createElement('canvas'); small.width = n; small.height = n;
+      small.getContext('2d').putImageData(new ImageData(px, n, n), 0, 0);
+      var cv = $(id), cx = cv.getContext('2d'); cx.imageSmoothingEnabled = false; cx.clearRect(0, 0, 256, 256); cx.drawImage(small, 0, 0, 256, 256);
+    }
+    function draw() {
+      if (!data[cur]) return;
+      paint('sq-area', down(data[cur], res, true), res);
+      paint('sq-point', down(data[cur], res, false), res);
+      var bytes = res * res * 3, gib = 1e6 * (2 * bytes + 2 * 12 * 4 + 6 * 4 + 3 * 4) / Math.pow(1024, 3);
+      $('sq-r-n').textContent = bytes.toLocaleString('en-US');
+      $('sq-r-k').textContent = String((128 / res) * (128 / res));
+      $('sq-r-buf').textContent = (gib < 10 ? gib.toFixed(2) : gib.toFixed(1)) + ' GiB';
+    }
+    srcBtns.forEach(function (b) { b.addEventListener('click', function () { cur = b.getAttribute('data-src'); press(srcBtns, b); draw(); }); });
+    resBtns.forEach(function (b) { b.addEventListener('click', function () { res = +b.getAttribute('data-res'); press(resBtns, b); draw(); }); });
+    load('real', function () { load('sim', draw); });
+  })();
+})();
+</script>
+<footer class="phi-foot" style="border-top:1px solid var(--rule);margin-top:48px;padding:22px clamp(16px,4vw,32px) 36px;font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.04em;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:space-between">
+  <span>Written by Yashvardhan Gupta &middot; &Phi; Physical Hardware Intelligence, Northeastern University Silicon Valley</span>
+  <span><a href="index.html#deep" style="color:var(--muted)">More deep dives</a> &middot; <a href="https://github.com/physical-hardware-intelligence" style="color:var(--muted)">GitHub</a></span>
+</footer>
+</body>
+</html>

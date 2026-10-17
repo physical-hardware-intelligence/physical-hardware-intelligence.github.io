@@ -1,0 +1,1257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deriving Success Guided Sampling · Phi</title>
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Deriving Success Guided Sampling">
+<meta property="og:description" content="A Balanced Data Diet (CoRL 2026), derived end to end: why setups a policy always or never solves teach it nothing, and the sampler that fixes it at a million environments.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/deriving-sgs.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Yashvardhan Gupta">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+:root {
+  /* Layout: a lab-notebook reading column (about 68ch) beside a sticky contents rail; derivations sit in tinted blocks; one interactive explorer is the only moving part. */
+  --paper: #f4f6f8;
+  --ink: #18202b;
+  --muted: #586273;
+  --rule: #d5dae2;
+  --tint: #e8ecf1;
+  --accent: #2c5d8f;
+  --c-uniform: #b5562a;
+  --c-linear: #2e7a55;
+  --c-plr: #74489f;
+  --c-hard: #8d97a8;
+  --c-easy: #c3cad6;
+  --warn: #8a5200;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --measure: 45rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #10151c; --ink: #e2e7ee; --muted: #9ba5b5; --rule: #29313c; --tint: #18202a;
+    --accent: #80b2e6; --c-uniform: #e2895a; --c-linear: #66c193; --c-plr: #b68ee2;
+    --c-hard: #4f5868; --c-easy: #3a4352; --warn: #e3a84f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #10151c; --ink: #e2e7ee; --muted: #9ba5b5; --rule: #29313c; --tint: #18202a;
+  --accent: #80b2e6; --c-uniform: #e2895a; --c-linear: #66c193; --c-plr: #b68ee2;
+  --c-hard: #4f5868; --c-easy: #3a4352; --warn: #e3a84f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 1.0625rem; line-height: 1.62; }
+a { color: var(--accent); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.1rem, 6vw, 3.2rem); letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.5rem, 3.6vw, 1.95rem); }
+h3 { font-size: 1.24rem; }
+h2 .num, h3 .num { font-family: var(--f-mono); font-weight: 400; font-size: .62em; color: var(--muted); margin-right: .5rem; vertical-align: .12em; }
+p, ul, ol, dl, figure, table { margin: 0; }
+ul, ol { padding-left: 1.3rem; display: flex; flex-direction: column; gap: .35rem; }
+em { font-style: italic; }
+strong { font-weight: 600; }
+
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2rem; max-width: 74rem; margin: 0 auto; padding-inline: 20px; padding-block: 2rem 5rem; }
+main { min-width: 0; max-width: var(--measure); display: flex; flex-direction: column; gap: 3.4rem; }
+section { display: flex; flex-direction: column; gap: 1.6rem; scroll-margin-top: 1.5rem; }
+.sub { display: flex; flex-direction: column; gap: .9rem; scroll-margin-top: 1.5rem; }
+
+.toc { font-family: var(--f-display); font-size: .97rem; }
+.toc summary { cursor: pointer; font-family: var(--f-mono); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-block: .4rem; }
+.toc ol { list-style: none; padding: 0; margin-top: .5rem; gap: .25rem; }
+.toc a { color: var(--muted); text-decoration: none; display: flex; gap: .5rem; padding-block: .12rem; }
+.toc a:hover { color: var(--ink); }
+.toc a.on { color: var(--accent); }
+.toc .tn { font-family: var(--f-mono); font-size: .74rem; min-width: 1.6rem; padding-top: .16rem; }
+@media (min-width: 1040px) {
+  .wrap { grid-template-columns: 13rem minmax(0, 1fr); gap: 3rem; }
+  .toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 1.5rem); align-self: start; max-height: calc(100vh - 3rem); overflow: auto; }
+  .toc summary { display: none; }
+}
+
+.hero { display: flex; flex-direction: column; gap: 1.05rem; }
+.eyebrow { font-family: var(--f-mono); font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.byline { color: var(--muted); font-size: .98rem; }
+.three { display: grid; grid-template-columns: 6.2rem minmax(0, 1fr); gap: .6rem 1rem; padding-block: 1rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.three dt { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: .28rem; }
+.three dd { margin: 0; }
+@media (max-width: 540px) { .three { grid-template-columns: minmax(0, 1fr); gap: .15rem; } .three dd { margin-bottom: .55rem; } }
+
+.lbl { font-family: var(--f-mono); font-size: .7rem; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.lbl.int { color: var(--accent); }
+.lbl.chk { color: var(--warn); }
+.note { display: flex; flex-direction: column; gap: .3rem; }
+.blk { background: var(--tint); padding: 1rem 1.15rem; border-radius: 3px; display: flex; flex-direction: column; gap: .7rem; min-width: 0; }
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .8rem 1.2rem; }
+.legend div { display: flex; flex-direction: column; gap: .15rem; font-size: .92rem; }
+.small { font-size: .9rem; color: var(--muted); }
+
+mjx-container { color: var(--ink); }
+mjx-container[display="true"] { display: block; overflow-x: auto; overflow-y: hidden; max-width: 100%; padding-block: .2rem; margin: 0 !important; }
+
+.tbl { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: .93rem; line-height: 1.45; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { font-family: var(--f-mono); font-size: .69rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1.5px solid var(--ink); vertical-align: bottom; }
+th:first-child, td:first-child { padding-left: 0; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+tr.hi td { font-weight: 600; }
+.mono { font-family: var(--f-mono); font-size: .88em; }
+.cap { font-size: .85rem; color: var(--muted); }
+.k-sgs { color: var(--accent); font-weight: 600; }
+.k-uni { color: var(--c-uniform); font-weight: 600; }
+.k-lin { color: var(--c-linear); font-weight: 600; }
+.k-plr { color: var(--c-plr); font-weight: 600; }
+
+pre { font-family: var(--f-mono); font-size: .84rem; line-height: 1.6; background: var(--tint); padding: 1rem 1.1rem; overflow-x: auto; border-radius: 3px; margin: 0; color: var(--ink); }
+code { font-family: var(--f-mono); font-size: .88em; }
+
+.explorer { display: grid; gap: 1.2rem; padding: 1.1rem; border: 1px solid var(--rule); border-radius: 4px; background: var(--paper); min-width: 0; }
+.ex-top { display: grid; gap: 1.1rem; grid-template-columns: minmax(0, 1fr); }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr)); gap: .6rem 1.4rem; }
+.c { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+.ctrl { display: flex; flex-direction: column; gap: .5rem; font-family: var(--f-display); font-size: .95rem; min-width: 0; }
+.ctrl label, .pop-ctrl label { display: flex; justify-content: space-between; gap: .5rem; }
+.ctrl label.chkbox { justify-content: flex-start; }
+.ctrl output, .pop-ctrl output { font-family: var(--f-mono); font-size: .84rem; color: var(--accent); }
+input[type=range] { width: 100%; accent-color: var(--accent); margin: 0 0 .2rem; }
+.presets { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .3rem; }
+.presets button { font: 500 .76rem var(--f-mono); padding: .35rem .55rem; border: 1px solid var(--rule); background: var(--tint); color: var(--ink); border-radius: 3px; cursor: pointer; }
+.presets button[aria-pressed="true"] { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+select { font: .9rem var(--f-mono); background: var(--tint); color: var(--ink); border: 1px solid var(--rule); border-radius: 3px; padding: .2rem .35rem; }
+.chkbox { display: flex; align-items: center; gap: .45rem; font-size: .92rem; }
+.chkbox input { accent-color: var(--accent); }
+.plot { display: flex; flex-direction: column; gap: .5rem; min-width: 0; }
+.plot svg { width: 100%; height: auto; display: block; }
+.plot svg text { fill: var(--muted); font-family: var(--f-mono); font-size: 13px; }
+.plot .axis { stroke: var(--ink); stroke-width: 1; fill: none; }
+.plot .grid { stroke: var(--rule); stroke-width: 1; fill: none; }
+.plot .sgs { stroke: var(--accent); stroke-width: 2.6; fill: none; stroke-linejoin: round; }
+.plot .ref { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 5 4; fill: none; }
+.plot .uni { stroke: var(--c-uniform); stroke-width: 1.4; stroke-dasharray: 2 4; fill: none; }
+.plot .tline { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 3; fill: none; }
+.plot .dot { fill: var(--accent); }
+.plot .lg-sgs { fill: var(--accent); }
+.readout { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: .7rem 1rem; }
+.readout div { display: flex; flex-direction: column; gap: .1rem; }
+.readout dt { font-family: var(--f-mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.readout dd { margin: 0; font-family: var(--f-mono); font-size: 1rem; font-variant-numeric: tabular-nums; }
+.pop { display: grid; gap: .9rem; border-top: 1px solid var(--rule); padding-top: 1rem; }
+.pop-ctrl { display: grid; gap: .45rem 1.3rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); font-family: var(--f-display); font-size: .95rem; }
+.pop-ctrl > div { display: flex; flex-direction: column; gap: .3rem; }
+.bars { display: grid; gap: .5rem; }
+.bar-row { display: grid; grid-template-columns: 5.2rem minmax(0, 1fr); gap: .7rem; align-items: center; font-family: var(--f-mono); font-size: .78rem; }
+.bar { display: flex; height: 1.7rem; border-radius: 2px; overflow: hidden; background: var(--tint); }
+.seg { height: 100%; display: flex; align-items: center; justify-content: center; font-family: var(--f-mono); font-size: .72rem; white-space: nowrap; overflow: hidden; transition: width .25s ease; }
+.seg.hard { background: var(--c-hard); color: var(--ink); }
+.seg.learn { background: var(--accent); color: var(--paper); }
+.seg.easy { background: var(--c-easy); color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .seg { transition: none; } }
+.key { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-family: var(--f-mono); font-size: .72rem; color: var(--muted); }
+.key span { display: inline-flex; align-items: center; gap: .35rem; }
+.key i { display: inline-block; width: .7rem; height: .7rem; border-radius: 2px; }
+.ln { display: inline-block; width: 1.4rem; height: 0; border-top: 2.5px solid var(--accent); }
+.ln-ref { border-top: 1.5px dashed var(--muted); }
+.ln-uni { border-top: 2px dotted var(--c-uniform); }
+.ln-t { width: 0; height: .8rem; border-top: 0; border-left: 1px dashed var(--accent); }
+.sw-hard { background: var(--c-hard); } .sw-learn { background: var(--accent); } .sw-easy { background: var(--c-easy); }
+.popsum { font-size: .95rem; }
+
+footer.src { border-top: 1px solid var(--rule); padding-top: 1.2rem; display: flex; flex-direction: column; gap: .6rem; font-size: .9rem; color: var(--muted); }
+</style>
+
+</head>
+<body>
+<header class="phi-bar" style="position:relative;z-index:60;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 18px;padding:10px clamp(16px,4vw,32px);border-bottom:1px solid var(--rule);background:var(--paper);font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.05em">
+  <a href="../index.html" style="color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:9px"><span style="font-family:var(--f-body),Georgia,serif;font-size:20px;line-height:1">&Phi;</span><span>Physical Hardware Intelligence</span></a>
+  <nav aria-label="Phi" style="display:flex;gap:16px">
+    <a href="../research.html" style="color:var(--muted);text-decoration:none">Research</a>
+    <a href="index.html" style="color:var(--muted);text-decoration:none">Writing</a>
+    <a href="../learn.html" style="color:var(--muted);text-decoration:none">Learn</a>
+  </nav>
+</header>
+
+<div class="wrap">
+<details class="toc" id="toc" open>
+<summary>Contents</summary>
+<nav aria-label="Contents">
+<ol>
+<li><a href="#s1"><span class="tn">1</span>Why this paper exists</a></li>
+<li><a href="#s2"><span class="tn">2</span>Prerequisites</a></li>
+<li><a href="#s3"><span class="tn">3</span>SGS, line by line</a></li>
+<li><a href="#s4"><span class="tn">4</span>Rewards, term by term</a></li>
+<li><a href="#s5"><span class="tn">5</span>Experiments</a></li>
+<li><a href="#s6"><span class="tn">6</span>Appendix studies</a></li>
+<li><a href="#s7"><span class="tn">7</span>Sim-to-real</a></li>
+<li><a href="#s8"><span class="tn">8</span>Reading it critically</a></li>
+<li><a href="#s9"><span class="tn">9</span>What it means for Φ</a></li>
+<li><a href="#s10"><span class="tn">10</span>Cheat sheet</a></li>
+</ol>
+</nav>
+</details>
+
+<main>
+
+<header class="hero">
+<p class="eyebrow">Study guide · arXiv 2610.12465 · CoRL 2026</p>
+<h1>Deriving Success Guided Sampling</h1>
+<p class="byline">A walkthrough of <a href="https://arxiv.org/abs/2610.12465" target="_blank" rel="noopener">A Balanced Data Diet: Addressing the Exploration Bottleneck in Mega-Scale RL for Robot Control</a> by Octi Zhang, Mateo Guaman Castro, Patrick Yin, Ignacio Dagnino, Abhishek Gupta, Rosario Scalise and Byron Boots (University of Washington; Zhang is also at NVIDIA). Every equation is derived. Every number was checked against the paper's LaTeX source and its figure files.</p>
+<dl class="three">
+<dt>Problem</dt><dd>Massively parallel simulation plus diverse resets makes hard robot tasks reachable. Uniform sampling then spends a growing fraction of episodes on configurations the policy always solves or never solves, and those episodes carry almost no gradient.</dd>
+<dt>Fix</dt><dd>Keep a rolling success rate for every configuration. Sample configurations near a target success rate, using a Beta-shaped weight and a softmax. That is the whole method.</dd>
+<dt>Result</dt><dd>At about one million environments: 73% success on 13-terrain quadruped locomotion (PLR 54%) and 70% on Franka nut-and-bolt assembly (uniform 6%, PLR 5%). RGB students distilled from SGS teachers transfer zero-shot to a UR5e on three NIST assembly tasks.</dd>
+</dl>
+
+<div class="blk">
+<p class="lbl int">The idea in one table</p>
+<p>Suppose that right now 90% of configurations are impossible, 5% succeed half the time, and 5% are mastered. With the paper's own settings, this is the share of episodes each sampler sends to the useful 5%:</p>
+<div class="tbl"><table>
+<thead><tr><th>Sampler</th><th class="n">Episodes on the useful 5%</th></tr></thead>
+<tbody>
+<tr><td><span class="k-uni">Uniform</span></td><td class="n">5%</td></tr>
+<tr><td><span class="k-sgs">SGS</span>, manipulation settings</td><td class="n">27%</td></tr>
+<tr><td><span class="k-sgs">SGS</span>, locomotion settings</td><td class="n">98.5%</td></tr>
+</tbody></table></div>
+<p class="small">Computed from Eq. 1 and 2 with the hyperparameters in §3.4. Try other mixes in the explorer, §3.5.</p>
+</div>
+
+<div class="legend" aria-label="How to read this page">
+<div><span class="lbl int">Intuition</span><span>The picture to keep in your head.</span></div>
+<div><span class="lbl">Derivation</span><span>Every step shown, nothing skipped.</span></div>
+<div><span class="lbl">Paper</span><span>What the paper itself states or reports.</span></div>
+<div><span class="lbl chk">Check</span><span>What I computed, verified, or found missing or inconsistent.</span></div>
+</div>
+<p class="small">Short on time: read §2.4, §3, §5.4 and §8.</p>
+
+<div class="note">
+<p class="lbl chk">Notation the paper reuses</p>
+<div class="tbl"><table>
+<thead><tr><th>Paper writes</th><th>Means</th><th>On this page</th></tr></thead>
+<tbody>
+<tr><td>\(p_i\)</td><td>success-rate estimate of configuration \(i\)</td><td>\(p_i\)</td></tr>
+<tr><td>\(p(i)\)</td><td>probability of sampling configuration \(i\)</td><td>\(q_i\)</td></tr>
+<tr><td>\(p\) (App. B.2)</td><td>spawn and goal patches per terrain tile</td><td>\(n_{\text{patch}}\)</td></tr>
+<tr><td>\(t\) in the kernel</td><td>target success rate (the kernel's peak)</td><td>\(t^\star\); plain \(t\) stays the time step</td></tr>
+<tr><td>\(T\) in \(\rho = (T, L, s_0, g)\)</td><td>terrain type</td><td>written out; \(T\) stays the temperature</td></tr>
+<tr><td>\(\tau\) and \(\tau_t\)</td><td>a task configuration; joint torques in the work reward</td><td>\(\tau\); torques written \(\tau^{\text{jnt}}_t\)</td></tr>
+<tr><td>\(K\) (Limitations)</td><td>number of configurations</td><td>\(N\)</td></tr>
+<tr><td>\(\epsilon\)</td><td>the SGS floor</td><td>\(\epsilon\); PPO's clip range is \(\epsilon_{\text{clip}}\)</td></tr>
+</tbody></table></div>
+</div>
+</header>
+
+<!-- ============================== 1 ============================== -->
+<section id="s1">
+<h2><span class="num">1</span>Why this paper exists</h2>
+<p>RL in massively parallel simulators (MuJoCo, Isaac Gym and Isaac Lab, ManiSkill) now produces controllers that work on real robots. The price is per-task engineering. Rewards are shaped and tuned by hand, curricula are ordered by hand, demonstrations are collected to start exploration, and multi-skill controllers are often built by training specialists and distilling them into one policy. Each choice brings new hyperparameters.</p>
+<p>Resets are a cheaper lever. If some episodes start with the rod already half inside the hole, the policy can reach success early, learn what success looks like, and then extend the skill back to harder starts. OmniReset (P. Yin et al., 2026, <a href="https://arxiv.org/abs/2603.15789" target="_blank" rel="noopener">arXiv 2603.15789</a>) generates diverse resets programmatically and pairs them with massively parallel RL. This paper builds on it; P. Yin and I. Dagnino are authors of both.</p>
+<p>Resets decide <em>where</em> an episode can start. They do not decide <em>how often</em> each start gets practised. That allocation problem is the subject of the paper.</p>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>A coach has a million students and one rule: every student practises a random drill. Most drills are already mastered or still impossible for this team, so most practice is wasted. Hiring more students buys more of the same mix. SGS changes the rule: practise the drills you currently pass about half the time.</p>
+</div>
+<div class="note">
+<p class="lbl">Paper</p>
+<p>The authors say plainly that SGS is not a new curriculum principle. Their claim is empirical: a simple success-based sampler, combined with diverse resets and very large PPO runs, solves locomotion and assembly tasks that uniform sampling and PLR learn poorly or not at all, and beats a hand-designed curriculum and SFL where those were tested.</p>
+</div>
+</section>
+
+<!-- ============================== 2 ============================== -->
+<section id="s2">
+<h2><span class="num">2</span>Prerequisites</h2>
+<p>Seven ideas the paper uses without defining them. Each is built here from scratch, once.</p>
+
+<div class="sub" id="s2-1">
+<h3><span class="num">2.1</span>The goal-conditioned MDP</h3>
+<p>A Markov decision process (MDP) is the formal game RL plays. <em>Goal-conditioned</em> means the policy is also told what to achieve, so one policy can serve many goals.</p>
+\[\mathcal{M} = (\mathcal{S},\ \mathcal{A},\ \mathcal{G},\ P,\ r,\ \gamma,\ \rho)\]
+<div class="tbl"><table>
+<thead><tr><th>Symbol</th><th>Name</th><th>Locomotion (ANYmal-D)</th><th>Manipulation (UR5e, Franka)</th></tr></thead>
+<tbody>
+<tr><td>\(s\in\mathcal{S}\)</td><td>state</td><td>full physical state: base pose and velocity, joint angles and velocities, terrain</td><td>arm joints, gripper, object and board poses</td></tr>
+<tr><td>\(a\in\mathcal{A}\)</td><td>action</td><td>12 joint-position offsets from the nominal pose</td><td>3 translation and 3 rotation increments plus open/close (UR5e; see §8)</td></tr>
+<tr><td>\(g\in\mathcal{G}\)</td><td>goal</td><td>a goal pose on the terrain</td><td>the assembled pose relative to the receptacle</td></tr>
+<tr><td>\(P(s'\mid s,a)\)</td><td>dynamics</td><td colspan="2">the physics simulator</td></tr>
+<tr><td>\(r(s,a,g)\)</td><td>reward</td><td colspan="2">one shared reward per domain (§4)</td></tr>
+<tr><td>\(\gamma\)</td><td>discount</td><td colspan="2">a number below 1; the paper does not report its value</td></tr>
+<tr><td>\(\rho\)</td><td>start-and-goal distribution</td><td>categorical over 104,000 configurations</td><td>categorical over 32,768 configurations</td></tr>
+</tbody></table></div>
+<p>One episode: draw \((s_0,g)\sim\rho\). At every step \(t\) the policy picks \(a_t\sim\pi(\cdot\mid s_t,g)\), physics produces \(s_{t+1}\sim P(\cdot\mid s_t,a_t)\), and the robot receives \(r(s_t,a_t,g)\). The objective is the expected discounted return:</p>
+\[J(\pi)=\mathbb{E}_{(s_0,g)\sim\rho,\ a_t\sim\pi}\Big[\sum_{t=0}^{\infty}\gamma^{t}\,r(s_t,a_t,g)\Big]\]
+<p>Read it from the inside out. Inside the brackets: the rewards of one episode, each multiplied by \(\gamma^t\) so later rewards count less. Outside: the average over many episodes, where the randomness comes from which start and goal \(\rho\) draws and from the policy's random actions.</p>
+<div class="note">
+<p class="lbl">Paper</p>
+<p>RL is trained on "compact Lagrangian states". Lagrangian state means generalized coordinates and their velocities, \((q,\dot q)\): the few numbers that fully describe a mechanism's configuration and motion, as opposed to pixels. Images enter only later, in the distilled student (§7). The observation lists in §4 also include a terrain height scan and a point cloud.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-2">
+<h3><span class="num">2.2</span>Task configurations</h3>
+<p>The paper's unit of choice is a <em>task configuration</em>:</p>
+\[\tau=(s_0,\ g,\ e)\qquad\text{start state, goal, environment}\]
+<div class="tbl"><table>
+<thead><tr><th></th><th>Locomotion</th><th>Manipulation</th></tr></thead>
+<tbody>
+<tr><td>\(s_0\)</td><td>the robot's start pose on the terrain</td><td>initial robot and object state, from one of three reset families (§5.1)</td></tr>
+<tr><td>\(g\)</td><td>a goal pose to reach</td><td>the assembled pose, identical for every configuration in the receptacle's frame</td></tr>
+<tr><td>\(e\)</td><td>terrain type and geometry</td><td>which assembly task, plus the receptacle pose</td></tr>
+</tbody></table></div>
+<p>Before training, \(N\) configurations are drawn once and frozen. SGS only ever chooses among these \(N\).</p>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>§3.1 defines \(\rho\) over \((s_0,g)\) and says \(s_0\) already contains all episode-level variation, terrain and objects included. The extra \(e\) in \(\tau\) is a label for that variation, not a new ingredient.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-3">
+<h3><span class="num">2.3</span>Policy gradients, GAE and PPO</h3>
+<p>All RL training in the paper uses PPO; the RGB students are distilled with DAgger (§7.3). Four formulas carry the whole algorithm.</p>
+<div class="blk">
+<p class="lbl">Derivation</p>
+<p><strong>Advantage:</strong> how much better action \(a\) is than what the policy usually does from \(s\).</p>
+\[A^{\pi}(s,a)=Q^{\pi}(s,a)-V^{\pi}(s)\]
+<p><strong>Policy gradient:</strong> raise the probability of better-than-usual actions, lower the probability of worse-than-usual ones.</p>
+\[\nabla_\theta J=\mathbb{E}\Big[\sum_{t}\nabla_\theta\log\pi_\theta(a_t\mid s_t,g)\;A_t\Big]\]
+<p><strong>GAE</strong> (generalized advantage estimation) estimates \(A_t\) from a learned critic \(V\). The TD error \(\delta_t\) is one step of surprise; GAE adds up future surprises with weight \((\gamma\lambda)^l\).</p>
+\[\delta_t=r_t+\gamma V(s_{t+1})-V(s_t),\qquad \hat A_t=\sum_{l=0}^{\infty}(\gamma\lambda)^{l}\,\delta_{t+l}\]
+<p>\(\lambda=0\) trusts the critic (one step, low variance, biased if \(V\) is wrong). \(\lambda=1\) trusts the actual return (unbiased, high variance).</p>
+<p><strong>PPO</strong> takes that gradient step but stops pushing an action's probability once it has moved more than \(\pm\epsilon_{\text{clip}}\) relative to the policy that collected the data:</p>
+\[r_t(\theta)=\frac{\pi_\theta(a_t\mid s_t,g)}{\pi_{\theta_{\text{old}}}(a_t\mid s_t,g)},\qquad L(\theta)=\mathbb{E}_t\Big[\min\big(r_t(\theta)\hat A_t,\ \operatorname{clip}(r_t(\theta),1-\epsilon_{\text{clip}},1+\epsilon_{\text{clip}})\,\hat A_t\big)\Big]\]
+</div>
+<p><strong>Batch bookkeeping.</strong> One PPO iteration collects \(E\) environments \(\times\ n\) steps, splits the batch into \(M\) minibatches, and runs \(K\) epochs over them: \(M\times K\) gradient steps per iteration.</p>
+<div class="note">
+<p class="lbl">Paper</p>
+<p>The minibatch count \(M\) is held fixed while \(E\) grows, and every other PPO and optimizer setting is fixed too. So more environments make each minibatch bigger (a less noisy gradient), not the number of gradient steps larger. The paper does not report \(\gamma\), \(\lambda\), \(\epsilon_{\text{clip}}\), \(K\), \(n\), \(M\) or the learning rate.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-4">
+<h3><span class="num">2.4</span>Why a 0% or 100% configuration teaches nothing</h3>
+<p>This is the paper's whole argument in one derivation.</p>
+<div class="blk">
+<p class="lbl">Derivation</p>
+<p>Fix one configuration. Idealize the reward the way both domains are built (§4): the return is \(R_s\) on success and \(R_f\) otherwise, and the critic knows this configuration's success probability \(p\), so \(V(s_0)=pR_s+(1-p)R_f\). Let \(\Delta R=R_s-R_f\). The advantage of a whole episode is the return minus the baseline:</p>
+\[A=R-V(s_0)=\begin{cases}(1-p)\,\Delta R & \text{success, probability } p\\[2pt] -p\,\Delta R & \text{no success, probability } 1-p\end{cases}\]
+<p>Its mean, mean square and mean absolute value:</p>
+\[\begin{aligned}
+\mathbb{E}[A] &amp;= p(1-p)\Delta R-(1-p)p\,\Delta R=0\\
+\mathbb{E}[A^2] &amp;= p(1-p)^2\Delta R^2+(1-p)p^2\Delta R^2=p(1-p)\,\Delta R^2\,\big[(1-p)+p\big]=p(1-p)\,\Delta R^2\\
+\mathbb{E}|A| &amp;= p\,(1-p)\Delta R+(1-p)\,p\,\Delta R=2p(1-p)\,\Delta R
+\end{aligned}\]
+</div>
+<ul>
+<li>At \(p=0\) or \(p=1\) the advantage is zero on <em>every</em> episode, so that configuration adds exactly zero task gradient.</li>
+<li>The signal is largest at \(p=\tfrac12\), where \(\mathbb{E}|A|=\Delta R/2\).</li>
+<li>\(p(1-p)\) is the variance of a coin that lands heads with probability \(p\). A configuration is useful exactly when its outcome is uncertain.</li>
+</ul>
+<div class="tbl"><table>
+<thead><tr><th>Method</th><th>Score for a configuration</th><th>Relation to the derivation</th></tr></thead>
+<tbody>
+<tr><td>SFL</td><td>\(p(1-p)\)</td><td>exactly \(\mathbb{E}[A^2]/\Delta R^2\)</td></tr>
+<tr><td>PLR</td><td>average \(|\hat A_t|\) over the last episode</td><td>a critic-based estimate of the same kind of quantity; it inherits the critic's errors</td></tr>
+<tr><td>SGS</td><td>\(p^{\kappa t^\star}(1-p)^{\kappa(1-t^\star)}\)</td><td>generalizes \(p(1-p)\): movable peak \(t^\star\), adjustable sharpness \(\kappa\). Equal to \(p(1-p)\) at \(t^\star=0.5,\ \kappa=2\)</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>Two small leaks remain at \(p\in\{0,1\}\). With \(\gamma\lt 1\), succeeding sooner earns more discounted return, and the per-step regularizers always vary a little. Neither one teaches the task itself, which is why the paper treats such configurations as wasted.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-5">
+<h3><span class="num">2.5</span>The Beta distribution, as a weighting curve</h3>
+<p>The Beta distribution lives on \([0,1]\), the same range as a success rate:</p>
+\[f(x;\alpha,\beta)=\frac{x^{\alpha-1}(1-x)^{\beta-1}}{B(\alpha,\beta)},\qquad x\in[0,1],\quad \alpha,\beta>0\]
+<p>\(B(\alpha,\beta)\) only makes the area equal 1. SGS never needs it, because the softmax in §2.6 normalizes anyway.</p>
+<div class="blk">
+<p class="lbl">Derivation: where is the peak?</p>
+<p>Take the log and set the derivative to zero:</p>
+\[\frac{d}{dx}\log f=\frac{\alpha-1}{x}-\frac{\beta-1}{1-x}=0\;\Longrightarrow\;(\alpha-1)(1-x)=(\beta-1)\,x\;\Longrightarrow\;x^\star=\frac{\alpha-1}{\alpha+\beta-2}\]
+<p>This is a maximum when \(\alpha,\beta>1\). Now use the paper's <em>mode–concentration</em> form:</p>
+\[\alpha=1+\kappa t^\star,\quad\beta=1+\kappa(1-t^\star)\;\Longrightarrow\;x^\star=\frac{\kappa t^\star}{\kappa}=t^\star,\qquad f\propto x^{\kappa t^\star}(1-x)^{\kappa(1-t^\star)}\]
+<p>So \(t^\star\) is exactly the peak, and \(\kappa=\alpha+\beta-2\) sets how sharp it is.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th class="n">\(\kappa\)</th><th class="n">\(t^\star\)</th><th class="n">\(\alpha,\ \beta\)</th><th>Shape</th></tr></thead>
+<tbody>
+<tr><td class="n">0</td><td class="n">any</td><td class="n">1, 1</td><td>flat: every success rate weighted equally, which is uniform sampling</td></tr>
+<tr><td class="n">2</td><td class="n">0.5</td><td class="n">2, 2</td><td>\(x(1-x)\): SFL's learnability score</td></tr>
+<tr><td class="n">large</td><td class="n">\(t^\star\)</td><td class="n">\(\approx\kappa t^\star,\ \kappa(1-t^\star)\)</td><td>a narrow spike at \(t^\star\)</td></tr>
+</tbody></table></div>
+<p>Width, for \(t^\star=0.5\), from the Beta variance \(\alpha\beta/[(\alpha+\beta)^2(\alpha+\beta+1)]\) with \(\alpha=\beta=1+\kappa/2\):</p>
+\[\operatorname{Var}=\frac{1}{4(\kappa+3)},\qquad \text{sd}=\frac{1}{2\sqrt{\kappa+3}}\]
+<p>\(\kappa=0\) gives \(1/\sqrt{12}\approx0.289\), the standard deviation of a uniform variable on \([0,1]\), as it should. \(\kappa=1\) gives 0.250, \(\kappa=5\) gives 0.177, \(\kappa=10\) gives 0.139.</p>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>Nothing in SGS is ever drawn from a Beta distribution. The Beta curve is used only as a scoring function: feed in a success rate, get back a weight. Statistics texts (Kruschke's form) call \(\alpha+\beta\) the concentration; the paper's \(\kappa\) is that number minus 2.</p>
+</div>
+</div>
+
+<div class="sub" id="s2-6">
+<h3><span class="num">2.6</span>Softmax with a temperature</h3>
+<p>A softmax turns scores \(\ell_i\) (logits) into probabilities. The temperature \(T\) flattens it:</p>
+\[q_i=\frac{\exp(\ell_i/T)}{\sum_{j=1}^{N}\exp(\ell_j/T)}\]
+<div class="blk">
+<p class="lbl">Derivation: what the temperature does here</p>
+<p>SGS uses logits \(\ell_i=\log(\tilde w_i+\epsilon)\), where \(\tilde w_i\) is the floored kernel weight (§3.2). Exponentiating undoes the log:</p>
+\[\exp(\ell_i/T)=(\tilde w_i+\epsilon)^{1/T}\quad\Longrightarrow\quad q_i=\frac{(\tilde w_i+\epsilon)^{1/T}}{\sum_j(\tilde w_j+\epsilon)^{1/T}}\]
+<p>Wherever the weight is far above the floor (\(w_i\gg\epsilon\)):</p>
+\[q_i\;\propto\;w_i^{1/T}=(p_i+\epsilon)^{\frac{\kappa}{T}t^\star}\,(1-p_i+\epsilon)^{\frac{\kappa}{T}(1-t^\star)}\]
+<p>That is the same Beta shape with the same peak \(t^\star\) and concentration \(\kappa/T\).</p>
+</div>
+<ul>
+<li><strong>In the interior, \(\kappa\) and \(T\) are one knob.</strong> Only \(\kappa/T\) matters. This is why the authors sweep \(\kappa\) and leave \(T\) at 2; the paper says \(T\) is "tied to" \(\kappa\).</li>
+<li><strong>At the floor, \(T\) matters separately.</strong> Floored configurations get \((2\epsilon)^{1/T}\), so the peak-to-floor ratio is \(\big((w_{\text{peak}}+\epsilon)/2\epsilon\big)^{1/T}\). A larger \(T\) flattens the curve <em>and</em> lifts the floor.</li>
+<li>The implementation uses \(T_{\text{eff}}=\max(T,1)\). The softmax can only flatten the raw kernel, never sharpen it.</li>
+</ul>
+</div>
+
+<div class="sub" id="s2-7">
+<h3><span class="num">2.7</span>Estimating a success rate from \(H\) outcomes</h3>
+<p>Each configuration keeps its last \(H\) outcomes \(o_{i,1},\dots,o_{i,H}\in\{0,1\}\) and estimates</p>
+\[p_i=\frac{1}{H}\sum_{k=1}^{H}o_{i,k}\in\Big\{0,\ \tfrac1H,\ \tfrac2H,\ \dots,\ 1\Big\}\]
+<div class="blk">
+<p class="lbl">Derivation: how noisy is it?</p>
+<p>If the true success probability \(\pi_i\) stayed fixed, \(H\,p_i\) would be Binomial\((H,\pi_i)\), so</p>
+\[\mathbb{E}[p_i]=\pi_i,\qquad \operatorname{SE}(p_i)=\sqrt{\frac{\pi_i(1-\pi_i)}{H}}\;\le\;\frac{1}{2\sqrt H}\]
+<p>Worst-case standard error: 0.10 at \(H=25\), 0.05 at \(H=100\), 0.025 at \(H=400\).</p>
+</div>
+<p>The policy keeps changing, so the window mixes old and new behavior. A long window means less noise but more lag. That trade-off matches the paper's sweep: \(H=25\) scores 0.39, \(H=100\) scores 0.49, \(H=400\) scores 0.47 (two seeds each, §6.1).</p>
+<div class="note">
+<p class="lbl chk">Check: scale makes the estimates fresher</p>
+<p>Under uniform sampling, one round of episodes (every environment finishes one) gives each configuration \(E/N\) attempts on average. For locomotion (\(N=104{,}000\)) that is 0.04 at 4,096 environments and 10 at \(2^{20}\). Filling a 100-outcome window therefore takes about 2,500 rounds at 4K and about 10 rounds at 1M, so estimates are roughly 256 times fresher at the largest scale. For manipulation (\(N=32{,}768\)) the figures are 0.125 and 32 attempts per round. The paper does not make this point; it follows from the arithmetic. Under SGS itself, configurations near the peak are visited more often (fresher) and floored ones less often (staler).</p>
+</div>
+</div>
+</section>
+
+<!-- ============================== 3 ============================== -->
+<section id="s3">
+<h2><span class="num">3</span>SGS, line by line</h2>
+
+<div class="sub" id="s3-1">
+<h3><span class="num">3.1</span>The loop</h3>
+<pre>before training
+  draw N configurations τ_1 … τ_N from the task distribution     (frozen for the run)
+  give each configuration a ring buffer of its last H outcomes
+
+whenever an environment finishes an episode on configuration i
+  push 1 (success) or 0 (no success) into buffer i
+  p_i ← mean of buffer i
+  w_i ← (p_i + ε)^(κ·t*) · (1 − p_i + ε)^(κ·(1 − t*))
+  ℓ_i ← log( max(w_i, ε) + ε )
+  this environment's next configuration:  j ~ softmax( ℓ / max(T, 1) )</pre>
+<p>What SGS does <em>not</em> use: no value function, no learned model, no extra evaluation rollouts, no difficulty ordering. Its only signal is the success bit each training episode already produces.</p>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>The pseudocode shows the conceptual order. The paper does not say how often scores are recomputed in its batched GPU implementation, or what an empty buffer's mean is. Fig. 7 shows that sampling starts out uniform, which is what you get when every \(p_i\) starts equal: if all are 0, every configuration gets the same weight.</p>
+</div>
+</div>
+
+<div class="sub" id="s3-2">
+<h3><span class="num">3.2</span>Equation 1: the kernel</h3>
+<p>The paper's Eq. 1, with the target written \(t^\star\):</p>
+\[w_i=(p_i+\epsilon)^{\kappa t^\star}\,(1-p_i+\epsilon)^{\kappa(1-t^\star)},\qquad \ell_i=\log(w_i+\epsilon)\]
+<div class="tbl"><table>
+<thead><tr><th>Piece</th><th>Job</th></tr></thead>
+<tbody>
+<tr><td>\((p_i+\epsilon)^{\kappa t^\star}\)</td><td>grows with success. Near zero when \(p_i=0\), which pushes impossible configurations down.</td></tr>
+<tr><td>\((1-p_i+\epsilon)^{\kappa(1-t^\star)}\)</td><td>grows with failure. Near zero when \(p_i=1\), which pushes mastered configurations down.</td></tr>
+<tr><td>the product</td><td>peaks at \(p_i=t^\star\) (§2.5)</td></tr>
+<tr><td>\(\kappa\)</td><td>sharpness. \(\kappa=0\) is uniform sampling; large \(\kappa\) samples only near \(t^\star\).</td></tr>
+<tr><td>\(t^\star\)</td><td>where to aim: 0.5 means "succeed half the time"; 0.66 tilts toward configurations the policy mostly solves</td></tr>
+<tr><td>\(\epsilon\) inside the powers</td><td>keeps \(w_i>0\) at \(p_i\in\{0,1\}\), so the log stays finite</td></tr>
+<tr><td>\(\log\)</td><td>turns the weight into a softmax logit</td></tr>
+</tbody></table></div>
+<p>The implementation (Appendix B.2) adds a floor before the log and a minimum temperature:</p>
+\[\tilde w_i=\max(w_i,\epsilon),\qquad \ell_i=\log(\tilde w_i+\epsilon),\qquad T_{\text{eff}}=\max(T,1)\]
+<p>The floor guarantees every configuration a minimum weight. That keeps impossible and mastered configurations in rotation, so their estimates get refreshed when the policy changes.</p>
+<div class="note">
+<p class="lbl chk">Check: when does the floor actually bind?</p>
+<p><strong>Locomotion</strong> (\(\epsilon=10^{-8}\), \(\kappa=5\), \(t^\star=0.66\)): \(w(0)\approx4\times10^{-27}\) and \(w(1)\approx2.5\times10^{-14}\), both floored. One success in 100 already gives \(w(0.01)\approx2.5\times10^{-7}\), above the floor. So only exactly-0% and exactly-100% configurations sit on it. <strong>Manipulation</strong> (\(\epsilon=10^{-4}\), \(\kappa=1\), \(t^\star=0.5\)): the smallest weight is \(w(0)=w(1)\approx0.01\), a hundred times the floor, so the floor never binds.</p>
+</div>
+</div>
+
+<div class="sub" id="s3-3">
+<h3><span class="num">3.3</span>Equation 2: from weights to a draw</h3>
+<p>At the end of every episode, that environment's next configuration is drawn independently from</p>
+\[q_i=\frac{\exp(\ell_i/T_{\text{eff}})}{\sum_{j=1}^{N}\exp(\ell_j/T_{\text{eff}})}\;=\;\frac{(\tilde w_i+\epsilon)^{1/T_{\text{eff}}}}{\sum_{j}(\tilde w_j+\epsilon)^{1/T_{\text{eff}}}}\]
+<p>With \(T=2\) this is a square root of the floored weight, renormalized. A configuration's probability depends on its own success rate and, through the denominator, on everyone else's.</p>
+</div>
+
+<div class="sub" id="s3-4">
+<h3><span class="num">3.4</span>The numbers the paper uses</h3>
+<div class="tbl"><table>
+<thead><tr><th></th><th class="n">Locomotion</th><th class="n">Manipulation</th></tr></thead>
+<tbody>
+<tr><td>configurations \(N\)</td><td class="n">104,000</td><td class="n">32,768</td></tr>
+<tr><td>window \(H\)</td><td class="n">100</td><td class="n">100</td></tr>
+<tr><td>temperature \(T\)</td><td class="n">2</td><td class="n">2</td></tr>
+<tr><td>target \(t^\star\)</td><td class="n">0.66</td><td class="n">0.5</td></tr>
+<tr><td>concentration \(\kappa\)</td><td class="n">5</td><td class="n">1</td></tr>
+<tr><td>floor \(\epsilon\)</td><td class="n">\(10^{-8}\)</td><td class="n">\(10^{-4}\)</td></tr>
+<tr class="hi"><td>effective sharpness \(\kappa/T\) (derived)</td><td class="n">2.5</td><td class="n">0.5</td></tr>
+<tr><td>exponent on \(p\), \(\kappa t^\star/T\)</td><td class="n">1.65</td><td class="n">0.25</td></tr>
+<tr><td>exponent on \(1-p\), \(\kappa(1-t^\star)/T\)</td><td class="n">0.85</td><td class="n">0.25</td></tr>
+<tr><td>equivalent interior shape</td><td class="n">Beta(2.65, 1.85)</td><td class="n">Beta(1.25, 1.25)</td></tr>
+</tbody></table></div>
+<p>Relative sampling rate per configuration, with the peak set to 1:</p>
+<div class="tbl"><table>
+<thead><tr><th class="n">Success estimate \(p\)</th><th class="n">Locomotion</th><th class="n">Manipulation</th></tr></thead>
+<tbody>
+<tr><td class="n">0</td><td class="n">0.0007 (1 in 1,424)</td><td class="n">0.142 (1 in 7.0)</td></tr>
+<tr><td class="n">0.01</td><td class="n">0.0025 (1 in 397)</td><td class="n">0.447</td></tr>
+<tr><td class="n">0.05</td><td class="n">0.034 (1 in 29.5)</td><td class="n">0.661</td></tr>
+<tr><td class="n">0.10</td><td class="n">0.102</td><td class="n">0.775</td></tr>
+<tr><td class="n">0.25</td><td class="n">0.395</td><td class="n">0.931</td></tr>
+<tr><td class="n">0.50</td><td class="n">0.878</td><td class="n"><strong>1</strong> (peak)</td></tr>
+<tr><td class="n">0.66</td><td class="n"><strong>1</strong> (peak)</td><td class="n">0.973</td></tr>
+<tr><td class="n">0.75</td><td class="n">0.951</td><td class="n">0.931</td></tr>
+<tr><td class="n">0.90</td><td class="n">0.590</td><td class="n">0.775</td></tr>
+<tr><td class="n">0.99</td><td class="n">0.098</td><td class="n">0.447</td></tr>
+<tr><td class="n">1</td><td class="n">0.0007 (1 in 1,424)</td><td class="n">0.142 (1 in 7.0)</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>Locomotion's sampler is greedy and lopsided: a configuration at 5% success gets one-thirtieth of the peak rate, while one at 90% still gets 59%. Manipulation's sampler is gentle and symmetric: even a 0% configuration gets a seventh of the peak rate. Remember that a <em>rate per configuration</em> is not a <em>share of episodes</em>. The share is the rate times how many configurations sit at that success level, which is what the second half of the explorer shows.</p>
+</div>
+</div>
+
+<div class="sub" id="s3-5">
+<h3><span class="num">3.5</span>Explorer: shape the kernel yourself</h3>
+<div class="explorer" id="explorer">
+<div class="ex-top">
+<div class="ctrl">
+<div class="presets" role="group" aria-label="Presets">
+<button type="button" data-preset="loco" aria-pressed="true">Locomotion</button>
+<button type="button" data-preset="manip" aria-pressed="false">Manipulation</button>
+<button type="button" data-preset="sfl" aria-pressed="false">p(1−p)</button>
+<button type="button" data-preset="uni" aria-pressed="false">Uniform</button>
+</div>
+<div class="cgrid">
+<div class="c"><label for="ex-t"><span>Target t*</span><output id="ex-t-out" for="ex-t">0.66</output></label>
+<input id="ex-t" type="range" min="0" max="1" step="0.01" value="0.66"></div>
+<div class="c"><label for="ex-k"><span>Concentration κ</span><output id="ex-k-out" for="ex-k">5</output></label>
+<input id="ex-k" type="range" min="0" max="20" step="0.5" value="5"></div>
+<div class="c"><label for="ex-T"><span>Temperature T</span><output id="ex-T-out" for="ex-T">2</output></label>
+<input id="ex-T" type="range" min="1" max="8" step="0.5" value="2"></div>
+<div class="c"><div class="row"><label for="ex-eps">Floor ε</label>
+<select id="ex-eps"><option value="1e-8" selected>10⁻⁸</option><option value="1e-4">10⁻⁴</option><option value="1e-2">10⁻²</option></select></div>
+<label class="chkbox" for="ex-log"><input id="ex-log" type="checkbox"> Log scale (shows the floor)</label></div>
+</div>
+</div>
+<div class="plot">
+<svg id="ex-svg" viewBox="0 0 640 300" role="img" aria-label="Relative sampling rate per configuration versus its success estimate"></svg>
+<div class="key"><span><i class="ln ln-sgs"></i>SGS kernel</span><span><i class="ln ln-ref"></i>p(1−p)</span><span><i class="ln ln-uni"></i>uniform</span><span><i class="ln ln-t"></i>target t*</span></div>
+<dl class="readout">
+<div><dt>Peak at</dt><dd id="ro-peak">p = 0.66</dd></div>
+<div><dt>κ / T_eff</dt><dd id="ro-sharp">2.5</dd></div>
+<div><dt>0% config</dt><dd id="ro-zero">1 in 1,424</dd></div>
+<div><dt>1% config</dt><dd id="ro-one">1 in 397</dd></div>
+<div><dt>99% config</dt><dd id="ro-99">1 in 10</dd></div>
+</dl>
+</div>
+</div>
+<div class="pop">
+<p class="lbl">Where the episodes go</p>
+<div class="pop-ctrl">
+<div><label for="pop-imp"><span>Impossible now (p = 0)</span><output id="pop-imp-out" for="pop-imp">90%</output></label>
+<input id="pop-imp" type="range" min="0" max="100" step="1" value="90"></div>
+<div><label for="pop-mas"><span>Mastered (p = 1)</span><output id="pop-mas-out" for="pop-mas">5%</output></label>
+<input id="pop-mas" type="range" min="0" max="100" step="1" value="5"></div>
+<div><label for="pop-pm"><span>Success rate of the rest</span><output id="pop-pm-out" for="pop-pm">0.50</output></label>
+<input id="pop-pm" type="range" min="0.01" max="0.99" step="0.01" value="0.5"></div>
+</div>
+<div class="bars">
+<div class="bar-row"><span>Uniform</span><div class="bar" id="bar-uni"></div></div>
+<div class="bar-row"><span>SGS</span><div class="bar" id="bar-sgs"></div></div>
+</div>
+<div class="key"><span><i class="sw-hard"></i>impossible</span><span><i class="sw-learn"></i>learning</span><span><i class="sw-easy"></i>mastered</span></div>
+<p class="popsum" id="pop-sum">Uniform sends 5% of episodes to configurations that can teach something; SGS sends 98.5%.</p>
+</div>
+</div>
+<p class="small">The curve is \(q(p)\) from Eq. 1 and 2, sampled at the 101 values an \(H=100\) window can take. The dashed line is \(p(1-p)\) and the dotted line is uniform sampling, each scaled to peak at 1.</p>
+</div>
+
+<div class="sub" id="s3-6">
+<h3><span class="num">3.6</span>The two training decisions around the sampler</h3>
+<div class="tbl"><table>
+<thead><tr><th>Decision</th><th>What it means</th><th>Why it pairs with SGS</th></tr></thead>
+<tbody>
+<tr><td>One reward per domain</td><td>one reward for all 13 terrains; one for all assembly tasks. A boolean success term plus small per-step regularizers (§4).</td><td>The same success bit that pays the policy also feeds the sampler. No per-task reward design.</td></tr>
+<tr><td>Scale environments, fix the minibatch count</td><td>batch size grows with environment count; update count per iteration stays fixed (§2.3)</td><td>The paper argues extra environments only help if they land on configurations with signal; SGS steers them there.</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl">Paper</p>
+<p>SGS is presented as complementary to optimizer-side fixes for PPO at scale: SAPG (Singla, Agarwal and Pathak, ICML 2024), which targets redundant data from a single Gaussian policy, and Beukman et al., <a href="https://arxiv.org/abs/2603.06009" target="_blank" rel="noopener">Preventing learning stagnation in PPO by scaling to 1 million parallel environments</a> (2026), which targets degraded loss estimates at scale.</p>
+</div>
+</div>
+</section>
+
+<!-- ============================== 4 ============================== -->
+<section id="s4">
+<h2><span class="num">4</span>Rewards, term by term</h2>
+<p>Generic form, Eq. 3 of the paper:</p>
+\[r(s_t,a_t,g)=\lambda_{\text{task}}\,r_{\text{task}}(s_t,a_t,g)+\lambda_{\text{reg}}\,r_{\text{reg}}(s_t,a_t)\]
+<div class="tbl"><table>
+<thead><tr><th></th><th>Locomotion policy</th><th>Manipulation teacher</th></tr></thead>
+<tbody>
+<tr><td>Observes</td><td>base linear and angular velocity, projected gravity, joint positions and velocities, previous action, goal command, local terrain height scan</td><td>joint positions, end-effector pose, previous action, point cloud of gripper, held object and board in the gripper frame</td></tr>
+<tr><td>Acts</td><td>12 joint-position offsets from the nominal pose, tracked by joint controllers</td><td>3 Cartesian translation increments, 3 axis-angle rotation increments, 1 binary open/close, executed by an operational-space controller (UR5e; see §8)</td></tr>
+</tbody></table></div>
+
+<div class="sub" id="s4-1">
+<h3><span class="num">4.1</span>Locomotion (one reward, all 13 terrains)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Term</th><th>Formula</th><th class="n">Weight</th><th>What it measures</th></tr></thead>
+<tbody>
+<tr><td>\(r_{\text{succ}}\)</td><td>\(\mathbf{1}[\text{command success at } t]\)</td><td class="n">+50</td><td>reached the commanded goal; ends the episode</td></tr>
+<tr><td>\(r_{\text{fail}}\)</td><td>\(\mathbf{1}[\text{drop or base contact}]\)</td><td class="n">−50</td><td>fell off the terrain or the body hit the ground; ends the episode</td></tr>
+<tr><td>\(r_{\text{work}}\)</td><td>\(\lVert\tau^{\text{jnt}}_t\odot\dot q_t\rVert_1\)</td><td class="n">\(-10^{-3}\)</td><td>mechanical power, \(\sum_j|\tau^{\text{jnt}}_j\,\dot q_j|\): wasted effort</td></tr>
+<tr><td>\(r_{\text{post}}\)</td><td>\(\lVert q_t-q_{\text{nom}}\rVert_1\)</td><td class="n">\(-5\times10^{-2}\)</td><td>how far the joints are from the nominal stance</td></tr>
+<tr><td>\(r_{\text{td}}\)</td><td>\(\sum_{f}\mathbf{1}[\text{TD}_f(t)]\,\lVert v_{f,z}(t)\rVert_2^2\)</td><td class="n">\(-2.5\times10^{-1}\)</td><td>squared vertical foot speed at touchdown: stomping</td></tr>
+<tr><td>\(r_{\text{undc}}\)</td><td>\(\sum_{i\in\text{non-feet}}\mathbf{1}[\lVert F_i(t)\rVert_2>F_{\min}]\)</td><td class="n">\(-5\times10^{-2}\)</td><td>count of non-foot bodies (knees, base) in hard contact</td></tr>
+<tr><td>\(r_{\text{fwd}}\)</td><td>\(\max\big(0,\langle\hat v^{(b)}_t,\hat g^{(b)}_t\rangle\big)\)</td><td class="n">+0.3</td><td>forward-aligned motion; switched off for the first 500 steps of training</td></tr>
+</tbody></table></div>
+<p class="cap">\(\odot\) is the elementwise product, \(\lVert x\rVert_1=\sum_j|x_j|\), \(\mathbf{1}[\cdot]\) is 1 when the condition holds and 0 otherwise, superscript \((b)\) means "in the body frame". \(F_{\min}\) is not given.</p>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>The paper says \(r_{\text{fwd}}\) makes the robot walk forward instead of approaching the goal backwards. As written, it is a dot product of two unit vectors in the same frame, and a dot product does not depend on the frame. So the formula alone measures "moving toward the goal"; to reward <em>facing</em> forward, one of the two vectors must be tied to the body's heading. The paper does not define \(\hat v\) and \(\hat g\) further, and does not say whether the 500 steps are environment steps or PPO iterations.</p>
+</div>
+</div>
+
+<div class="sub" id="s4-2">
+<h3><span class="num">4.2</span>Manipulation (one reward, every assembly task)</h3>
+\[r(s_t,a_t)=\underbrace{r_{\text{succ}}}_{r_{\text{task}}}+\underbrace{r_{\text{fail}}+r_{\text{act}}+r_{\Delta a}+r_{\dot q}}_{r_{\text{reg}}},\qquad C(x)=\min(x,10^{4})\]
+<div class="tbl"><table>
+<thead><tr><th>Term</th><th>Formula</th><th class="n">Weight</th><th>What it measures</th></tr></thead>
+<tbody>
+<tr><td>\(r_{\text{succ}}\)</td><td>\(\lambda_{\text{succ}}\,\mathbf{1}[S(s_t)]\)</td><td class="n">100</td><td>assembly predicate \(S\): orientation, lateral-position and insertion-depth gates, task-specific</td></tr>
+<tr><td>\(r_{\text{fail}}\)</td><td>\(-\lambda_{\text{fail}}\,\mathbf{1}[F(s_t)]\)</td><td class="n">1</td><td>termination: a joint above twice its velocity limit, or the held object leaving the workspace</td></tr>
+<tr><td>\(r_{\text{act}}\)</td><td>\(-\lambda_{\text{act}}\,C(\lVert a_t\rVert_2^2)\)</td><td class="n">\(10^{-5}\)</td><td>action size</td></tr>
+<tr><td>\(r_{\Delta a}\)</td><td>\(-\lambda_{\Delta a}\,C(\lVert a_t-a_{t-1}\rVert_2^2)\)</td><td class="n">\(10^{-4}\)</td><td>action change between steps (smoothness)</td></tr>
+<tr><td>\(r_{\dot q}\)</td><td>\(-\lambda_{\dot q}\,C(\lVert\dot q_{t,\text{arm}}\rVert_2^2)\)</td><td class="n">\(10^{-4}\)</td><td>arm joint speed</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl chk">Check: what the clamp implies</p>
+<p>Each squared norm is capped at \(10^4\), so the per-step regularizers can never cost more than \(10^{-5}\cdot10^{4}+10^{-4}\cdot10^{4}+10^{-4}\cdot10^{4}=0.1+1+1=2.1\) per step. Failure costs 1 and success pays 100, so a failed attempt is nearly free; the failure term works mainly as a safety stop.</p>
+</div>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>Both domains put nearly all of the reward into one boolean outcome. That is what makes "success rate" a meaningful single number for SGS to steer by.</p>
+</div>
+</div>
+</section>
+
+<!-- ============================== 5 ============================== -->
+<section id="s5">
+<h2><span class="num">5</span>Experiments</h2>
+<p>Three questions: does SGS scale better than uniform sampling and PLR as environments grow (Q1), does it unlock tasks the others cannot learn even at small scale (Q2), and do its manipulation policies transfer to real hardware (Q3)?</p>
+
+<div class="sub" id="s5-1">
+<h3><span class="num">5.1</span>Tasks and configuration spaces</h3>
+<p><strong>Locomotion.</strong> ANYmal-D with system-identified actuator models. Thirteen terrain types: slopes, pits, gaps and stairs from earlier work; radiating beams, balance beams and stepping stones; harder procedurally generated terrains (navigation mazes, contoured terrain, floating islands joined by narrow stepping stones or jump boxes at different heights); and an inverted slope, which Fig. 3 omits for space. <em>One</em> policy is trained from scratch on all of them, where much prior work trains per-terrain specialists and distills.</p>
+<div class="blk">
+<p class="lbl">Derivation: where 104,000 comes from</p>
+\[\underbrace{13}_{\text{terrain types}}\times\underbrace{2}_{\text{seeds each}}\times\underbrace{10}_{\text{levels}}\times\underbrace{20}_{\text{starts}}\times\underbrace{20}_{\text{goals}}=104{,}000\]
+<p>For the classic terrains, a level is a difficulty (slope angle, step height). For the procedural ones there is no clear ordering, so a level is just another seed.</p>
+</div>
+<p><strong>Manipulation.</strong> NIST Assembly Task Board tasks, one policy per task.</p>
+<div class="tbl"><table>
+<thead><tr><th>Task</th><th>What has to happen</th></tr></thead>
+<tbody>
+<tr><td>Nut-and-bolt</td><td>thread an M16 nut onto an upright bolt, about 6.5 turns</td></tr>
+<tr><td>Gear mesh</td><td>seat the medium gear on its shaft, teeth meshing with the small and large gears</td></tr>
+<tr><td>Waterproof connector</td><td>insert the connector until fully seated</td></tr>
+<tr><td>BNC connector</td><td>insert, then rotate to engage the lock</td></tr>
+<tr><td>Rod-in-hole</td><td>insert a 16 mm rod</td></tr>
+<tr><td>Rectangular peg</td><td>insert with both position and rotation aligned</td></tr>
+</tbody></table></div>
+<div class="tbl"><table>
+<thead><tr><th></th><th>UR5e (six tasks)</th><th>Franka Panda (nut only)</th></tr></thead>
+<tbody>
+<tr><td>Gripper</td><td>Robotiq 2F-85</td><td>parallel jaw</td></tr>
+<tr><td>Control</td><td>operational-space control (Cartesian commands)</td><td>joint-position control</td></tr>
+<tr><td>Policy rate</td><td>10 Hz, 20 physics steps per action</td><td>25 Hz, 8 physics steps per action</td></tr>
+<tr><td>Physics</td><td colspan="2">5 ms step (200 Hz)</td></tr>
+<tr><td>Nut training time</td><td>≈335 h</td><td>≈128 h</td></tr>
+</tbody></table></div>
+<p>Franka needs 20/8 = 2.5 times fewer physics steps per policy step, which the paper credits for part of its faster training.</p>
+<p><strong>Reset buffer.</strong> Each manipulation task pre-collects 32,768 collision-checked configurations, balanced across three reset families from OmniReset (about 10,900 each):</p>
+<div class="tbl"><table>
+<thead><tr><th>Reset family</th><th>Start</th><th>What the policy must still do</th></tr></thead>
+<tbody>
+<tr><td>Near-Goal</td><td>object partway along its assembly path, gripper placed around the grasp point by inverse kinematics, with randomized pose and aperture. For the rod, depth fraction in \([0,1.1]\): 0 is fully seated, above 1 is slightly disengaged</td><td>finish the insertion or threading</td></tr>
+<tr><td>Stable Grasp</td><td>object held above the target, higher than Near-Goal</td><td>align, then assemble</td></tr>
+<tr><td>Reaching</td><td>object anywhere in the workspace, gripper aligned to its grasp frame with a random aperture, so the object may fall</td><td>fetch, grasp, transport, assemble</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s5-2">
+<h3><span class="num">5.2</span>The baselines</h3>
+<div class="tbl"><table>
+<thead><tr><th>Sampler</th><th>How it picks the next configuration</th><th>Used on</th></tr></thead>
+<tbody>
+<tr><td><span class="k-uni">Uniform</span></td><td>a fresh draw from \(\rho\) at every reset. Enough for easier manipulation in OmniReset; not effective for multi-task locomotion.</td><td>all</td></tr>
+<tr><td><span class="k-lin">Linear curriculum</span></td><td>hand-ordered terrain difficulty (for example stair height). Robots start at random levels, are promoted when they get close to the goal and demoted when they make little progress.</td><td>locomotion</td></tr>
+<tr><td><span class="k-plr">PLR</span></td><td>score each configuration by average absolute GAE, plus a staleness bonus</td><td>all</td></tr>
+<tr><td>SFL</td><td>periodically evaluate random levels, keep the most learnable by \(p(1-p)\), train on a mix of kept and random levels</td><td>locomotion, 4K and 32K</td></tr>
+</tbody></table></div>
+<div class="blk">
+<p class="lbl">Derivation: PLR in full (Jiang, Grefenstette and Rocktäschel, ICML 2021)</p>
+<p>Score of level \(i\) from its most recent episode of length \(T_{\text{ep}}\):</p>
+\[S_i=\frac{1}{T_{\text{ep}}}\sum_{t=0}^{T_{\text{ep}}}\Big|\sum_{k=t}^{T_{\text{ep}}}(\gamma\lambda)^{k-t}\,\delta_k\Big|\]
+<p>Rank-based prioritization with temperature \(\beta\), mixed with staleness (\(c\) = episodes so far, \(C_i\) = episode count when level \(i\) was last played):</p>
+\[P_S(i)=\frac{h(S_i)^{1/\beta}}{\sum_j h(S_j)^{1/\beta}},\quad h(S_i)=\frac{1}{\operatorname{rank}(S_i)},\qquad P_C(i)=\frac{c-C_i}{\sum_j (c-C_j)},\qquad P(i)=(1-\rho_{\text{st}})P_S(i)+\rho_{\text{st}}P_C(i)\]
+<p class="small">Formulas from the <a href="https://arxiv.org/abs/2010.03934" target="_blank" rel="noopener">PLR paper</a>; I write its staleness weight \(\rho\) as \(\rho_{\text{st}}\) to avoid a clash. The SGS paper does not report the \(\beta\) and \(\rho_{\text{st}}\) it used.</p>
+</div>
+<div class="blk">
+<p class="lbl">Derivation: SFL in full (Rutherford et al., NeurIPS 2024)</p>
+<p>Every \(T\) updates: roll out \(N\) random levels for \(L\) steps, compute each one's success rate \(p\) and learnability \(p(1-p)\), keep the top \(K\). Each update then trains on \(\rho N_L\) levels drawn uniformly from the kept set plus \((1-\rho)N_L\) fresh random levels. Published defaults: \(T=50\), \(\rho=0.5\), \(N_L=256\), \(L=2000\), \(N=5000\), \(K=1000\).</p>
+<p class="small">From the <a href="https://arxiv.org/abs/2408.15099" target="_blank" rel="noopener">SFL paper</a>. The SGS paper says it ran SFL with default hyperparameters.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th></th><th>PLR</th><th>SFL</th><th>SGS</th></tr></thead>
+<tbody>
+<tr><td>Signal</td><td>critic surprise (|GAE|)</td><td>success rate</td><td>success rate</td></tr>
+<tr><td>Where it comes from</td><td>last training episode</td><td>extra evaluation rollouts</td><td>last \(H\) training episodes</td></tr>
+<tr><td>Weighting</td><td>by rank</td><td>hard top-\(K\) cut, then uniform</td><td>smooth Beta curve</td></tr>
+<tr><td>Target</td><td>fixed (high score)</td><td>fixed at \(p=0.5\)</td><td>adjustable \(t^\star\)</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s5-3">
+<h3><span class="num">5.3</span>Protocol</h3>
+<div class="tbl"><table>
+<thead><tr><th></th><th>Locomotion</th><th>Franka nut</th></tr></thead>
+<tbody>
+<tr><td>Scales</td><td colspan="2">4K, 32K, 256K, 1M environments (\(2^{12}, 2^{15}, 2^{18}, 2^{20}\))</td></tr>
+<tr><td>Seeds per scale</td><td colspan="2">3</td></tr>
+<tr><td>PPO iterations</td><td>5,000</td><td>7,500</td></tr>
+<tr><td>Max environments per GPU</td><td>32,768</td><td>16,384</td></tr>
+<tr><td>GPUs needed at \(2^{20}\) (derived)</td><td>at least 32</td><td>at least 64</td></tr>
+<tr><td>Wall clock (scale not stated)</td><td>≈36 h</td><td>≈128 h</td></tr>
+<tr><td>Hardware</td><td colspan="2">NVIDIA L40S and H200</td></tr>
+<tr><td>Evaluation</td><td colspan="2">fresh configurations drawn from the training distribution, not the \(N\) training ones</td></tr>
+</tbody></table></div>
+</div>
+
+<div class="sub" id="s5-4">
+<h3><span class="num">5.4</span>Scaling results (Fig. 5)</h3>
+<p>Mean success over three seeds. Exact values are from the text and Table 1; values marked ≈ I read from the point coordinates in the paper's SVG plot files (about ±0.01).</p>
+<div class="tbl"><table>
+<caption>Multi-terrain locomotion, Fig. 5a</caption>
+<thead><tr><th>Sampler</th><th class="n">4K</th><th class="n">32K</th><th class="n">256K</th><th class="n">1M</th></tr></thead>
+<tbody>
+<tr><td><span class="k-sgs">SGS</span></td><td class="n">0.456</td><td class="n">0.494</td><td class="n">≈0.72</td><td class="n"><strong>0.73</strong></td></tr>
+<tr><td><span class="k-uni">Uniform</span></td><td class="n">≈0</td><td class="n">≈0.42</td><td class="n">≈0</td><td class="n">≈0</td></tr>
+<tr><td><span class="k-lin">Linear curriculum</span></td><td class="n">≈0</td><td class="n">≈0.32</td><td class="n">≈0</td><td class="n">≈0</td></tr>
+<tr><td><span class="k-plr">PLR</span></td><td class="n">≈0</td><td class="n">≈0.13</td><td class="n">≈0.55</td><td class="n"><strong>0.54</strong></td></tr>
+</tbody></table></div>
+<div class="tbl"><table>
+<caption>Franka nut-and-bolt, Fig. 5b</caption>
+<thead><tr><th>Sampler</th><th class="n">4K</th><th class="n">32K</th><th class="n">256K</th><th class="n">1M</th></tr></thead>
+<tbody>
+<tr><td><span class="k-sgs">SGS</span></td><td class="n">≈0.00</td><td class="n">≈0.06</td><td class="n">≈0.11</td><td class="n"><strong>0.70</strong></td></tr>
+<tr><td><span class="k-uni">Uniform</span></td><td class="n">0</td><td class="n">0</td><td class="n">≈0.01</td><td class="n"><strong>0.06</strong></td></tr>
+<tr><td><span class="k-plr">PLR</span></td><td class="n">0</td><td class="n">0</td><td class="n">≈0.02</td><td class="n"><strong>0.05</strong></td></tr>
+</tbody></table></div>
+<p><strong>UR5e rod-in-hole, Fig. 5c</strong> (an easier task): at 32K, SGS succeeds while uniform and PLR score zero; at 256K all methods reach about 98%. The plot image is broken in arXiv's HTML build, so I have only the values the text states.</p>
+<div class="note">
+<p class="lbl int">Reading the tables</p>
+<ul>
+<li><strong>More environments made two baselines worse.</strong> On locomotion, uniform and the hand-designed curriculum peak at 32K and fall to about zero at 256K and 1M. This is the collapse the paper mentions. Only SGS never gets worse as environments grow.</li>
+<li><strong>On the Franka nut, SGS and scale work only together.</strong> SGS at 256K reaches about 11%; uniform at 1M reaches 6%; SGS at 1M reaches 70%. The jump happens between the last two scales.</li>
+<li><strong>Easy tasks forgive.</strong> On the rod, scale alone eventually works; SGS gets there with fewer environments.</li>
+</ul>
+</div>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>The paper attributes the collapse to experience wasted on configurations without signal, but runs no experiment that isolates the cause, and three seeds per point is thin. The SGS band at 1M on the nut is wide: the three seeds sit at roughly 0.62, 0.74 and 0.75.</p>
+</div>
+</div>
+
+<div class="sub" id="s5-5">
+<h3><span class="num">5.5</span>Against SFL (Table 1)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Environments</th><th class="n">SFL final</th><th class="n">SFL best</th><th class="n">SGS final</th></tr></thead>
+<tbody>
+<tr><td>4K</td><td class="n">0.255 ± 0.051</td><td class="n">0.289 ± 0.015</td><td class="n">0.456 ± 0.019</td></tr>
+<tr><td>32K</td><td class="n">0.051 ± 0.142</td><td class="n">0.421 ± 0.032</td><td class="n">0.494 ± 0.113</td></tr>
+</tbody></table></div>
+<p class="cap">Locomotion success, mean ± 95% CI over three seeds.</p>
+<ul>
+<li><strong>4K:</strong> the intervals do not overlap (SGS 0.437 to 0.475; SFL best 0.274 to 0.304). A clear win.</li>
+<li><strong>32K:</strong> SGS spans 0.381 to 0.607 and SFL best spans 0.389 to 0.453. They overlap, so this comparison cannot separate the two.</li>
+<li><strong>SFL decays.</strong> Its final score at 32K (0.051) is far below its best (0.421). The paper reports the decline but does not explain it.</li>
+<li>"Best" is the maximum over checkpoints, which flatters SFL. Comparing SGS's <em>final</em> score against it is conservative toward SGS.</li>
+</ul>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>The interval 0.051 ± 0.142 dips below zero, which a success rate cannot do. That is typical of a t-interval over three seeds, where the half-width is \(4.30\,s/\sqrt3\approx2.48\,s\) for sample standard deviation \(s\). The paper does not say how its intervals were computed.</p>
+</div>
+</div>
+
+<div class="sub" id="s5-6">
+<h3><span class="num">5.6</span>What SGS samples over time (Fig. 7)</h3>
+<p>On a floating-islands terrain, the figure shows where sampling mass sits early, midway and late in training. Early, it is spread uniformly. Midway, it concentrates on jumps between islands at the same height. Late, it moves to configurations that involve the top of the tall central pillar.</p>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>A curriculum appears without anyone ordering the terrain. Once level jumps are mostly solved they drop toward the low-weight tails, and the next frontier, the pillar, rises into the peak.</p>
+</div>
+</div>
+
+<div class="sub" id="s5-7">
+<h3><span class="num">5.7</span>Six UR5e tasks (Table 6)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Task</th><th class="n">Envs</th><th class="n"><span class="k-uni">Uniform</span></th><th class="n"><span class="k-plr">PLR</span></th><th class="n"><span class="k-sgs">SGS</span></th></tr></thead>
+<tbody>
+<tr><td>Gear mesh</td><td class="n">64K</td><td class="n">94.24</td><td class="n">95.51</td><td class="n">96.09</td></tr>
+<tr><td>Waterproof</td><td class="n">64K</td><td class="n">95.31</td><td class="n">95.90</td><td class="n">95.80</td></tr>
+<tr><td>Rectangular peg</td><td class="n">64K</td><td class="n">92.09</td><td class="n">84.18</td><td class="n">92.77</td></tr>
+<tr><td>Rod-in-hole</td><td class="n">64K</td><td class="n">95.90</td><td class="n">95.41</td><td class="n">95.70</td></tr>
+<tr><td>BNC</td><td class="n">64K</td><td class="n">83.40</td><td class="n">81.45</td><td class="n">84.08</td></tr>
+<tr class="hi"><td>Nut-and-bolt</td><td class="n">256K</td><td class="n">48.83</td><td class="n">59.77</td><td class="n">90.04</td></tr>
+</tbody></table></div>
+<p class="cap">Success (%) from Reaching resets under full gravity. No seeds or intervals are given.</p>
+<ul>
+<li>On the five insertion tasks the three samplers are within about 2.6 points of each other, except PLR on the peg. The paper calls SGS comparable to uniform; without intervals, gaps this small cannot be ranked.</li>
+<li>The nut is the only large gap: 90 versus 49 and 60. The authors' hypothesis is that less forgiving contact and a longer horizon make focused practice matter more.</li>
+<li>UR5e nut (90%) beats Franka nut (70%). The authors credit mostly the control interface: OSC lets the policy command Cartesian motion directly, while joint-position control makes it coordinate seven joints itself. Embodiment, gripper and policy rate also differ.</li>
+</ul>
+</div>
+</section>
+
+<!-- ============================== 6 ============================== -->
+<section id="s6">
+<h2><span class="num">6</span>Appendix studies</h2>
+
+<div class="sub" id="s6-1">
+<h3><span class="num">6.1</span>Hyperparameter sensitivity (Table 3)</h3>
+<p>Locomotion, 32K environments, one knob changed at a time, two seeds per setting. Nominal settings in bold.</p>
+<div class="tbl"><table>
+<thead><tr><th>Knob</th><th>Setting (success)</th></tr></thead>
+<tbody>
+<tr><td>Target \(t^\star\)</td><td>.33 (.50) · .50 (.44) · <strong>.66 (.49)</strong> · .80 (.42) · .90 (.52)</td></tr>
+<tr><td>Concentration \(\kappa\)</td><td>1 (.44) · 2 (.47) · <strong>5 (.49)</strong> · 10 (.46)</td></tr>
+<tr><td>Temperature \(T\)</td><td><strong>2 (.49)</strong> · 4 (.53)</td></tr>
+<tr><td>Window \(H\)</td><td>25 (.39) · <strong>100 (.49)</strong> · 400 (.47)</td></tr>
+<tr><td>Floor \(\epsilon\)</td><td>\(10^{-8}\) (.49) · \(10^{-4}\) (.46), bolded in the paper · \(10^{-2}\) (.44)</td></tr>
+<tr><td>Kernel, 4K envs, 3 seeds</td><td>Normal (.45) · <strong>Beta (.46)</strong></td></tr>
+<tr><td>Patches \(n_{\text{patch}}\)</td><td>10 (.38) · <strong>20 (.49)</strong> · 40 (.48)</td></tr>
+</tbody></table></div>
+<div class="blk">
+<p class="lbl chk">Check: two rows are one axis</p>
+<p>By §2.6, \(\kappa\) and \(T\) act through \(\kappa/T\) in the interior. Putting both rows on that axis:</p>
+<div class="tbl"><table>
+<thead><tr><th>\(\kappa/T_{\text{eff}}\)</th><th class="n">0.5</th><th class="n">1.0</th><th class="n">1.25</th><th class="n">2.5</th><th class="n">5.0</th></tr></thead>
+<tbody>
+<tr><td>run</td><td class="n">κ = 1</td><td class="n">κ = 2</td><td class="n">T = 4</td><td class="n">nominal</td><td class="n">κ = 10</td></tr>
+<tr><td>success</td><td class="n">.44</td><td class="n">.47</td><td class="n">.53</td><td class="n">.49</td><td class="n">.46</td></tr>
+</tbody></table></div>
+<p>The best number in the whole table (.53) sits between two weaker neighbors, which looks like seed noise. \(T=4\) is not a pure \(\kappa/T\) move, though: it also lifts the floor from \((2\epsilon)^{1/2}\) to \((2\epsilon)^{1/4}\), giving more practice to 0% and 100% configurations.</p>
+</div>
+<ul>
+<li><strong>Noise yardstick.</strong> SGS at 32K over three seeds is 0.494 ± 0.113 (Table 1). Most differences in this table (0.05 or less) sit well inside that. The drops that stand out are \(H=25\) (.39), \(n_{\text{patch}}=10\) (.38) and \(t^\star=.80\) (.42); the \(H\) and \(t^\star\) rows have two seeds, and the patch rows' seed count is not stated.</li>
+<li><strong>Kernel shape barely matters.</strong> A Normal-shaped kernel scores .45 against the Beta's .46. The paper does not give the Normal kernel's exact form.</li>
+<li><strong>Manipulation sweep.</strong> \(\kappa\in\{1,5,10\}\) by \(t^\star\in\{.33,.5,.66\}\), \(T=2\), 32K environments; \(\kappa=1,\ t^\star=0.5\) won "by a small margin". Its numbers are not reported.</li>
+</ul>
+<div class="note">
+<p class="lbl chk">Check: two errors in this table's description</p>
+<p><strong>The bolded floor is likely wrong.</strong> §3.2 says locomotion uses \(\epsilon=10^{-8}\), yet the table bolds \(10^{-4}\). Every other 32K row's nominal entry scores .49, and so does the \(10^{-8}\) entry, so the \(10^{-8}\) run is almost certainly the nominal one. <strong>The patch counts don't multiply.</strong> The text says each tile uses \(n_{\text{patch}}\) spawn patches times \(n_{\text{patch}}\) goal patches, which gives \(260\times n_{\text{patch}}^2\) = 26,000 / 104,000 / 416,000 configurations. The paper reports 52,000 / 104,000 / 208,000, which is linear in \(n_{\text{patch}}\) (only one of the two counts changing, the other held at 20).</p>
+</div>
+</div>
+
+<div class="sub" id="s6-2">
+<h3><span class="num">6.2</span>Which resets matter (Table 4)</h3>
+<p>UR5e rod-in-hole retrained on two of the three reset families, three seeds each. Success (%) on each family:</p>
+<div class="tbl"><table>
+<thead><tr><th>Training buffer</th><th class="n">Stable Grasp</th><th class="n">Reaching</th><th class="n">Near-Goal</th></tr></thead>
+<tbody>
+<tr><td>All three</td><td class="n">99.5</td><td class="n">96.0</td><td class="n">100.0</td></tr>
+<tr><td>Without Stable Grasp</td><td class="n">omitted</td><td class="n">63.8</td><td class="n">81.3</td></tr>
+<tr><td>Without Reaching</td><td class="n">99.4</td><td class="n">omitted</td><td class="n">100.0</td></tr>
+<tr class="hi"><td>Without Near-Goal</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">omitted</td></tr>
+</tbody></table></div>
+<ul>
+<li><strong>Without Near-Goal, nothing is learned.</strong> If no configuration ever succeeds, every \(p_i\) stays at 0, every configuration gets the same weight, and SGS degenerates to uniform sampling over hopeless starts.</li>
+<li>Without Stable Grasp, one of three seeds collapsed and two stayed high, which drags the means to 63.8 and 81.3.</li>
+<li>Without Reaching, the other two families are unaffected. No Reaching score is reported for that run.</li>
+</ul>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>SGS redistributes practice across configurations that sometimes succeed. It cannot create success where none exists. This is close to the paper's second stated limitation: SGS samples from a distribution but does not construct it.</p>
+</div>
+</div>
+
+<div class="sub" id="s6-3">
+<h3><span class="num">6.3</span>The gravity curriculum (Table 5)</h3>
+<p>The main manipulation runs, including the Franka scaling study, also used a gravity curriculum: training starts at zero gravity, and gravity steps toward its normal value whenever success exceeds 80% at the current level. Afterwards, one run at 1M environments without it:</p>
+<div class="tbl"><table>
+<thead><tr><th>Franka nut, Reaching resets, 1M envs</th><th class="n">Success</th></tr></thead>
+<tbody>
+<tr><td>SGS with gravity curriculum</td><td class="n">0.702 ± 0.039</td></tr>
+<tr><td>SGS without</td><td class="n">0.694 ± 0.040</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>These intervals are over 512 evaluation episodes, not over training runs. They match the binomial formula \(1.96\sqrt{p(1-p)/512}\approx0.040\) to rounding. So they measure evaluation noise only. The no-curriculum result is one training seed, and the appendix says only that the curriculum appears unnecessary in this setting, though §4.2 of the paper calls it unnecessary outright.</p>
+</div>
+</div>
+</section>
+
+<!-- ============================== 7 ============================== -->
+<section id="s7">
+<h2><span class="num">7</span>Sim-to-real</h2>
+<p>Pipeline: train a point-cloud teacher with SGS in simulation, distill it into an RGB student with DAgger, run the student on a real UR5e with no real-world data or fine-tuning. It builds on OmniReset's transfer pipeline.</p>
+
+<div class="sub" id="s7-1">
+<h3><span class="num">7.1</span>Hardware and the board</h3>
+<ul>
+<li>UR5e with a Robotiq 2F-85, OmniReset's relative Cartesian operational-space control, one third-person camera and one wrist camera (OmniReset used three cameras).</li>
+<li>The NIST board is polished acrylic. Facing it, the wrist camera saw the robot's own reflection, an image it never saw in training. The board's low friction also broke strategies that push objects against it to reorient them. The fix was covering the board with tape.</li>
+<li>The board is fixed to the table with command strips. Simulation treats the receptacles as static, so a board that shifts on contact causes failures.</li>
+</ul>
+</div>
+
+<div class="sub" id="s7-2">
+<h3><span class="num">7.2</span>Gripper pad friction: the "glue grasp" trap</h3>
+<div class="blk">
+<p class="lbl">Derivation: why μ = 100 is a cheat</p>
+<p>Coulomb friction caps the sideways force a contact can resist at \(\mu\) times the squeezing force:</p>
+\[|F_{\text{tangential}}|\le\mu\,F_{\text{normal}}\]
+<p>Squeeze with 10 N and \(\mu=100\) resists up to 1,000 N, so nothing ever slips: any touch with some normal force acts like glue. With \(\mu=2\), the same squeeze resists 20 N, and a badly placed grasp can fail as it would on the real robot.</p>
+</div>
+<ul>
+<li>OmniReset gave the pads \(\mu=100\) with the <code>max</code> combine mode. When two surfaces touch, a simulator needs one coefficient for the pair; <code>max</code> takes the larger of the two. Training was easy, and the authors found this a major source of sim-to-real gap.</li>
+<li>Lowering friction removed the fake grasps but stopped learning altogether. A rod-in-hole sweep from scratch at \(\mu\in\{0.5,1,1.5,2\}\) (Fig. 9, measuring grasp-in-air success) trained stably only at \(\mu=2\). Every run uses \(\mu=2\).</li>
+</ul>
+</div>
+
+<div class="sub" id="s7-3">
+<h3><span class="num">7.3</span>Teacher, student, and DAgger</h3>
+<div class="tbl"><table>
+<thead><tr><th></th><th>Sees</th></tr></thead>
+<tbody>
+<tr><td>Teacher actor</td><td>arm joint positions, previous action, scene point cloud in the gripper frame</td></tr>
+<tr><td>Teacher critic</td><td>everything the actor sees plus privileged state: joint velocities and the sampled randomization parameters</td></tr>
+<tr><td>RGB student</td><td>side and wrist RGB images, each encoded by its own ResNet-18, plus arm joint positions, end-effector pose and previous action</td></tr>
+</tbody></table></div>
+<p>The critic only exists during training, so it may see information the deployed robot never will. That is called an asymmetric actor–critic.</p>
+<p><strong>Why a point-cloud teacher.</strong> A teacher that reads exact object poses can act on information no camera provides. Point clouds are geometry, closer to what a student can infer from images, so the teacher's behavior is easier to imitate.</p>
+<div class="blk">
+<p class="lbl">Derivation: DAgger versus behavioral cloning</p>
+<p><strong>Behavioral cloning</strong> trains on states the teacher visits. The student's small mistakes take it to states the teacher never visited, where it was never trained, and errors compound. <strong>DAgger</strong> (Ross, Gordon and Bagnell, 2011) lets the student act, asks the teacher what it would have done in each state the student reached, and trains on those labels. The training states are then the student's own.</p>
+<p>The paper's online version: each iteration takes one step in every environment, updates the student toward the teacher's actions, and throws the data away. No dataset is stored, which saves GPU memory while simulation, rendering and training share the card.</p>
+</div>
+<ul>
+<li><strong>Why hold out environments.</strong> In online DAgger, the student was just updated on the teacher's label for almost the same state one step earlier, so training success is inflated. The paper reserves 6.67% of environments (one in 15) that never contribute gradients. On the nut, held-out success lags training success early and catches up later (Fig. 10).</li>
+<li>Distillation takes about two days on four L40S GPUs with 480 environments each: 1,920 environments, so the held-out share is 128 (32 per GPU), assuming the split is per GPU or global.</li>
+<li>Visual randomization and image augmentation follow OmniReset.</li>
+</ul>
+</div>
+
+<div class="sub" id="s7-4">
+<h3><span class="num">7.4</span>Symmetry-aware resets and rewards</h3>
+<p>Resets randomize each object over its equivalent orientations: discrete symmetries are sampled uniformly, and continuous ones uniformly over \([0^\circ,360^\circ)\). The success test accepts any equivalent goal orientation.</p>
+<div class="note">
+<p class="lbl int">Intuition</p>
+<p>If two orientations look identical to a camera but the teacher's reward insists on one of them, the teacher learns to tell them apart and the student cannot copy that. Symmetric resets and rewards remove distinctions the student cannot see.</p>
+</div>
+<div class="tbl"><table>
+<thead><tr><th>OmniReset peg insertion, teacher</th><th class="n">RGB student success (sim)</th></tr></thead>
+<tbody>
+<tr><td>Pose-based (OmniReset's result)</td><td class="n">55.45%</td></tr>
+<tr><td>Point cloud plus eight equivalent orientations</td><td class="n">98%</td></tr>
+</tbody></table></div>
+<div class="note">
+<p class="lbl chk">Check</p>
+<p>The second row changes two things at once, point-cloud observations and symmetry, so the gain cannot be attributed to symmetry alone.</p>
+</div>
+</div>
+
+<div class="sub" id="s7-5">
+<h3><span class="num">7.5</span>Hardware results (Table 2)</h3>
+<div class="tbl"><table>
+<thead><tr><th>Task</th><th class="n">Teacher (sim)</th><th class="n">Student (sim)</th><th class="n">Real success</th><th class="n">95% Wilson (mine)</th><th class="n">First try</th><th class="n">Successes / min</th></tr></thead>
+<tbody>
+<tr><td>Nut-and-bolt</td><td class="n">90.04</td><td class="n">89.05</td><td class="n">37.5% (18/48)</td><td class="n">25–52%</td><td class="n">12.5% (6)</td><td class="n">0.23</td></tr>
+<tr><td>Rod-in-hole</td><td class="n">95.70</td><td class="n">93.36</td><td class="n">61% (30/49)</td><td class="n">47–74%</td><td class="n">28.57% (14)</td><td class="n">0.71</td></tr>
+<tr><td>Gear mesh</td><td class="n">96.09</td><td class="n">96.42</td><td class="n">94% (47/50)</td><td class="n">84–98%</td><td class="n">76.0% (38)</td><td class="n">3.08</td></tr>
+</tbody></table></div>
+<p class="cap">Simulation numbers come from Reaching resets. First-try counts are back-computed from the percentages, and each comes out a whole number.</p>
+<ul>
+<li><strong>The gap grows with difficulty:</strong> 2 points on the gear, 32 on the rod, 52 on the nut (student sim minus real).</li>
+<li><strong>Retries do much of the work.</strong> First-try successes are 6 of 18 successes on the nut and 14 of 30 on the rod, but 38 of 47 on the gear.</li>
+<li><strong>Throughput.</strong> Successes divided by total time, resets included. The runs lasted about 83, 42 and 15 minutes: 18/83 = 0.22, 30/42 = 0.71, 47/15 = 3.13, close to the reported 0.23, 0.71 and 3.08; the nut's 0.23 implies about 78 minutes rather than 83.</li>
+<li>The simulation teachers are the SGS policies of Table 6 (90.04, 95.70, 96.09 match exactly).</li>
+<li>Metrics follow OmniReset, with one change: re-grasps before the first insertion attempt are not counted as retries. Objects start at uniformly random positions on the board.</li>
+</ul>
+</div>
+
+<div class="sub" id="s7-6">
+<h3><span class="num">7.6</span>Transfer lessons</h3>
+<div class="tbl"><table>
+<thead><tr><th>Observation</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>Policies that commit to a clean grasp and insert directly transfer better than ones exploiting simulated contact.</td><td>general lesson</td></tr>
+<tr><td>Rod: the student needed to recover from misses.</td><td>1 mm per-step Gaussian noise on the point cloud taught it to re-aim after a miss and wiggle a rod that was not fully seated.</td></tr>
+<tr><td>Nut: the policy kept dropping the nut on the bolt and flipping it.</td><td>The authors suspect the teacher reward, which accepted only one upright orientation of a symmetric nut. Removing that constraint and tuning the action scaling of the 6-DOF end-effector control produced a policy that completes the task.</td></tr>
+</tbody></table></div>
+</div>
+</section>
+
+<!-- ============================== 8 ============================== -->
+<section id="s8">
+<h2><span class="num">8</span>Reading it critically</h2>
+<div class="sub">
+<h3>The paper's three limitations</h3>
+<ol>
+<li>Success estimates live on a discrete set of configurations. Continuous or much larger task spaces would need a learned or hierarchical score.</li>
+<li>SGS samples from a distribution; it does not build one. Coverage comes from reset generators like OmniReset, and choosing which configurations to offer is open.</li>
+<li>A sim-to-real gap remains.</li>
+</ol>
+</div>
+<div class="sub">
+<h3>Inconsistencies I found</h3>
+<div class="tbl"><table>
+<thead><tr><th>Where</th><th>What</th></tr></thead>
+<tbody>
+<tr><td>Limitations</td><td>Says \(K=32{,}768\) cells is sufficient. The method calls this \(N\), and locomotion uses \(N=104{,}000\).</td></tr>
+<tr><td>Table 3</td><td>Bolds \(\epsilon=10^{-4}\) as nominal for locomotion; §3.2 says \(10^{-8}\) (§6.1).</td></tr>
+<tr><td>App. B.2</td><td>Patch counts are linear in \(n_{\text{patch}}\) while the text describes a product (§6.1).</td></tr>
+<tr><td>App. A.3.2 vs C.3</td><td>The teacher's observations include end-effector pose in one and not the other.</td></tr>
+<tr><td>App. A.3.2</td><td>Describes Cartesian actions executed by OSC without naming a robot, in a subsection whose reward covers both robots, but the Franka uses joint-position control (A.2, B.5). The description fits the UR5e.</td></tr>
+<tr><td>App. A.3.1</td><td>\(r_{\text{fwd}}\) is underspecified (§4.1).</td></tr>
+<tr><td>§4.1</td><td>Calls the procedural set "five" terrains, then names a maze, a contoured terrain and four island variants.</td></tr>
+</tbody></table></div>
+</div>
+<div class="sub">
+<h3>How much the numbers can carry</h3>
+<ul>
+<li>Three seeds for the main results, two for the sensitivity table, one for the gravity ablation, and no intervals at all for Table 6.</li>
+<li>Real-robot results rest on about 50 trials each, so their 95% intervals span 14 to 26 points (§7.5).</li>
+<li>SFL is also reported at its best checkpoint, and it ran with its own paper's defaults while SGS had a small grid search.</li>
+</ul>
+</div>
+<div class="sub">
+<h3>Not in the paper, so not reproducible from it alone</h3>
+<p>PPO settings (\(\gamma\), \(\lambda\), \(\epsilon_{\text{clip}}\), epochs, rollout length, minibatch count, learning rate), episode lengths, PLR's \(\beta\) and staleness weight, how an empty buffer is scored, the Normal kernel's form, the gravity step size, the locomotion success tolerance, \(F_{\min}\), and the simulator.</p>
+</div>
+</section>
+
+<!-- ============================== 9 ============================== -->
+<section id="s9">
+<h2><span class="num">9</span>What it means for Φ</h2>
+<p>Suggestions, not results. Each ties a paper finding to something the club already has.</p>
+<div class="tbl"><table>
+<thead><tr><th>Paper finding</th><th>For the club</th></tr></thead>
+<tbody>
+<tr><td>At 4K environments SGS already reaches about 0.46 on locomotion while uniform, the linear curriculum and PLR sit near zero (SFL reaches 0.26, Table 1).</td><td>That is our regime: Squint runs 1,024 environments by default. But Squint trains with SAC and every SGS result is PPO, so the carry-over is untested. The sampler costs one ring buffer per configuration plus Eq. 1 and 2.</td></tr>
+<tr><td>Without Near-Goal resets, nothing learns (Table 4).</td><td>For SO-101 lifting or placing, include starts with the cube already in the gripper and starts with the gripper at the cube, so some configurations have \(p>0\) from the first iteration.</td></tr>
+<tr><td>Pad friction of 100 made fake grasps succeed.</td><td>The club's real failure mode is the grasp: in the 2026-08-10 rollout scoring, 37 of 62 rollouts failed at "reached the object". Check grasp physics before trusting simulated success. Our MuJoCo SO-101 scene leaves all 31 geoms at MuJoCo's default sliding friction of 1, and MuJoCo uses the larger coefficient of a contact pair unless priorities are set.</td></tr>
+<tr><td>Symmetric resets and rewards took a student from 55% to 98% (with a point-cloud teacher).</td><td>A plain cube has 24 rotational symmetries. Rewards and resets should treat them as one, so a camera policy is never asked to tell them apart.</td></tr>
+<tr><td>Real results carry 95% intervals 14 to 26 points wide at n ≈ 50.</td><td>The same Wilson arithmetic the club already uses for rollout scoring.</td></tr>
+<tr><td>A hand-designed terrain curriculum collapsed at scale (Fig. 5a).</td><td>If the club trains a quadruped across terrains, SGS can replace hand-ordered terrain levels.</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================== 10 ============================== -->
+<section id="s10">
+<h2><span class="num">10</span>Cheat sheet</h2>
+<div class="tbl"><table>
+<thead><tr><th>Symbol</th><th>Meaning</th><th class="n">Locomotion</th><th class="n">Manipulation</th></tr></thead>
+<tbody>
+<tr><td>\(\tau=(s_0,g,e)\)</td><td>task configuration</td><td class="n">terrain, start, goal</td><td class="n">task, reset state, receptacle</td></tr>
+<tr><td>\(N\)</td><td>frozen configuration set</td><td class="n">104,000</td><td class="n">32,768</td></tr>
+<tr><td>\(H\)</td><td>outcomes kept per configuration</td><td class="n">100</td><td class="n">100</td></tr>
+<tr><td>\(p_i\)</td><td>mean of the last \(H\) outcomes</td><td class="n" colspan="2">\(\{0, 0.01, \dots, 1\}\)</td></tr>
+<tr><td>\(t^\star\)</td><td>target success rate, the kernel's peak</td><td class="n">0.66</td><td class="n">0.5</td></tr>
+<tr><td>\(\kappa\)</td><td>concentration, peak sharpness</td><td class="n">5</td><td class="n">1</td></tr>
+<tr><td>\(T\)</td><td>softmax temperature, at least 1</td><td class="n">2</td><td class="n">2</td></tr>
+<tr><td>\(\epsilon\)</td><td>floor and log guard</td><td class="n">\(10^{-8}\)</td><td class="n">\(10^{-4}\)</td></tr>
+<tr><td>\(\kappa/T\)</td><td>effective sharpness</td><td class="n">2.5</td><td class="n">0.5</td></tr>
+<tr><td>\(w_i\)</td><td colspan="3">\((p_i+\epsilon)^{\kappa t^\star}(1-p_i+\epsilon)^{\kappa(1-t^\star)}\)</td></tr>
+<tr><td>\(q_i\)</td><td colspan="3">\(\propto(\max(w_i,\epsilon)+\epsilon)^{1/\max(T,1)}\)</td></tr>
+<tr><td>Terminal reward</td><td>success and failure</td><td class="n">+50 / −50</td><td class="n">+100 / −1</td></tr>
+<tr><td>Envs</td><td>parallel environments</td><td class="n">up to \(2^{20}\)</td><td class="n">up to \(2^{20}\) (Franka), at least 32K to 256K (UR5e)</td></tr>
+<tr><td>Headline</td><td>success at 1M envs</td><td class="n">0.73 (PLR 0.54)</td><td class="n">0.70 Franka nut (uniform 0.06)</td></tr>
+</tbody></table></div>
+</section>
+
+<footer class="src">
+<p><strong>Sources.</strong> The paper: <a href="https://arxiv.org/abs/2610.12465" target="_blank" rel="noopener">arXiv 2610.12465</a>, read from its LaTeX source, with figure captions, the bibliography and the Fig. 5 and Fig. 7 image files taken from arXiv's HTML version. PLR formulas: <a href="https://arxiv.org/abs/2010.03934" target="_blank" rel="noopener">arXiv 2010.03934</a>. SFL algorithm and defaults: <a href="https://arxiv.org/abs/2408.15099" target="_blank" rel="noopener">arXiv 2408.15099</a>. OmniReset: <a href="https://arxiv.org/abs/2603.15789" target="_blank" rel="noopener">arXiv 2603.15789</a>. Project site: <a href="https://sgs-rl.github.io/" target="_blank" rel="noopener">sgs-rl.github.io</a>.</p>
+<p>Everything marked Check, every derived quantity, and every ≈ plot reading is mine, not the authors'. Prepared 2026-10-12.</p>
+</footer>
+
+</main>
+</div>
+
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { enableMenu: false }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
+<script>
+(function () {
+  // Contents: open as a rail on wide screens, collapsed on phones; highlight the section in view.
+  var toc = document.getElementById('toc');
+  var mq = window.matchMedia('(min-width: 1040px)');
+  function syncToc() { toc.open = mq.matches; }
+  syncToc();
+  if (mq.addEventListener) mq.addEventListener('change', syncToc);
+  var links = Array.prototype.slice.call(toc.querySelectorAll('a'));
+  if ('IntersectionObserver' in window) {
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id); });
+      });
+    }, { rootMargin: '-15% 0px -75% 0px' });
+    links.forEach(function (a) { var s = document.querySelector(a.getAttribute('href')); if (s) obs.observe(s); });
+  }
+
+  // Explorer: Eq. 1 and 2 of the paper, exactly as implemented in its Appendix B.2.
+  var S = { t: 0.66, k: 5, T: 2, eps: 1e-8, log: false };
+  var presets = {
+    loco: { t: 0.66, k: 5, T: 2, eps: 1e-8 },
+    manip: { t: 0.5, k: 1, T: 2, eps: 1e-4 },
+    sfl: { t: 0.5, k: 2, T: 1, eps: 1e-8 },
+    uni: { t: 0.5, k: 0, T: 2, eps: 1e-8 }
+  };
+  function rate(p, s) {
+    var w = Math.pow(p + s.eps, s.k * s.t) * Math.pow(1 - p + s.eps, s.k * (1 - s.t));
+    var wt = Math.max(w, s.eps);
+    return Math.pow(wt + s.eps, 1 / Math.max(s.T, 1));
+  }
+  function $(id) { return document.getElementById(id); }
+  function oneIn(x) {
+    if (!isFinite(x)) return '—';
+    if (x < 1.05) return 'same as peak';
+    if (x < 10) return '1 in ' + x.toFixed(1);
+    return '1 in ' + Math.round(x).toLocaleString('en-US');
+  }
+  var W = 640, H = 300, L = 60, R = 14, TOP = 16, B = 46, PW = W - L - R, PH = H - TOP - B, LOG_LO = -5;
+  function X(p) { return L + p * PW; }
+  function Y(v) {
+    if (S.log) {
+      var lv = Math.max(Math.log10(Math.max(v, 1e-300)), LOG_LO);
+      return TOP + (lv / LOG_LO) * PH;
+    }
+    return TOP + (1 - v) * PH;
+  }
+  function pathFor(vals) {
+    return vals.map(function (v, i) { return (i ? 'L' : 'M') + X(i / 100).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(' ');
+  }
+  function draw() {
+    var grid = [], i;
+    for (i = 0; i <= 100; i++) grid.push(i / 100);
+    var r = grid.map(function (p) { return rate(p, S); });
+    var mx = Math.max.apply(null, r);
+    var rel = r.map(function (v) { return v / mx; });
+    var pk = grid[r.indexOf(mx)];
+    var ref = grid.map(function (p) { return p * (1 - p) / 0.25; });
+    var uni = grid.map(function () { return 1; });
+    var g = [];
+    var yt = S.log ? [1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5] : [0, 0.25, 0.5, 0.75, 1];
+    var ylab = S.log ? ['1', '10⁻¹', '10⁻²', '10⁻³', '10⁻⁴', '10⁻⁵'] : ['0', '0.25', '0.5', '0.75', '1'];
+    yt.forEach(function (v, j) {
+      var y = Y(v).toFixed(1);
+      g.push('<path class="grid" d="M' + L + ' ' + y + 'H' + (W - R) + '"/>');
+      g.push('<text x="' + (L - 8) + '" y="' + (+y + 4) + '" text-anchor="end">' + ylab[j] + '</text>');
+    });
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (p) {
+      g.push('<text x="' + X(p).toFixed(1) + '" y="' + (H - B + 18) + '" text-anchor="middle">' + p + '</text>');
+    });
+    g.push('<path class="axis" d="M' + L + ' ' + TOP + 'V' + (H - B) + 'H' + (W - R) + '"/>');
+    g.push('<text x="' + (L + PW / 2) + '" y="' + (H - 6) + '" text-anchor="middle">success estimate p of a configuration</text>');
+    g.push('<text transform="translate(13 ' + (TOP + PH / 2) + ') rotate(-90)" text-anchor="middle">sampling rate, peak = 1</text>');
+    g.push('<path class="uni" d="' + pathFor(uni) + '"/>');
+    g.push('<path class="ref" d="' + pathFor(ref) + '"/>');
+    if (S.k > 0) g.push('<path class="tline" d="M' + X(S.t).toFixed(1) + ' ' + TOP + 'V' + (H - B) + '"/>');
+    g.push('<path class="sgs" d="' + pathFor(rel) + '"/>');
+    g.push('<circle class="dot" cx="' + X(0) + '" cy="' + Y(rel[0]).toFixed(1) + '" r="3.5"/>');
+    g.push('<circle class="dot" cx="' + X(1) + '" cy="' + Y(rel[100]).toFixed(1) + '" r="3.5"/>');
+    $('ex-svg').innerHTML = g.join('');
+    $('ro-peak').textContent = S.k > 0 ? 'p = ' + pk.toFixed(2) : 'flat';
+    $('ro-sharp').textContent = (S.k / Math.max(S.T, 1)).toFixed(2).replace(/\.?0+$/, '') || '0';
+    $('ro-zero').textContent = oneIn(mx / r[0]);
+    $('ro-one').textContent = oneIn(mx / r[1]);
+    $('ro-99').textContent = oneIn(mx / r[99]);
+    drawPop();
+  }
+  function seg(cls, frac, label) {
+    var pct = frac * 100;
+    var txt = pct >= 9 ? label + ' ' + fmtPct(pct) : '';
+    return '<div class="seg ' + cls + '" style="width:' + pct.toFixed(3) + '%">' + txt + '</div>';
+  }
+  function fmtPct(x) { return x.toFixed(1).replace(/\.0$/, '') + '%'; }
+  function drawPop() {
+    var imp = +$('pop-imp').value / 100, mas = +$('pop-mas').value / 100, pm = +$('pop-pm').value;
+    var mid = Math.max(0, 1 - imp - mas);
+    var a = imp * rate(0, S), b = mid * rate(pm, S), c = mas * rate(1, S), tot = a + b + c;
+    $('pop-imp-out').textContent = Math.round(imp * 100) + '%';
+    $('pop-mas-out').textContent = Math.round(mas * 100) + '%';
+    $('pop-pm-out').textContent = pm.toFixed(2);
+    $('bar-uni').innerHTML = seg('hard', imp, 'impossible') + seg('learn', mid, 'learning') + seg('easy', mas, 'mastered');
+    if (tot > 0) {
+      $('bar-sgs').innerHTML = seg('hard', a / tot, 'impossible') + seg('learn', b / tot, 'learning') + seg('easy', c / tot, 'mastered');
+      $('pop-sum').textContent = 'Uniform sends ' + fmtPct(mid * 100) + ' of episodes to configurations that can teach something; SGS sends ' + fmtPct(100 * b / tot) + '.';
+    }
+  }
+  function setPreset(name) {
+    var p = presets[name];
+    S.t = p.t; S.k = p.k; S.T = p.T; S.eps = p.eps;
+    $('ex-t').value = p.t; $('ex-k').value = p.k; $('ex-T').value = p.T; $('ex-eps').value = String(p.eps);
+    document.querySelectorAll('.presets button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.preset === name)); });
+    syncOut(); draw();
+  }
+  function syncOut() {
+    $('ex-t-out').textContent = S.t.toFixed(2);
+    $('ex-k-out').textContent = String(S.k);
+    $('ex-T-out').textContent = String(S.T);
+  }
+  function clearPreset() { document.querySelectorAll('.presets button').forEach(function (b) { b.setAttribute('aria-pressed', 'false'); }); }
+  document.querySelectorAll('.presets button').forEach(function (b) { b.addEventListener('click', function () { setPreset(b.dataset.preset); }); });
+  $('ex-t').addEventListener('input', function (e) { S.t = +e.target.value; clearPreset(); syncOut(); draw(); });
+  $('ex-k').addEventListener('input', function (e) { S.k = +e.target.value; clearPreset(); syncOut(); draw(); });
+  $('ex-T').addEventListener('input', function (e) { S.T = +e.target.value; clearPreset(); syncOut(); draw(); });
+  $('ex-eps').addEventListener('change', function (e) { S.eps = +e.target.value; clearPreset(); draw(); });
+  $('ex-log').addEventListener('change', function (e) { S.log = e.target.checked; draw(); });
+  $('pop-imp').addEventListener('input', function () {
+    var imp = +$('pop-imp').value, mas = +$('pop-mas').value;
+    if (imp + mas > 100) $('pop-mas').value = 100 - imp;
+    drawPop();
+  });
+  $('pop-mas').addEventListener('input', function () {
+    var imp = +$('pop-imp').value, mas = +$('pop-mas').value;
+    if (imp + mas > 100) $('pop-imp').value = 100 - mas;
+    drawPop();
+  });
+  $('pop-pm').addEventListener('input', drawPop);
+  syncOut();
+  draw();
+})();
+</script>
+
+<footer class="phi-foot" style="border-top:1px solid var(--rule);margin-top:48px;padding:22px clamp(16px,4vw,32px) 36px;font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.04em;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:space-between">
+  <span>Written by Yashvardhan Gupta &middot; &Phi; Physical Hardware Intelligence, Northeastern University Silicon Valley</span>
+  <span><a href="index.html#deep" style="color:var(--muted)">More deep dives</a> &middot; <a href="https://github.com/physical-hardware-intelligence" style="color:var(--muted)">GitHub</a></span>
+</footer>
+</body>
+</html>

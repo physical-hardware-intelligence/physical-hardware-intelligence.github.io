@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blog · Phi</title>
+<title>Writing · Phi</title>
 <meta name="description" content="Writing from the Phi club: what we read, what we built, and where we think the field is wrong.">
 <meta name="theme-color" content="#ECE7DC">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Blog · Phi">
+<meta property="og:title" content="Writing · Phi">
 <meta property="og:description" content="Writing from the Phi club: what we read, what we built, and where we think the field is wrong.">
 <meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
 <meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/">
@@ -130,6 +130,13 @@
     .post-list::before{left:4px}
     .post-card::before,.post-row::before{left:-24px;width:7px;height:7px}
   }
+  /* two shelves: deep dives (built to learn from), then posts */
+  .grp{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:clamp(30px,3.8vw,44px) 0 clamp(12px,1.6vw,18px);
+    font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+  .bp-rule + .grp{margin-top:clamp(18px,2.4vw,26px)}
+  .pc-sub{display:inline-block;margin:0 0 4px;font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;color:var(--ink-3);
+    text-decoration:none;border-bottom:1px solid var(--line-2);transition:color .2s var(--ease),border-color .2s var(--ease)}
+  @media (hover:hover){ .pc-sub:hover{color:var(--apple);border-color:var(--apple)} }
   .reveal{opacity:0}
   .reveal.vis{animation:rv .5s var(--ease) both}
   @keyframes rv{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -146,7 +153,7 @@
     <a href="../index.html#schedule">Schedule</a>
     <a href="../learn.html">Learn</a>
     <a href="../industry.html">Industry</a>
-    <a href="index.html" class="active">Blog</a>
+    <a href="index.html" class="active">Writing</a>
   </nav>
   <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -156,10 +163,34 @@
 <main id="top">
   <section class="bp-wrap">
     <div class="masthead">
-      <h1 class="eyebrow">Blog</h1>
+      <h1 class="eyebrow">Writing</h1>
     </div>
     <hr class="bp-rule">
 
+    <p class="grp" id="deep">Deep dives</p>
+    <ol class="post-list">
+      <li class="reveal">
+        <a class="post-row" href="deriving-squint.html">
+          <div class="pc-head">
+            <h2>Deriving Squint</h2>
+            <p class="rd">15 October 2026 &#183; interactive &#8599;</p>
+          </div>
+          <p class="pc-dek">Soft Actor-Critic from the ground up, then Squint line by line, checked against the paper and its released code.</p>
+        </a>
+        <a class="pc-sub" href="deriving-squint.html#s2">Just Soft Actor-Critic: start at &sect;2 &rarr;</a>
+      </li>
+      <li class="reveal">
+        <a class="post-row" href="deriving-sgs.html">
+          <div class="pc-head">
+            <h2>Deriving Success Guided Sampling</h2>
+            <p class="rd">12 October 2026 &#183; interactive &#8599;</p>
+          </div>
+          <p class="pc-dek">Why setups a policy always or never solves teach it nothing, and the sampler that fixes it at a million environments.</p>
+        </a>
+      </li>
+    </ol>
+
+    <p class="grp">Posts</p>
     <ol class="post-list">
       <!-- Order set by Yash: A VLA is not the policy, then SmolVLA, then
            Diffusion Policy, then ACT. Sai's ACT post goes at the bottom.
@@ -194,7 +225,7 @@
       <li class="reveal">
         <a class="post-row" href="everything-is-an-encoder-and-a-decoder.html">
           <div class="pc-head">
-            <h2>Diffusion Policy &#8212; Transformer explained</h2>
+            <h2>Diffusion Policy, Transformer explained</h2>
             <p class="rd">7 July 2026 &#183; 11 min &#8599;</p>
           </div>
           <p class="pc-dek">The transformer variant, taken apart one shape at a time on our own arm.</p>

@@ -128,15 +128,24 @@
   .try.x{border-color:var(--apple);color:var(--apple)}
   .tries-key{font-size:.9rem;line-height:1.5;color:var(--ink-2)}
 
-  /* folding flow */
-  .flow{display:flex;align-items:stretch;gap:10px;margin:clamp(18px,2.4vw,26px) 0}
-  .node{flex:1 1 0;border:1px solid var(--ink);padding:12px 14px 13px;display:flex;flex-direction:column;gap:3px}
-  .node .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
-  .node b{font-family:var(--disp);font-weight:500;font-size:1.05rem;line-height:1.2}
-  .node span:last-child{font-size:.86rem;line-height:1.4;color:var(--ink-2)}
-  .node.next{border-style:dashed;border-color:var(--ink-3)}
-  .arr{align-self:center;font-size:1.1rem;color:var(--ink-3)}
-  @media (max-width:620px){ .flow{flex-direction:column} .arr{transform:rotate(90deg)} }
+  /* folding: training mix */
+  .pj-body.solo .pj-text .fig{margin-bottom:clamp(18px,2.2vw,24px)}
+  .mix{margin:clamp(16px,2vw,22px) 0 0}
+  .mix-bar{display:flex;height:12px;border:1px solid var(--ink)}
+  .mix-bar i{display:block}
+  .mix-bar .m1{flex:60;background:var(--ink)}
+  .mix-bar .m2{flex:30;background:var(--apple);border-left:1px solid var(--ink)}
+  .mix-bar .m3{flex:10;background:var(--paper-2);border-left:1px solid var(--ink)}
+  .mix-key{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:5px}
+  .mix-key li{display:grid;grid-template-columns:10px 2.6em minmax(0,1fr);gap:10px;align-items:baseline;font-size:.9rem;line-height:1.45;color:var(--ink-2)}
+  .mix-key .sw{width:10px;height:10px;border:1px solid var(--ink);align-self:center}
+  .mix-key b{font-family:var(--mono);font-size:.8rem;font-weight:500;color:var(--ink)}
+
+  /* folding: progress */
+  .steps{list-style:none;margin:clamp(14px,1.8vw,20px) 0 0;padding:0;border-top:1px solid var(--line)}
+  .steps li{display:grid;grid-template-columns:52px minmax(0,1fr);gap:14px;padding:10px 0;border-bottom:1px solid var(--line);line-height:1.5}
+  .steps .k{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);padding-top:5px}
+  .steps .done .k{color:var(--ink)}
 
   .reveal{opacity:0}
   .reveal.vis{animation:rs-in .55s var(--ease) both}
@@ -171,7 +180,7 @@
     <a href="index.html#schedule">Schedule</a>
     <a href="learn.html">Learn</a>
     <a href="industry.html">Industry</a>
-    <a href="blog/index.html">Blog</a>
+    <a href="blog/index.html">Writing</a>
   </nav>
   <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
     <span></span><span></span><span></span>
@@ -240,7 +249,7 @@
           <dt>Fix the arm model <span class="tag">next</span></dt>
           <dd>Fit the joint offsets and camera mount from our recordings. Then score ReachCube on a fixed nine-point grid and test which ledger rows actually change real success.</dd>
           <dt>Train on what fails <span class="tag">idea</span></dt>
-          <dd>Widen training to the far-bin and out-of-view starts that failed, and pick starts with <a href="https://arxiv.org/abs/2610.12465" target="_blank" rel="noopener">SGS</a> (Zhang et al., 2026; <a href="learn/deriving-sgs.html">our walkthrough</a>), which favours starts the policy solves only some of the time. SGS was shown with PPO at up to about a million environments. Whether it helps Squint, which is off-policy and runs 1,024 environments, is open. A run takes about 12 minutes.</dd>
+          <dd>Widen training to the far-bin and out-of-view starts that failed, and pick starts with <a href="https://arxiv.org/abs/2610.12465" target="_blank" rel="noopener">SGS</a> (Zhang et al., 2026; <a href="blog/deriving-sgs.html">our walkthrough</a>), which favours starts the policy solves only some of the time. SGS was shown with PPO at up to about a million environments. Whether it helps Squint, which is off-policy and runs 1,024 environments, is open. A run takes about 12 minutes.</dd>
           <dt>Fragile objects <span class="tag">idea</span></dt>
           <dd>The policy never squeezes: in simulation the cube weighs about 3&nbsp;g, so a touch is enough. Fragile objects need controlled force, and the arm has no force sensor. But the servos can cap their torque and report current, and the simulator reports contact forces. So: penalise contact force above a break limit in training, give the policy the gripper current, and calibrate current against a scale before trying anything fragile.</dd>
         </dl>
@@ -276,7 +285,7 @@
     <div class="pj-foot reveal">
       <div class="pj-links">
         <a href="https://github.com/physical-hardware-intelligence/squint/blob/phi/so101/docs/so101-phi.md" target="_blank" rel="noopener">Our fork and setup guide<span aria-hidden="true">↗</span></a>
-        <a href="learn/deriving-squint.html">Deriving Squint</a>
+        <a href="blog/deriving-squint.html">Deriving Squint</a>
         <a href="blog/sim-to-real-debunked.html">What broke, and why</a>
         <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint paper<span aria-hidden="true">↗</span></a>
         <a href="https://github.com/aalmuzairee/squint/pull/10" target="_blank" rel="noopener">Merged fix<span aria-hidden="true">↗</span></a>
@@ -296,23 +305,51 @@
 
     <div class="pj-body solo">
       <div class="pj-text reveal">
-        <p>Ilia Larchenko&rsquo;s policy placed second in the real-robot round of the 2026 LeHome Challenge. We want to know if it folds on our arms without retraining, and how much our own data helps.</p>
+        <p class="pj-h">The problem</p>
+        <p>Cloth is hard for robots. Every grasp changes the shape of what comes next, and one early slip spoils the fold. Ilia Larchenko&rsquo;s policy folds tops and trousers with two SO-101 arms. It placed second in the real-robot final of the 2026 LeHome Challenge at ICRA.</p>
 
-        <div class="flow" role="img" aria-label="Done: Larchenko's policy on our GPU server, 0.28 seconds per answer. Done: his robot program on our laptop, replay test passed. Next: two arms with cameras, 46 centimetres apart.">
-          <div class="node done"><span class="k">Done</span><b>His policy</b><span>on our GPU server, 0.28&nbsp;s per answer</span></div>
-          <span class="arr" aria-hidden="true">&#8644;</span>
-          <div class="node done"><span class="k">Done</span><b>His robot program</b><span>on our laptop, replay test passed</span></div>
-          <span class="arr" aria-hidden="true">&rarr;</span>
-          <div class="node next"><span class="k">Next</span><b>Two arms, cameras</b><span>46&nbsp;cm apart, with garments</span></div>
-        </div>
-        <p>We also checked his 500 real episodes against our arms&rsquo; joint conventions. They match.</p>
+        <figure class="fig">
+          <video src="assets/research/fold-larchenko-fold.mp4" poster="assets/research/fold-larchenko-fold-poster.jpg" width="960" height="540"
+                 muted loop playsinline preload="none" data-autoplay
+                 aria-label="Two SO-101 arms fold a pink child's shirt: sleeves in, then the shirt folded in half."></video>
+          <figcaption>A fold on Larchenko&rsquo;s rig, at 1.5&times; speed. The clip ships with <a href="https://huggingface.co/IliaLarchenko/lehome_real" target="_blank" rel="noopener">his released model</a>.</figcaption>
+        </figure>
+
+        <p>It trained on two real rigs, the organizers&rsquo; and his own, plus simulation. Ours is neither. Will it fold on arms it has never seen?</p>
+
+        <p class="pj-h">How it learned</p>
+        <figure class="fig mix" role="img" aria-label="Training batches: 60 percent organizer demonstrations, 30 percent Larchenko's own teleoperation and corrections, 10 percent replayed simulation successes.">
+          <div class="mix-bar" aria-hidden="true"><i class="m1"></i><i class="m2"></i><i class="m3"></i></div>
+          <ul class="mix-key" aria-hidden="true">
+            <li><span class="sw" style="background:var(--ink)"></span><b>60%</b><span>Organizers&rsquo; demonstrations, 500 episodes</span></li>
+            <li><span class="sw" style="background:var(--apple)"></span><b>30%</b><span>His own rig: 321 teleoperated, 471 corrected</span></li>
+            <li><span class="sw" style="background:var(--paper-2)"></span><b>10%</b><span>Simulated successes, replayed: 1,723 episodes</span></li>
+          </ul>
+          <figcaption>What each training batch held (<a href="https://arxiv.org/abs/2606.27163" target="_blank" rel="noopener">Larchenko, 2026</a>, Table&nbsp;6).</figcaption>
+        </figure>
+        <p>Demonstrations only show clean folds, so they never teach recovery. For that, Larchenko let his policy fold on its own and took over the moment it began to fail. Each takeover became a corrected episode.</p>
+
+        <figure class="fig">
+          <video src="assets/research/fold-larchenko-takeover.mp4" poster="assets/research/fold-larchenko-takeover-poster.jpg" width="1120" height="526"
+                 muted loop playsinline preload="none" data-autoplay
+                 aria-label="Larchenko's correction rig: two red follower arms fold a pink shirt on the left; two yellow leader arms on his desk move with them, and he takes hold of them to steer."></video>
+          <figcaption>His correction rig, from <a href="https://youtu.be/0j2B2cXoiu4?t=3220" target="_blank" rel="noopener">his video</a>, at 2&times; speed. While the policy folds, the yellow leader arms follow the red ones, so he can take over mid-motion without a jump.</figcaption>
+        </figure>
+
+        <p class="pj-h">Our plan</p>
+        <p>Run his released policy on our two arm pairs, unchanged, and count the folds. Then collect our own corrections the same way and count again.</p>
+        <ol class="steps">
+          <li class="done"><span class="k">Done</span><span>His model runs on our GPU server at 0.28&nbsp;s per answer. It took 0.68&nbsp;s until we turned off message compression.</span></li>
+          <li class="done"><span class="k">Done</span><span>His robot program runs on our laptop and talks to the server.</span></li>
+          <li class="done"><span class="k">Done</span><span>The organizers&rsquo; 500 episodes use our arms&rsquo; joint conventions. We checked with forward kinematics.</span></li>
+          <li><span class="k">Now</span><span>The rig: two arm pairs 46&nbsp;cm apart, three cameras. One shoulder servo stripped its gears and is being replaced.</span></li>
+          <li><span class="k">Then</span><span>Zero-shot trials, then our own corrections.</span></li>
+        </ol>
 
         <p class="pj-h">Where we&rsquo;re taking it</p>
         <dl class="ideas">
-          <dt>Zero-shot first <span class="tag">next</span></dt>
-          <dd>Build the rig and measure how well his policy folds on our arms without retraining.</dd>
           <dt>Real-world RL with FlowDPG <span class="tag">planned</span></dt>
-          <dd><a href="https://arxiv.org/abs/2606.22303" target="_blank" rel="noopener">FlowDPG</a> (Shi et al., CoRL 2026; Skild AI and CMU) improves a flow-matching policy with reinforcement learning on the real robot, without backpropagating through the flow. Larchenko&rsquo;s policy has a flow-matching action head, so it qualifies. FlowDPG&rsquo;s reward comes from a learned progress model, SARM, which LeRobot already includes.</dd>
+          <dd>Larchenko had no reward signal on the real robot, and writes that a learned one <q>would almost certainly help</q>. <a href="https://arxiv.org/abs/2606.22303" target="_blank" rel="noopener">FlowDPG</a> (Shi et al., CoRL 2026; Skild AI and CMU) improves a flow-matching policy with reinforcement learning on the real robot, without backpropagating through the flow. Its reward comes from a learned progress model, SARM, which LeRobot already includes. Larchenko&rsquo;s policy has a flow-matching action head, so it qualifies.</dd>
           <dt>EXPO-FT <span class="tag">future</span></dt>
           <dd>From <a href="https://arxiv.org/abs/2609.18207" target="_blank" rel="noopener">Real-Time EXPO-FT</a> (Dong, Hung, Sadigh and Finn, 2026): a small editor adjusts candidate action chunks, a critic picks the best, and the policy imitates its own successes. Our <a href="https://github.com/physical-hardware-intelligence/phi/blob/main/experiments/2026-09-26_realtime-expo-ft-so101.md" target="_blank" rel="noopener">spec</a> is written. Nothing has run yet.</dd>
         </dl>
@@ -322,6 +359,8 @@
     <div class="pj-foot reveal">
       <div class="pj-links">
         <a href="https://arxiv.org/abs/2606.27163" target="_blank" rel="noopener">Learning to Fold paper<span aria-hidden="true">↗</span></a>
+        <a href="https://huggingface.co/IliaLarchenko/lehome_real" target="_blank" rel="noopener">His model<span aria-hidden="true">↗</span></a>
+        <a href="https://youtu.be/0j2B2cXoiu4" target="_blank" rel="noopener">His correction video<span aria-hidden="true">↗</span></a>
       </div>
       <p class="pj-people"><b>Yashvardhan Gupta</b> · <b>Sai Krishna Maligireddy</b> · <b>Parv Patodia</b></p>
     </div>
