@@ -222,7 +222,7 @@ MathJax = {
 
 <h2><span class="hn">01</span>Learning by trial and error</h2>
 
-<p>The method is <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint</a>, a reinforcement learning recipe from UC San Diego. The policy does not copy a human. It learns by trying. A simulator runs 1,024 copies of our arm at once; each copy attempts the task, mostly fails, and gets a score for how close it came. The policy keeps whatever raised the score. (How it works, derived end to end: <a href="deriving-squint.html">Deriving Squint</a>.)</p>
+<p>The method is <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint</a>, a reinforcement learning recipe from UC San Diego. The policy does not copy a human. It learns by trying. A simulator runs 1,024 copies of our arm at once; each copy attempts the task, mostly fails, and gets a score for how close it came. The policy keeps whatever raised the score. (How it learns, from zero: <a href="deriving-squint.html">How Squint learns</a>.)</p>
 
 <p>On one gaming GPU, learning to reach a cube took two and a half minutes. Learning to pick it up and drop it in a bin took eleven and a half. Nothing it learns comes from the real world: on the arm, it sees a real cube for the first time.</p>
 
@@ -426,7 +426,7 @@ MathJax = {
         <li><a href="https://github.com/physical-hardware-intelligence/squint/blob/phi/so101/docs/so101-phi.md" target="_blank" rel="noopener">Our fork, branch phi/so101</a><span>every fix, safety guard and tool in this post</span></li>
         <li><a href="https://github.com/mani-skill/ManiSkill/issues/1498" target="_blank" rel="noopener">ManiSkill issue #1498</a><span>the regression behind our first crash</span></li>
         <li><a href="https://github.com/aalmuzairee/squint/pull/10" target="_blank" rel="noopener">Squint pull request #10</a><span>our checkpoint-loading fix, merged upstream</span></li>
-        <li><a href="deriving-squint.html">Deriving Squint</a><span>Soft Actor-Critic and Squint, derived end to end, with every number checked</span></li>
+        <li><a href="deriving-squint.html">How Squint learns</a><span>reinforcement learning from zero, up to every part of Squint, on our runs&#8217; numbers</span></li>
       </ol>
     </section>
   </article>
