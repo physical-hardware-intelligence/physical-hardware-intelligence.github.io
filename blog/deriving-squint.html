@@ -13,8 +13,24 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="author" content="Yashvardhan Gupta">
 <meta name="description" content="How Squint (Almuzairee and Christensen, 2026) learns, for someone new to reinforcement learning: reward, return, the critic, the actor, the replay buffer, the slow target copy, two critics and the histogram critic, built up one idea at a time on real numbers from our own SO-101 runs.">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+  svg: { fontCache: "global" },
+  options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"] }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+  svg: { fontCache: "global" },
+  options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"] }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -55,7 +71,8 @@ h2 { font-size: clamp(1.5rem, 4vw, 1.95rem); margin: 3.6rem 0 .5rem; }
 h2 .num { font-family: var(--f-mono); font-weight: 400; font-size: .58em; color: var(--muted); margin-right: .55rem; vertical-align: .16em; }
 h3 { font-size: 1.22rem; margin: 2.2rem 0 .5rem; }
 p { margin: 0 0 1rem; }
-.lede { font-size: 1.17rem; color: var(--muted); margin-bottom: 1.4rem; }
+.lede { font-size: 1.17rem; color: var(--muted); margin-bottom: .8rem; }
+.howto { font-size: .98rem; color: var(--muted); margin-bottom: 1.4rem; }
 .ask { font-family: var(--f-display); font-size: 1.08rem; color: var(--muted); margin: 0 0 1.1rem; }
 ul, ol { margin: 0 0 1rem; padding-left: 1.3rem; }
 li { margin: .3rem 0; }
@@ -84,10 +101,31 @@ svg.chart .axis { stroke: var(--muted); stroke-width: 1; }
 .worked td { padding: .28rem .3rem; border-bottom: 1px solid var(--rule); }
 .worked td.n { font-family: var(--f-mono); font-size: .9rem; text-align: right; white-space: nowrap; }
 .eq { font-family: var(--f-mono); font-size: .9rem; background: var(--tint); border-radius: 6px; padding: .6rem .8rem; margin: .4rem 0 1.1rem; overflow-x: auto; white-space: pre; line-height: 1.55; }
-details.hood { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); margin: 1.3rem 0 1.6rem; padding: .55rem 0; }
-details.hood summary { cursor: pointer; font-family: var(--f-display); font-weight: 600; color: var(--muted); list-style-position: outside; }
-details.hood[open] summary { margin-bottom: .6rem; }
-details.hood p { font-size: .97rem; }
+details.layer { border: 1px solid var(--rule); border-radius: 10px; margin: .7rem 0; background: var(--paper); }
+details.layer > summary { cursor: pointer; list-style: none; padding: .55rem .9rem; font-family: var(--f-display); display: flex; flex-wrap: wrap; gap: .25rem .7rem; align-items: baseline; }
+details.layer > summary::-webkit-details-marker { display: none; }
+details.layer > summary::after { content: "+"; margin-left: auto; font-family: var(--f-mono); color: var(--muted); }
+details.layer[open] > summary::after { content: "\2212"; }
+details.layer .lt { font-weight: 600; font-size: .78rem; letter-spacing: .03em; padding: .06rem .55rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+details.layer .lsum { color: var(--muted); font-size: 1rem; }
+details.layer > .lbody { padding: .4rem 1rem 1rem; border-top: 1px solid var(--rule); }
+details.layer > .lbody p { font-size: .98rem; }
+.layer.maths .lt { color: var(--c-target); } .layer.code .lt { color: var(--c-mem); } .layer.check .lt { color: var(--c-alpha); }
+ol.deriv { padding-left: 1.4rem; } ol.deriv li { margin: .55rem 0; }
+.pairs { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.6fr); gap: .55rem 1rem; align-items: center; margin: .5rem 0 .8rem; }
+.pairs .eqc { font-size: .95rem; overflow-x: auto; }
+.pairs pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pairs .where { grid-column: 1 / -1; font-family: var(--f-display); font-size: .86rem; color: var(--muted); margin: .2rem 0 0; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: .15rem 0; }
+mjx-container:not([display]) { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; padding: .1rem 0; }
+.timeline { list-style: none; padding: 0; margin: 1rem 0 1.4rem; border-left: 2px solid var(--rule); }
+.timeline li { position: relative; padding: .15rem 0 .55rem 1.1rem; margin: 0; }
+.timeline li::before { content: ""; position: absolute; left: -6px; top: .62rem; width: 10px; height: 10px; border-radius: 50%; background: var(--paper); border: 2px solid var(--muted); }
+.timeline .yr { font-family: var(--f-mono); font-size: .85rem; color: var(--muted); margin-right: .5rem; }
+.timeline .who { font-family: var(--f-display); font-weight: 600; }
+.algo { background: var(--tint); border-radius: 8px; padding: .4rem .8rem; margin: .6rem 0 1rem; overflow-x: auto; }
+table.t td.ok { font-family: var(--f-mono); font-size: .86rem; white-space: nowrap; }
+@media (max-width: 640px) { .pairs { grid-template-columns: 1fr; } }
 pre { font-family: var(--f-mono); font-size: .78rem; line-height: 1.5; background: var(--tint2); border-radius: 6px; padding: .7rem .8rem; overflow-x: auto; margin: .5rem 0 .9rem; }
 pre .c { color: var(--muted); }
 .src { font-family: var(--f-display); font-size: .88rem; color: var(--muted); }
@@ -141,9 +179,10 @@ img { max-width: 100%; }
 </header>
 <div class="wrap">
 <header>
-  <p class="kicker">Deep dive · 18 October 2026</p>
+  <p class="kicker">Deep dive · 19 October 2026</p>
   <h1>How Squint learns</h1>
   <p class="lede">Reinforcement learning from zero, built up to every part of Squint, the method that trained our SO-101 arm in simulation.</p>
+  <p class="howto">Each section tells one idea with pictures and our own numbers. Under it, <span class="k-target name">The maths</span> derives that idea, <span class="k-mem name">The code</span> puts each equation beside the line that computes it, and <span class="k-alpha name">Check yourself</span> asks one question. Open them in any order, or not at all.</p>
 
   <figure>
     <svg class="chart map" viewBox="0 0 640 268" role="img" aria-labelledby="map-t map-d">
@@ -196,10 +235,11 @@ img { max-width: 100%; }
     <li><a href="#memory"><span class="num">7</span>Memory and the loop</a></li>
     <li><a href="#steady"><span class="num">8</span>Three steadiers</a></li>
     <li><a href="#squint"><span class="num">9</span>What Squint adds</a></li>
-    <li><a href="#update"><span class="num">10</span>One update, start to finish</a></li>
+    <li><a href="#update"><span class="num">10</span>The whole picture</a></li>
     <li><a href="#confusions"><span class="num">11</span>Common confusions</a></li>
     <li><a href="#knobs"><span class="num">12</span>The knobs</a></li>
     <li><a href="#notation"><span class="num">13</span>Notation across sources</a></li>
+    <li><a href="#checks"><span class="num">14</span>How this page was checked</a></li>
   </ol>
 </header>
 
@@ -233,19 +273,32 @@ img { max-width: 100%; }
 </ul>
 <p>Nobody shows the robot what to do. The only teacher is the reward, and learning means changing the policy so that more reward comes in. That is reinforcement learning.</p>
 </div>
-<details class="hood"><summary>Under the hood: the reward in code</summary>
-<p>The ReachCube reward, exactly as trained (Squint fork at <code>7145d47</code>, <code>envs/reach.py</code> L374–400):</p>
-<pre>reaching_reward = 1 - torch.tanh(5 * tcp_to_goal_dist)
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">The game, written as a Markov decision process</span></summary><div class="lbody">
+<p>Formally the game is a Markov decision process: states \(\mathcal S\), actions \(\mathcal A\), a transition rule \(p(s'\mid s,a)\) that the simulator applies and the robot never sees, a reward \(r(s,a)\), and a discount \(\gamma\). A policy is a probability distribution over moves for each state, \(\pi(a\mid s)\), and the goal is the policy with the largest expected discounted return:</p>
+\[ \pi^\star = \arg\max_\pi\; \mathbb E_\pi\Big[\sum_{t\ge 0}\gamma^t\, r(s_t,a_t)\Big]. \]
+<p>Ours: \(s\) is the 16 × 16 × 3 picture and the 12 joint numbers, \(a\in[-1,1]^6\), \(-1\le r\le 1\), \(\gamma = 0.9\). Strictly the robot gets an observation, not the full state (the camera misses things, the joint readings are noisy), so the problem is partially observable. Squint, following DrQ, encodes the picture and treats it with the 12 numbers as the state (Squint, section III).</p>
+<p>"Markov" means the next state depends only on the current state and move, not on the history. That is why the 6 joint targets are in the state: each move is added to the previous target, so with joint angles alone two identical-looking moments could lead to different next moments.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the reward, the state and the move</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(r = \tfrac14\big[(1-\tanh 5d) + c + \mathbb 1_{\text{reached}}\big]\)</div><pre>reaching_reward = 1 - torch.tanh(5 * tcp_to_goal_dist)
 reward = reaching_reward
-reward += (gripper_max - qpos_gripper) / (gripper_max - gripper_min)   <span class="c"># how closed</span>
-reward += info["is_reached"].float()                                  <span class="c"># +1 at the cube</span>
-reward[info["success"]] = 4
+reward += (gripper_max - qpos_gripper) / (gripper_max - gripper_min)
+reward += info["is_reached"].float()</pre>
+<div class="eqc">success: \(r = 1\); touching: \(-\tfrac34\), \(-\tfrac14\)</div><pre>reward[info["success"]] = 4
 reward -= 3 * info["robot_touching_table"].float()
 reward -= 1 * info["robot_touching_item"].float()
-...
-return self.compute_dense_reward(...) / 4                              <span class="c"># at most 1 per tick</span></pre>
-<p>The 12 numbers are <code>noisy_qpos</code> (in simulation, each joint reading gets 5° of random noise so the policy doesn't over-trust it) followed by the controller's 6 targets (<code>envs/place.py</code> L413–423). Each action is added to the previous target: <code>target ← target + 0.1·a</code> (<code>envs/robot/so101.py</code> L96–109). Simulation runs at 100 Hz with the policy acting at 10 Hz (<code>envs/base_random_env.py</code> L155); episodes are 50 ticks (<code>reach.py</code> L405).</p>
-</details>
+return self.compute_dense_reward(...) / 4</pre>
+<div class="eqc">\(s = (\text{picture},\ q + \epsilon,\ q^{\text{target}})\)</div><pre>qpos = qpos + torch.randn_like(qpos) * robot_qpos_noise_std
+obs = dict(noisy_qpos=qpos)
+obs.update(controller=controller_state)    # the 6 targets</pre>
+<div class="eqc">\(q^{\text{target}} \leftarrow q^{\text{target}} + 0.1\,a\)</div><pre>self._target_qpos = self._target_qpos + action</pre>
+<p class="where"><code>envs/reach.py</code> L374–400 · <code>envs/place.py</code> L413–423 (5° noise, L26) · ManiSkill <code>pd_joint_pos.py</code> L86–87, scale 0.1 rad (0.2 gripper) from <code>envs/robot/so101.py</code> L96–109 · 100 Hz physics, 10 Hz policy (<code>envs/base_random_env.py</code> L155) · 50 ticks per episode (<code>reach.py</code> L405)</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why are the 6 joint targets part of the state, not just the 6 angles?</span></summary><div class="lbody">
+<p>Each move is added to the previous target, not to the measured angle. Two moments with the same angles but different targets lead to different next moments, so without the targets the state would not be Markov.</p>
+</div></details>
+
 </section>
 
 <!-- 2 -->
@@ -261,9 +314,20 @@ return self.compute_dense_reward(...) / 4                              <span cla
   <p class="readout" id="gamma-out" aria-live="polite"></p>
 </div>
 <p>With γ = 0.9 the largest possible return is 1 + 0.9 + 0.81 + … = 10: full reward every tick, forever. Keep that 10 in mind. Every value on this page lives on that scale, and a robot holding a success sits near it.</p>
-<details class="hood"><summary>Under the hood: why 10</summary>
-<p>A geometric series: 1 + γ + γ² + … = 1/(1 − γ). At γ = 0.9 that's 10, which also reads as "how many ticks ahead the robot effectively looks". A reward k ticks away is weighted γ<sup>k</sup>: 0.35 at k = 10, 0.04 at k = 30. Squint sets <code>gamma: float = 0.9</code> (<code>train_squint.py</code> L146), lower than the 0.99 common elsewhere, which suits short 50-tick tasks.</p>
-</details>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">the return, and why it can't exceed 10</span></summary><div class="lbody">
+<p>The return from tick \(t\) is \(G_t = \sum_{k\ge0}\gamma^k\, r_{t+k}\). If every reward satisfies \(|r|\le r_{\max}\), the geometric series bounds it:</p>
+\[ |G_t| \;\le\; \sum_{k\ge 0}\gamma^k\, r_{\max} \;=\; \frac{r_{\max}}{1-\gamma}. \]
+<p>ReachCube's reward lies between −1 and 1 (the worst case is touching the table and the cube at once, \(-4/4\)), so with \(\gamma = 0.9\) every return lies between −10 and 10. A reward \(k\) ticks ahead is weighted \(\gamma^k\): 0.35 at \(k = 10\), 0.04 at \(k = 30\). The number \(1/(1-\gamma) = 10\) also reads as how many ticks the robot effectively looks ahead.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">one number</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\gamma = 0.9\)</div><pre>gamma: float = 0.9</pre>
+<p class="where"><code>train_squint.py</code> L146, lower than the 0.99 common in other benchmarks; it suits 50-tick tasks.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">A reward of 1 arrives 20 ticks from now. What is it worth to the robot today?</span></summary><div class="lbody">
+<p>0.9<sup>20</sup> ≈ 0.12.</p>
+</div></details>
+
 </section>
 
 <!-- 3 -->
@@ -278,13 +342,30 @@ return self.compute_dense_reward(...) / 4                              <span cla
   <figcaption>Our trained critic (checkpoint A) through one simulated ReachCube episode. Solid: its forecast at each tick. Dashed: the return that actually followed. At tick 0 it forecast 6.32 and the run delivered 6.71; once success held from tick 7, both sit near 9.9.</figcaption>
 </figure>
 <p>The critic sees what the robot sees, plus the move being judged. Inside, the picture goes through a small camera network (the encoder: two convolution layers) and is squeezed to 50 numbers; the 12 joint numbers are spread out to 256; the 6-number move is attached; three more layers turn all of that into the forecast.</p>
-<details class="hood"><summary>Under the hood: the critic's wiring</summary>
-<pre><span class="c"># train_squint.py L392-396: the critic's forward pass</span>
-proj = self.proj(rgb_features, state)       <span class="c"># picture -> 50 numbers, joints -> 256</span>
-x = torch.cat([proj, actions], dim=-1)      <span class="c"># attach the 6-number move</span>
-return torch.vmap(self._vmap_q, (0, None))(self.q_params, x)   <span class="c"># two heads, see section 8</span></pre>
-<p>Sizes from our checkpoint: encoder 34,400 weights; critic 1,536,096 (both heads, each three layers of 512 with layer normalization, <code>train_squint.py</code> L377–384). The forecast on this chart is the average of the two heads. "Actual" is the discounted sum of the rewards that came next, including SAC's small randomness term from section 6, because that is what this critic is trained to forecast.</p>
-</details>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">value functions and the Bellman equation</span></summary><div class="lbody">
+<p>For a policy \(\pi\), the value of a state, and of a state with a first move, are expected returns:</p>
+\[ V^\pi(s) = \mathbb E_\pi\big[G_t \mid s_t = s\big],\qquad Q^\pi(s,a) = \mathbb E_\pi\big[G_t \mid s_t = s,\ a_t = a\big],\qquad V^\pi(s) = \mathbb E_{a\sim\pi}\big[Q^\pi(s,a)\big]. \]
+<p>Split the first reward off the return and the infinite sum becomes recursive:</p>
+\[ \begin{aligned} Q^\pi(s,a) &= \mathbb E\big[r_t + \gamma\,(r_{t+1} + \gamma\, r_{t+2} + \dots)\ \big|\ s_t = s,\ a_t = a\big]\\ &= r(s,a) + \gamma\,\mathbb E_{s'\sim p(\cdot\mid s,a)}\Big[\mathbb E_\pi\big[G_{t+1}\mid s_{t+1} = s'\big]\Big]\\ &= r(s,a) + \gamma\,\mathbb E_{s'\sim p}\big[V^\pi(s')\big]. \end{aligned} \]
+<p>That is the Bellman equation (Bellman, 1957): one real step, plus the value of where it lands. Sections 4 to 9 are all ways of solving it from samples, without knowing \(p\).</p>
+<p>Why \(Q\) and not only \(V\): choosing between moves with \(V\) alone needs \(p\), to know where each move lands. \(Q\) has the consequences folded in, so moves can be compared without a model of the physics.</p>
+<p>SAC's critic forecasts the soft \(Q\), which also counts future randomness (section 6). In our run the randomness terms add up to <span id="soft-part"></span> at tick 0, which is why the chart's "what happened" line includes them.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the critic's wiring</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(f_\psi(o)\): picture \(\to\) 1024 features</div><pre>nn.Conv2d(3, 32, 4, stride=2), nn.ReLU(),
+nn.Conv2d(32, 64, 4, stride=1), nn.ReLU(), nn.Flatten()</pre>
+<div class="eqc">\([\,\text{LN}(W f) \to 50,\ \text{LN}(W s) \to 256\,]\)</div><pre>self.rgb_proj = nn.Sequential(nn.Linear(n_obs, 50), nn.LayerNorm(50), nn.Tanh())
+self.state_proj = nn.Sequential(nn.Linear(n_state, 256), nn.LayerNorm(256), nn.ReLU())</pre>
+<div class="eqc">\(Q_i(o,s,a)\), two heads</div><pre>proj = self.proj(rgb_features, state)
+x = torch.cat([proj, actions], dim=-1)
+return torch.vmap(self._vmap_q, (0, None))(self.q_params, x)</pre>
+<p class="where"><code>train_squint.py</code> L249–253 (encoder, 34,400 weights), L268–280 (projection), L392–396 (forward), L377–384 (each head: three layers of 512 with layer normalization). Critic total, both heads: 1,536,096 weights.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">To compare two moves without a model of the physics, do you need V or Q?</span></summary><div class="lbody">
+<p>Q. It already includes what each move leads to; V would need the transition rule to know where each move lands.</p>
+</div></details>
+
 </section>
 
 <!-- 4 -->
@@ -307,23 +388,55 @@ return torch.vmap(self._vmap_q, (0, None))(self.q_params, x)   <span class="c">#
 </div>
 <p>The forecast was a little low, so this update raises it, but only by a small part of the gap: each update averages over 512 moments and takes a small step. The gap is small because this critic is already trained. Early in training the forecasts are near zero and the gaps are large.</p>
 <p>Each target holds one real reward. Repeat this over millions of moments and the real rewards seep backward through the chain of forecasts, from the ticks that earn them to the moves that set them up.</p>
+<p>Here is that seeping, step by step, on six moments in a row where only the last one pays:</p>
+<div class="widget" id="w-chain">
+  <div class="controls"><button type="button" id="chain-step">one pass</button> <button type="button" id="chain-reset">reset</button> <span class="toy">passes so far: <span id="chain-n">0</span></span></div>
+  <svg class="chart" id="chain-svg" viewBox="0 0 640 176" role="img" aria-label="Values of six moments after each pass of reward plus 0.9 times the next value"></svg>
+  <p class="toy">A toy, not our data. Each pass sets every moment to its reward plus 0.9 × the next moment's value, using the values from before the pass. The last moment pays 1, then the episode ends.</p>
+</div>
+<p>Why does repeating this settle, instead of wandering? Because each backup pulls any two guesses toward each other by the factor 0.9. Two very different starting guesses end up in the same place:</p>
+<div class="widget" id="w-contract">
+  <div class="controls"><label for="kb">backups applied <input id="kb" type="range" min="0" max="40" step="1" value="0"> <span class="val" id="kb-val"></span></label></div>
+  <svg class="chart" id="contract-svg" viewBox="0 0 640 200" role="img" aria-label="Two guesses converging to the true value as backups are applied"></svg>
+  <p class="readout" id="contract-out" aria-live="polite"></p>
+  <p class="toy">A toy: one moment that pays 1 every tick and leads back to itself, so the true value is 1/(1 − 0.9) = 10. One guess starts at 0, the other at 20.</p>
+</div>
 <p>Notice the catch, though: the target is built from the critic's own guess. If that guess is wrong, so is the target. Section 8 is about exactly this.</p>
-<details class="hood"><summary>Under the hood: the target, exactly</summary>
-<div class="eq">y = r + γ · ( Q̄(s′, ã′) − α · log π(ã′ | s′) )
-    with ã′ drawn fresh from the actor at s′</div>
-<p>Q̄ is the slow copy (section 8.1), the α·log π term is the randomness term (section 6), and in Squint the forecast is a histogram (section 9.1), so the same formula is applied to every bar. In code (<code>train_squint.py</code> L765–776, L422):</p>
-<pre>next_state_actions, next_state_log_pi, _ = actor.get_action(next_obs, next_state)
-entropy_bonus = alpha * next_state_log_pi.flatten()
-rewards_with_entropy = rewards - bootstrap.flatten() * discount * entropy_bonus
-target_distributions = critic_target.categorical(next_obs, next_state, next_state_actions,
-                                                 rewards_with_entropy, bootstrap, discount)
-<span class="c"># inside categorical():</span>
-target_z = rewards.unsqueeze(1) + bootstrap.unsqueeze(1) * discount * self.q_support</pre>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">the Bellman operator, and why repeating it converges</span></summary><div class="lbody">
+<p>Turn the Bellman equation into an operator that takes any guess \(Q\) and returns a new one (soft form, section 6):</p>
+\[ (\mathcal T^\pi Q)(s,a) = r(s,a) + \gamma\,\mathbb E_{s'\sim p,\ a'\sim\pi}\big[Q(s',a') - \alpha\log\pi(a'\mid s')\big]. \]
+<p>Claim: it brings any two guesses closer by the factor \(\gamma\), in the worst-case distance \(\|Q_1 - Q_2\|_\infty = \max_{s,a}|Q_1(s,a) - Q_2(s,a)|\).</p>
+<ol class="deriv">
+<li>Subtract the two outputs. The reward and the randomness term don't depend on the guess, so they cancel: \[(\mathcal T^\pi Q_1 - \mathcal T^\pi Q_2)(s,a) = \gamma\,\mathbb E\big[Q_1(s',a') - Q_2(s',a')\big].\]</li>
+<li>An average is never further from zero than the largest thing averaged: \(\big|\mathbb E[X]\big| \le \mathbb E|X| \le \max|X|\).</li>
+<li>So \(\big|(\mathcal T^\pi Q_1 - \mathcal T^\pi Q_2)(s,a)\big| \le \gamma\,\|Q_1 - Q_2\|_\infty\) at every \((s,a)\), hence \[\|\mathcal T^\pi Q_1 - \mathcal T^\pi Q_2\|_\infty \le \gamma\,\|Q_1 - Q_2\|_\infty. \quad ∎\]</li>
+</ol>
+<p>A map that shrinks every distance by a fixed factor has exactly one fixed point, and repeating it from any start reaches that point with the error shrinking like \(\gamma^k\) (Banach's fixed-point theorem). The fixed point is \(Q^\pi\), because \(Q^\pi\) satisfies the equation. The second widget above is this proof, run: the gap is \(20\times 0.9^k\).</p>
+<p>Temporal-difference learning is the sampled, approximate version. One moment \((s,a,r,s')\) and one fresh move \(\tilde a'\sim\pi(\cdot\mid s')\) give a one-sample target</p>
+\[ y = r + \gamma\big(\bar Q(s',\tilde a') - \alpha\log\pi(\tilde a'\mid s')\big), \]
+<p>and the critic's weights \(\theta\) take a gradient step on \(L(\theta) = \tfrac12\,\mathbb E\big[(Q_\theta(s,a) - y)^2\big]\), with \(y\) held fixed:</p>
+\[ \theta \leftarrow \theta + \eta\;\mathbb E\big[(y - Q_\theta(s,a))\,\nabla_\theta Q_\theta(s,a)\big]. \]
+<p>The gap \(y - Q_\theta\), the TD error, sets the sign and size of the nudge (+0.063 in our example); the learning rate \(\eta = 3\times10^{-4}\), with Adam, keeps each step small. Squint swaps the squared error for a cross-entropy on histograms (section 9.1); the logic is the same.</p>
 <p>The worked numbers, exactly. The randomness term is −0.9 × α × log π(ã′ | s′) = −0.9 × <span id="h-alpha"></span> × <span id="h-logp"></span>. It is negative here because the actor was fairly sure of that move (log π above 0); for an unsure move it would add a little. The fresh move is a random draw, so another draw would give a slightly different target; every update draws again.</p>
 <p>Which networks: the target uses the slow copy, as in training. The tick-3 forecast should come from the live critic, but the checkpoint saves only the slow copy (<code>train_squint.py</code> L878), so both forecasts here come from it; by the end of training the live critic is a few dozen updates ahead of it (section 8.1). These are head 1's numbers. Head 2: forecast <span id="h2-q"></span>, slow copy <span id="h2-qn"></span>, target <span id="h2-y"></span>, gap <span id="h2-d"></span>.</p>
 <p>In Squint the forecast is a histogram (section 9.1), so the update pulls the critic's histogram for (s, a) toward a target histogram with cross-entropy, and the average follows. For head 1 here the cross-entropy is <span id="h-ce"></span>, against a floor of <span id="h-ht"></span> (the target's own entropy), so <span id="h-kl"></span> is all that learning can still remove at this moment.</p>
-<p>Monte Carlo targets are unbiased but noisy; bootstrapped targets are steady but inherit the critic's errors (Finn, slides 19–20). Squint uses the 1-step version shown here.</p>
-</details>
+<p>Monte Carlo targets (the actual return \(G_t\)) are unbiased but carry the variance of a whole episode; TD targets have low variance but inherit the critic's errors through \(\bar Q\) (Finn, slides 19–20). Squint uses the 1-step TD target. And the proof above assumes exact expectations and a table that can hold any \(Q\); a neural network trained on samples gets no such guarantee (section 10).</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the target, line by line</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\tilde a'\sim\pi(\cdot\mid s'),\ \log\pi(\tilde a'\mid s')\)</div><pre>next_state_actions, next_state_log_pi, _ = actor.get_action(next_obs, next_state)</pre>
+<div class="eqc">\(r_{\text{soft}} = r - \gamma\,\alpha\log\pi(\tilde a'\mid s')\)</div><pre>entropy_bonus = alpha * next_state_log_pi.flatten()
+rewards_with_entropy = rewards - bootstrap.flatten() * discount * entropy_bonus</pre>
+<div class="eqc">\(y = r_{\text{soft}} + \gamma\,\bar Z(s',\tilde a')\), per slot</div><pre>target_z = rewards.unsqueeze(1) + bootstrap.unsqueeze(1) * discount * self.q_support</pre>
+<div class="eqc">\(y\) held fixed</div><pre>with torch.no_grad():        # everything above is computed without gradients</pre>
+<div class="eqc">\(\min_\theta\ \mathrm{CE}(\hat p,\ p_\theta(s,a))\)</div><pre>q_log_probs = F.log_softmax(q_outputs, dim=-1)
+q_losses = -torch.sum(target_distributions * q_log_probs, dim=-1).mean(dim=-1)</pre>
+<p class="where"><code>train_squint.py</code> L762–787; <code>bootstrap</code> is always 1 in Squint (section 9.2). Critic learning rate: <code>q_lr = 3e-4</code> with Adam (L132, L726).</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Forecast 8.0, reward 0.5, next-tick forecast 8.0; ignore the randomness term. Which way does the update push?</span></summary><div class="lbody">
+<p>The target is 0.5 + 0.9 × 8.0 = 7.7, so the gap is −0.3 and the forecast is pushed down, by a small fraction of 0.3.</p>
+</div></details>
+
 </section>
 
 <!-- 5 -->
@@ -338,22 +451,37 @@ target_z = rewards.unsqueeze(1) + bootstrap.unsqueeze(1) * discount * self.q_sup
 </figure>
 <p>Two details make this work. First, the actor's move is built as <i>center + spread × noise</i> (section 6). Because the move is a smooth function of the center and the spread, the critic's slope passes straight through to them; this is called the reparameterization trick (Finn, slide 34). Second, the actor practises on situations from memory (section 7) but never copies the moves stored there. For each situation it proposes a fresh move and asks the critic to score that (Finn, slide 32).</p>
 <div class="eq">the actor wants:   Q(s, a) − α · log π(a | s)   to be large,   with a drawn fresh from the actor</div>
-<details class="hood"><summary>Under the hood: the actor in code</summary>
-<pre><span class="c"># train_squint.py L324-336: sample a move</span>
-mean, log_std = self.forward(rgb, state, get_log_std=True)
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">two ways to get a gradient through a random move</span></summary><div class="lbody">
+<p>The actor's weights \(\phi\) should minimize</p>
+\[ J_\pi(\phi) = \mathbb E_{s\sim\mathcal D}\Big[\mathbb E_{a\sim\pi_\phi(\cdot\mid s)}\big[\alpha\log\pi_\phi(a\mid s) - Q(s,a)\big]\Big]. \]
+<p>The trouble: the distribution being averaged over depends on \(\phi\), so the gradient can't simply move inside. There are two ways out.</p>
+<p><b>Score function.</b> Differentiate under the integral and use \(\nabla\pi = \pi\,\nabla\log\pi\):</p>
+\[ \nabla_\phi\,\mathbb E_{a\sim\pi_\phi}\big[f(a)\big] = \mathbb E_{a\sim\pi_\phi}\big[f(a)\,\nabla_\phi\log\pi_\phi(a)\big]. \]
+<p>Unbiased, but it uses only the value \(f(a)\), never its slope, so it infers direction from correlation: high variance (Finn, slides 32–33).</p>
+<p><b>Reparameterization.</b> Write the move as a smooth function of fixed noise, \(a = f_\phi(\varepsilon;s) = \tanh\big(\mu_\phi(s) + \sigma_\phi(s)\odot\varepsilon\big)\), \(\varepsilon\sim\mathcal N(0,I)\). Now the noise doesn't depend on \(\phi\), the gradient moves inside, and the chain rule applies:</p>
+\[ \nabla_\phi\,\mathbb E_\varepsilon\big[g(f_\phi(\varepsilon;s))\big] = \mathbb E_\varepsilon\Big[\nabla_a g(a)\big|_{a=f_\phi(\varepsilon;s)}\ \nabla_\phi f_\phi(\varepsilon;s)\Big]. \]
+<p>This uses \(\nabla_a Q\), the critic's slope: the actor learns which way to move, not only whether a move was good. SAC chooses it for that reason, a lower-variance estimator (SAC 2018a, section 4.2, Eqs. 11–12; Finn, slide 34). In Squint, \(Q\) is the average of the two heads, and the critic's weights are frozen during this step.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the actor, line by line</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(u = \mu_\phi(s) + \sigma_\phi(s)\,\varepsilon\)</div><pre>mean, log_std = self.forward(rgb, state, get_log_std=True)
 normal = torch.distributions.Normal(mean, log_std.exp())
-x_t = normal.rsample()                    <span class="c"># center + spread * noise: slopes flow through</span>
-y_t = torch.tanh(x_t)                     <span class="c"># squash into [-1, 1]</span>
-log_prob = normal.log_prob(x_t)
-log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + 1e-6)   <span class="c"># correct for the squash</span>
-
-<span class="c"># train_squint.py L828-834: the actor's loss</span>
-pi, log_pi, _ = actor.get_action(obs, state)
-q_values = critic.get_q_values(obs, state, pi, detach_critic=True)
-critic_value = q_values.mean(dim=0)       <span class="c"># average of the two heads</span>
+x_t = normal.rsample()          # slopes flow through mean and std</pre>
+<div class="eqc">\(a = \tanh u\)</div><pre>y_t = torch.tanh(x_t)</pre>
+<div class="eqc">\(\log\pi(a\mid s) = \log\mathcal N(u) - \textstyle\sum\log(1-\tanh^2 u)\)</div><pre>log_prob = normal.log_prob(x_t)
+log_prob -= torch.log(self.action_scale * (1 - y_t.pow(2)) + 1e-6)
+log_prob = log_prob.sum(1, keepdim=True)</pre>
+<div class="eqc">\(\log\sigma\in[-5, 2]\)</div><pre>log_std = torch.tanh(log_std)
+log_std = LOG_STD_MIN + 0.5 * (LOG_STD_MAX - LOG_STD_MIN) * (log_std + 1)</pre>
+<div class="eqc">\(\min_\phi\ \mathbb E\big[\alpha\log\pi - \tfrac12(Q_1+Q_2)\big]\)</div><pre>q_values = critic.get_q_values(obs, state, pi, detach_critic=True)
+critic_value = q_values.mean(dim=0)        # average of the two heads
 actor_loss = (alpha * log_pi - critic_value).mean()</pre>
-<p><code>detach_critic=True</code> freezes the critic during this step: gradients move the actor's move, not the critic's opinion. The slope in the figure is this gradient, measured at the actor's deterministic move. The older policy-gradient form, ∇log π · Q (Finn, slides 32–33), estimates the same direction with much more noise.</p>
-</details>
+<p class="where"><code>train_squint.py</code> L306–336 (actor), L828–834 (loss). The figure's slope is this gradient at the actor's deterministic move. The <code>+ 1e-6</code> guards the logarithm when tanh saturates; it makes the density integrate to 1 only approximately (checked: 0.9999).</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">The actor trains on situations from memory. Whose moves is it scored on?</span></summary><div class="lbody">
+<p>Fresh moves it draws itself, from its current bell curves. The moves stored in memory are only used by the critic.</p>
+</div></details>
+
 </section>
 
 <!-- 6 -->
@@ -372,19 +500,49 @@ actor_loss = (alpha * log_pi - critic_value).mean()</pre>
   <p class="readout" id="tanh-out" aria-live="polite"></p>
 </div>
 <p>How much randomness is right? SAC answers by paying the actor for it. The actor's goal becomes reward plus α times the <b>entropy</b>, a measure of how spread out its choices are. α, the temperature, is the exchange rate between reward and randomness.</p>
+<p>What does the best random policy look like? Take three moves whose forecasts are 2, 1 and 0, and slide α:</p>
+<div class="widget" id="w-boltz">
+  <div class="controls"><label for="balpha">α, the price of certainty <input id="balpha" type="range" min="-1.3" max="1" step="0.01" value="0"> <span class="val" id="balpha-val"></span></label></div>
+  <svg class="chart" id="boltz-svg" viewBox="0 0 640 196" role="img" aria-label="The best random policy over three moves for the chosen temperature"></svg>
+  <p class="readout" id="boltz-out" aria-live="polite"></p>
+  <p class="toy">A toy, not our data. The best policy gives each move a share proportional to e<sup>forecast / α</sup>: small α is nearly greedy, large α nearly uniform.</p>
+</div>
 <p>α isn't set by hand. A thermostat adjusts it toward a target amount of randomness: entropy −6, one unit per joint, roughly a spread of 0.09 per joint near the middle. If the actor is more random than that, α shrinks; if it's less, α grows. In our run α started at 1 and settled at <span id="alpha-val"></span>.</p>
 <p>The actor gets to choose where to spend that randomness. By tick 30, holding at the cube, the arm joints' spread was <span id="std30-arm"></span>, but the gripper's was <span id="std30-grip"></span>. At the hold the forecast barely changes with the gripper move, so randomness there costs nothing (our reading of the trace).</p>
 <p>When the trained policy runs on the real arm, the randomness is switched off. It plays the center of each bell, squashed: tanh(center).</p>
-<details class="hood"><summary>Under the hood: the entropy objective and the thermostat</summary>
-<div class="eq">actor's objective:   E[ Q(s, a) ] + α · H(π(· | s)),      H = E[ −log π(a | s) ]
-thermostat:          minimize  −α · ( log π(a | s) + H_target ),   H_target = −6</div>
-<pre><span class="c"># train_squint.py L667-670, L807-808</span>
-target_entropy = -torch.prod(torch.Tensor(envs.unwrapped.single_action_space.shape)).item()   <span class="c"># -6</span>
-log_alpha = torch.zeros(1, requires_grad=True)        <span class="c"># alpha starts at exp(0) = 1</span>
-_, log_pi, _ = actor.get_action(obs, state)
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">entropy, the best random policy, the squash and the thermostat</span></summary><div class="lbody">
+<p>Entropy is average surprise, \(\mathcal H(\pi(\cdot\mid s)) = \mathbb E_{a\sim\pi}[-\log\pi(a\mid s)]\). For a Gaussian with spread \(\sigma\):</p>
+\[ \mathcal H = -\mathbb E\big[\log p(x)\big] = \tfrac12\log(2\pi\sigma^2) + \frac{\mathbb E[(x-\mu)^2]}{2\sigma^2} = \tfrac12\log\big(2\pi e\,\sigma^2\big). \]
+<p>It can be negative: \(\sigma = 0.1\) gives \(-0.88\). Setting \(\mathcal H = -1\) gives \(\sigma = e^{-1}/\sqrt{2\pi e}\approx 0.089\), the per-joint spread behind the target of \(-6\) (before the squash; entropies of independent joints add).</p>
+<p>SAC maximizes reward plus entropy (SAC 2018a, Eq. 1):</p>
+\[ J(\pi) = \sum_t \mathbb E_{(s_t,a_t)\sim\rho_\pi}\Big[r(s_t,a_t) + \alpha\,\mathcal H\big(\pi(\cdot\mid s_t)\big)\Big], \]
+<p>so values count future randomness: \(V(s) = \mathbb E_{a\sim\pi}[Q(s,a) - \alpha\log\pi(a\mid s)]\) and \(Q(s,a) = r(s,a) + \gamma\,\mathbb E_{s'}[V(s')]\).</p>
+<p><b>The best policy at one state.</b> Maximize \(\sum_a\pi(a)Q(a) - \alpha\sum_a\pi(a)\log\pi(a)\) subject to \(\sum_a\pi(a) = 1\). With a Lagrange multiplier \(\lambda\), set the derivative with respect to each \(\pi(a)\) to zero:</p>
+\[ Q(a) - \alpha\log\pi(a) - \alpha - \lambda = 0 \quad\Longrightarrow\quad \pi^\star(a) = \frac{e^{Q(a)/\alpha}}{Z},\qquad Z = \sum_{a'}e^{Q(a')/\alpha}. \]
+<p>Substituting back, the soft value is \(V = \alpha\log Z\), a smoothed maximum that tends to \(\max_a Q(a)\) as \(\alpha\to 0\). That is the "soft" in Soft Actor-Critic, and the widget above computes exactly these quantities.</p>
+<p><b>The actor's loss is this target in disguise.</b> For any policy \(\pi\),</p>
+\[ \mathrm{KL}\Big(\pi\ \Big\|\ \tfrac{1}{Z}e^{Q/\alpha}\Big) = \mathbb E_{a\sim\pi}\Big[\log\pi(a) - \tfrac{Q(a)}{\alpha}\Big] + \log Z, \]
+<p>so minimizing \(\mathbb E[\alpha\log\pi - Q]\) minimizes the KL to the best policy; \(\log Z\) doesn't depend on the actor and drops out. SAC proves that this projection never makes the policy worse (soft policy improvement, SAC 2018a, Lemma 2) and that alternating it with evaluation converges to the best policy in the chosen family (Theorem 1), for finite action sets and exact updates.</p>
+<p><b>The squash.</b> With \(u\sim\mathcal N(\mu,\sigma^2)\) and \(a=\tanh u\), probability is conserved, \(\pi(a)\,|da| = p(u)\,|du|\), and \(\tfrac{d}{du}\tanh u = 1-\tanh^2u\), so per joint</p>
+\[ \log\pi(a\mid s) = \log\mathcal N(u;\mu,\sigma^2) - \log\big(1-\tanh^2 u\big), \]
+<p>summed over the 6 joints. Leave it out and nothing crashes; the entropy is just wrong, and so is everything α does.</p>
+<p><b>The thermostat.</b> SAC 2018b recasts the objective as maximizing reward subject to an average entropy of at least \(\bar{\mathcal H}\); the multiplier on that constraint is \(\alpha\), learned by minimizing</p>
+\[ J(\alpha) = \mathbb E_{a\sim\pi}\big[-\alpha\log\pi(a\mid s) - \alpha\bar{\mathcal H}\big] = \alpha\,\big(\hat{\mathcal H} - \bar{\mathcal H}\big), \]
+<p>where \(\hat{\mathcal H}\) is the current entropy. The slope is \(\hat{\mathcal H}-\bar{\mathcal H}\): too little randomness makes it negative, and gradient descent raises \(\alpha\); too much lowers it. Squint learns \(\log\alpha\), which keeps \(\alpha\) positive and has the same sign rule. \(\bar{\mathcal H} = -\dim\mathcal A = -6\) is a convention, not a derived value.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the entropy, the squash and the thermostat</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\bar{\mathcal H} = -\dim\mathcal A = -6\)</div><pre>target_entropy = -torch.prod(torch.Tensor(envs.unwrapped.single_action_space.shape)).item()</pre>
+<div class="eqc">\(\alpha = e^{\log\alpha}\), starts at 1</div><pre>log_alpha = torch.zeros(1, requires_grad=True)</pre>
+<div class="eqc">\(\min_{\log\alpha}\ \mathbb E\big[-\alpha(\log\pi + \bar{\mathcal H})\big]\)</div><pre>_, log_pi, _ = actor.get_action(obs, state)
 alpha_loss = (-log_alpha.exp() * (log_pi + target_entropy)).mean()</pre>
-<p>If the actor is too sure, log π is large, (log π − 6) &gt; 0, and the gradient raises α, paying more for randomness; too random, and α falls. The "spread of 0.09" is the Gaussian whose entropy is −1: ½·ln(2πe·σ²) = −1 gives σ ≈ 0.089, before squashing. The spread is also capped: log σ is kept between −5 and 2 (<code>train_squint.py</code> L306–307). At deployment the actor plays <code>torch.tanh(mean)</code> (L320–323).</p>
-</details>
+<div class="eqc">deploy: \(a = \tanh\mu\)</div><pre>action = torch.tanh(mean) * self.action_scale + self.action_bias</pre>
+<p class="where"><code>train_squint.py</code> L667–670, L805–815, L320–323. The Squint paper's Algorithm 1 prints this update with the sign flipped; the code is right.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">The actor has become more certain than the target entropy. What does α do next?</span></summary><div class="lbody">
+<p>It rises: the slope Ĥ − H̄ is negative, so gradient descent increases α, paying the actor more for randomness until its entropy is back near −6.</p>
+</div></details>
+
 </section>
 
 <!-- 7 -->
@@ -457,28 +615,32 @@ alpha_loss = (-log_alpha.exp() * (log_pi + target_entropy)).mean()</pre>
   <span class="when">every 50 ticks</span><span>all 1024 arms reset together and start new episodes; success doesn't end an episode early</span>
 </div>
 <p>The paper found that manipulation likes this many updates per new moment (0.25), more than humanoid walking needs (under 0.06) (Squint, section IV).</p>
-<details class="hood"><summary>Under the hood: what gets stored, and the loop</summary>
-<pre><span class="c"># train_squint.py L889-917: one iteration's moments</span>
-next_obs, rewards, terminations, truncations, infos = envs.step(actions)   <span class="c"># 10 physics steps inside</span>
-real_next_obs = {'rgb': next_obs['rgb'].clone(), 'state': next_obs['state'].clone()}
-dones = torch.zeros_like(terminations, dtype=torch.bool)    <span class="c"># bootstrap_at_done = "always"</span>
-if "final_info" in infos:                                   <span class="c"># an arm just hit 50 ticks and was reset:</span>
-    real_next_obs['rgb'][need_final_obs] = infos["final_observation"]['rgb'][need_final_obs]   <span class="c"># keep the real last s'</span>
-transition = TensorDict(observations=obs, next_observations=real_next_obs,
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">why old data is still valid, and how often it's used</span></summary><div class="lbody">
+<p>The critic's target for a stored moment needs only \((s,a,r,s')\) from memory and a fresh move from the current actor:</p>
+\[ y = r + \gamma\big(\bar Q(s',\tilde a') - \alpha\log\pi(\tilde a'\mid s')\big),\qquad \tilde a'\sim\pi(\cdot\mid s'). \]
+<p>Everything that depends on the current policy is recomputed; everything stored is a fact about the world. Because \(Q(s,a)\) conditions on the stored move \(a\), no correction for "the old actor chose it" is needed. That is what lets SAC learn off-policy (Finn, slides 31–32). The losses are averages over memory, \(\mathbb E_{(s,a,r,s')\sim\mathcal D}[\cdot]\), each estimated from 512 random draws.</p>
+<p>Use per moment: each iteration adds \(N = 1024\) moments and makes \(U = 256\) updates of \(B = 512\) draws, so on average a moment is drawn \(UB/N = 128\) times. A full memory of \(M = 10^6\) holds about \(M/N\approx 977\) iterations, about 98 simulated seconds per arm.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">what gets stored, and the loop</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">one tick for 1024 arms</div><pre>next_obs, rewards, terminations, truncations, infos = envs.step(actions)</pre>
+<div class="eqc">\(s'\) at a time-out is the real last picture</div><pre>real_next_obs[...][need_final_obs] = infos["final_observation"][...][need_final_obs]</pre>
+<div class="eqc">\(\mathcal D \leftarrow \mathcal D\cup\{(s,a,r,s')\}\)</div><pre>transition = TensorDict(observations=obs, next_observations=real_next_obs,
                         actions=actions, rewards=rewards, dones=dones)
-rb.extend(transition)                                       <span class="c"># 1024 moments</span>
-...
-global_step += args.num_envs                                <span class="c"># L960: counts moments, +1024 per iteration</span></pre>
-<pre><span class="c"># train_squint.py L923-938: the updates</span>
-for grad_step in range(args.num_updates):                   <span class="c"># 256</span>
-    data = rb.sample(args.batch_size)                       <span class="c"># 512</span>
-    out_main = update_main(data)                            <span class="c"># critic, encoder, alpha</span>
-    if grad_step % args.policy_frequency == 0:              <span class="c"># every 4th</span>
-        out_main.update(update_actor(data, encoded_rgb))
-    if grad_step % args.target_network_frequency == 0:
-        torch._foreach_lerp_(critic_target_params, critic_online_params, args.tau)</pre>
-<p>Inside <code>envs.step</code>, ManiSkill runs <code>sim_freq // control_freq</code> = 100 // 10 = 10 physics steps, then evaluates the new state and computes the reward from it. The controller sets each joint's new target at once (no interpolation) and the simulated motors pull toward it during those 10 steps. Episodes all end together because the vector environment ignores early terminations (<code>ignore_terminations=True</code>, L632). Memory per moment: two 16 × 16 × 3 pictures (1,536 bytes) plus 12 + 12 + 6 + 1 numbers and a flag, about 1.7 KB; the memory lives on the GPU (<code>LazyTensorStorage</code>, L741). The paper found 1M moments beat 100K by 7% in final success.</p>
-</details>
+rb.extend(transition)</pre>
+<div class="eqc">\(U = 256\) updates of \(B = 512\)</div><pre>for grad_step in range(args.num_updates):
+    data = rb.sample(args.batch_size)
+    out_main = update_main(data)        # critic, encoder, alpha</pre>
+<div class="eqc">actor every 4th; slow copy every update</div><pre>if grad_step % args.policy_frequency == 0:
+    out_main.update(update_actor(data, encoded_rgb))
+torch._foreach_lerp_(critic_target_params, critic_online_params, args.tau)</pre>
+<div class="eqc">global_step counts moments</div><pre>global_step += args.num_envs</pre>
+<p class="where"><code>train_squint.py</code> L885–960. Inside <code>envs.step</code>, ManiSkill runs <code>sim_freq // control_freq</code> = 10 physics steps, then scores the new state. Episodes end together because early terminations are ignored (<code>ignore_terminations=True</code>, L632). The memory lives on the GPU (<code>LazyTensorStorage</code>, L741); the paper found 1M moments beat 100K by 7% in final success.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Checkpoint A's memory never filled. Why?</span></summary><div class="lbody">
+<p>It trained for 196 iterations, 200,704 moments in all, fewer than the 1,000,000 the memory holds.</p>
+</div></details>
+
 </section>
 
 <!-- 8 -->
@@ -498,14 +660,20 @@ for grad_step in range(args.num_updates):                   <span class="c"># 25
   <p class="toy">A made-up signal, not our data. Thin line: the live critic's opinion over updates. Thick line: the slow copy.</p>
 </div>
 <p>In Squint, τ = 0.01, so a change in the critic takes 69 updates to reach halfway into the targets. The copy covers the critic's own layers; the camera network isn't copied, and targets use the live one. One more detail that matters for us: the checkpoint saves the slow copy, so the critic we used to score the real arm is the slow copy.</p>
-<details class="hood"><summary>Under the hood: the moving average</summary>
-<div class="eq">θ̄ ← θ̄ + τ · (θ − θ̄)       halfway after  k = ln(0.5) / ln(1 − τ)  updates;  τ = 0.01 → 69</div>
-<pre><span class="c"># train_squint.py L936-938, after every update</span>
-torch._foreach_lerp_(critic_target_params, critic_online_params, args.tau)   <span class="c"># tau = 0.01 (L148)</span>
-<span class="c"># L878: what the checkpoint stores as "critic"</span>
-'critic': critic_target.state_dict(),</pre>
-<p>DQN (Mnih et al., 2015) froze a copy and replaced it every few thousand steps; SAC and TD3 use the smooth moving average above. The Squint paper doesn't test removing it.</p>
-</details>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">the slow copy is a moving average</span></summary><div class="lbody">
+<p>After every update, \(\bar\theta \leftarrow \bar\theta + \tau(\theta - \bar\theta) = (1-\tau)\,\bar\theta + \tau\,\theta\). Unrolled over \(k\) updates:</p>
+\[ \bar\theta_k = (1-\tau)^k\,\bar\theta_0 + \tau\sum_{j=0}^{k-1}(1-\tau)^{k-1-j}\,\theta_j. \]
+<p>A live weight from \(n\) updates ago carries weight \(\tau(1-\tau)^n\): an exponential moving average with a memory of about \(1/\tau = 100\) updates. Its weight halves after \(n_{1/2} = \ln\tfrac12/\ln(1-\tau)\), 69 updates at \(\tau = 0.01\).</p>
+<p>There is no general proof that a slow copy makes deep TD learning converge: function approximation, bootstrapping and off-policy data together can diverge with or without it (the "deadly triad", Sutton and Barto, 2018, section 11.3). It is an empirical stabilizer, introduced with DQN (Mnih et al., 2015). SAC's own ablation shows both failure modes: a fast-moving target (large τ) can cause instability, a slow one makes training slower (SAC 2018a, section 5.2, Fig. 3c).</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">one line, after every update</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\bar\theta \leftarrow \bar\theta + \tau(\theta - \bar\theta)\), \(\tau = 0.01\)</div><pre>torch._foreach_lerp_(critic_target_params, critic_online_params, args.tau)</pre>
+<div class="eqc">the checkpoint stores \(\bar\theta\)</div><pre>'critic': critic_target.state_dict(),</pre>
+<div class="eqc">\(\bar Q\) uses the live encoder</div><pre>next_obs = encoder(data["next_observations"]["rgb"])     # under no_grad</pre>
+<p class="where"><code>train_squint.py</code> L936–938 (τ at L148), L878, L763.</p></div>
+</div></details>
+
 
 <h3 id="two">8.2 Two critics against the optimist's curse</h3>
 <p>The problem: the actor goes wherever the critic forecasts high. Forecasts have errors, and the actor is drawn precisely to the ones that are accidentally too high. Those inflated values then feed into targets, and the inflation spreads.</p>
@@ -520,20 +688,36 @@ torch._foreach_lerp_(critic_target_params, critic_online_params, args.tau)   <sp
 </div>
 <p>The standard fix, from TD3 and then SAC: train two critics and build targets from the smaller of their two forecasts, which cancels much of the optimism.</p>
 <p>Squint keeps two critic heads but does something milder. Each head learns from its own slow copy, and the actor follows the average of the two. The paper found the average slightly better than the minimum (Squint, section IV, Fig. 4).</p>
-<details class="hood"><summary>Under the hood: per-head targets</summary>
-<pre><span class="c"># train_squint.py L433-454: one target histogram per head, from that head's slow copy</span>
-logits = self.forward(rgb_features, state, actions)   <span class="c"># [num_q=2, batch, 101]</span>
-...
-return proj_dist_flat.reshape(self.num_q, batch_size, self.num_atoms)
-<span class="c"># L787-790: each head trained against its own target, losses summed</span>
-q_losses = -torch.sum(target_distributions * q_log_probs, dim=-1).mean(dim=-1)
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">why the best-looking move is overestimated, exactly</span></summary><div class="lbody">
+<p>For any random variables, \(\max_i X_i \ge X_j\) for each \(j\), so \(\mathbb E[\max_i X_i] \ge \max_j \mathbb E[X_j]\): the expected maximum of noisy forecasts is at least the maximum of the true values.</p>
+<p>Exactly, for two moves of true value 0 with unit noise, \(X,Y\sim\mathcal N(0,1)\) independent: \(\max(X,Y) = \tfrac{X+Y}{2} + \tfrac{|X-Y|}{2}\), and \(X-Y\sim\mathcal N(0,2)\) has \(\mathbb E|X-Y| = \sqrt2\cdot\sqrt{2/\pi}\), so</p>
+\[ \mathbb E\big[\max(X,Y)\big] = \frac{1}{\sqrt\pi}\approx 0.564,\qquad \mathbb E\big[\min(X,Y)\big] = -\frac{1}{\sqrt\pi}. \]
+<p>For \(N\) moves the bias is \(\sigma e_N\), with \(e_N\) the expected maximum of \(N\) standard normals (1.539 for \(N = 10\)). Averaging two independent forecasts halves the noise variance, so the bias shrinks by \(1/\sqrt2\) but stays positive; taking the smaller of two pushes it down. The widget's 1.52, 1.08 and 0.67 at \(N = 10\) match these.</p>
+<p>Squint's two heads, written out: head \(i\) bootstraps from its own slow copy \(\bar Z_i\),</p>
+\[ y_i = r + \gamma\Big(\mathbb E\big[\bar Z_i(s',\tilde a')\big] - \alpha\log\pi(\tilde a'\mid s')\Big), \]
+<p>and the actor follows \(\tfrac12(Q_1+Q_2)\). Standard SAC uses \(\min_i\bar Q_i\) in one shared target instead (SAC 2018a, section 4.2, after van Hasselt, 2010, and TD3). Squint's choice rests on its own ablation: the average was slightly better on its tasks (section IV, Fig. 4).</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">two heads, two targets, one average</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\bar Z_1, \bar Z_2\) at \((s',\tilde a')\)</div><pre>logits = self.forward(rgb_features, state, actions)     # [2 heads, batch, 101]
+next_dists = F.softmax(logits, dim=-1)</pre>
+<div class="eqc">\(\textstyle\sum_i \mathrm{CE}_i\)</div><pre>q_losses = -torch.sum(target_distributions * q_log_probs, dim=-1).mean(dim=-1)
 critic_loss = q_losses.sum()</pre>
-<p>The minimum rule is TD3's "clipped double Q" (Fujimoto et al., 2018); TD3 accepted its slight pessimism on purpose. Squint drops it on the strength of its own ablation.</p>
-</details>
+<div class="eqc">actor: \(\tfrac12(Q_1+Q_2)\)</div><pre>critic_value = q_values.mean(dim=0)     # "Mean (No CDQ)"</pre>
+<p class="where"><code>train_squint.py</code> L433–454 (per-head projection), L787–790, L831–832. The paper's Algorithm 1 (line 13) writes one target averaged over both slow copies; the code gives each head its own.</p></div>
+</div></details>
+
 
 <h3 id="delay">8.3 Let the critic settle before the actor listens</h3>
 <p>The problem: the actor learns from the critic's slopes. When the critic is wrong, the actor learns wrong moves; the wrong moves change the data, and the changed data confuses the critic further.</p>
 <p>The fix, also from TD3: update the actor less often than the critic. Squint updates the actor on every 4th update (<code>policy_frequency = 4</code>, <code>train_squint.py</code> L136, L932). The paper doesn't test this choice on its own.</p>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">what delaying the actor buys</span></summary><div class="lbody">
+<p>The actor's step follows \(\nabla_a Q_\theta\). If the critic's forecast carries an error \(\epsilon(s,a)\), the actor follows \(\nabla_a(Q + \epsilon)\) instead, and learns the error. TD3 argues that letting the critic take several TD steps between actor steps reduces the error the actor sees, and shows it helps empirically (Fujimoto et al., 2018, section 5.2). It is a heuristic, not a theorem; Squint uses one actor step per 4 critic steps.</p>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">With τ = 0.01, after how many updates is a change in the critic halfway into the targets?</span></summary><div class="lbody">
+<p>About 69: ln(0.5) / ln(0.99) = 68.97.</p>
+</div></details>
+
 </section>
 
 <!-- 9 -->
@@ -556,21 +740,51 @@ critic_loss = q_losses.sum()</pre>
   <svg class="chart" id="real-svg" viewBox="0 0 640 210" role="img" aria-label="The critic's histogram on three real frames: carrying the cube, cube placed, and after a hand removed the cube"></svg>
   <figcaption>Run ep025, 14 October. Carrying the cube: a rounded hump near 5.6. Cube placed: one sharp spike at 10. A few seconds later a hand took the cube out of the bin, and the critic split its bets: most of the weight low, a fifth of it still above 8.</figcaption>
 </figure>
-<details class="hood"><summary>Under the hood: the re-binning and the loss</summary>
-<pre><span class="c"># train_squint.py L418-431 (C51, Bellemare et al., 2017)</span>
-target_z = (rewards + bootstrap * discount * self.q_support).clamp(self.v_min, self.v_max)
-b = (target_z - self.v_min) / delta_z                <span class="c"># where each shifted bar lands, in slot units</span>
-lower, upper = torch.floor(b).long(), torch.ceil(b).long()
-<span class="c"># bar mass p goes to the two nearest slots: p*(upper - b) to lower, p*(b - lower) to upper</span>
-<span class="c"># L784-787: cross-entropy against the target shape</span>
-q_log_probs = F.log_softmax(q_outputs, dim=-1)
-q_losses = -torch.sum(target_distributions * q_log_probs, dim=-1).mean(dim=-1)</pre>
-<p>The forecast is Σ p<sub>j</sub>·z<sub>j</sub> over the 101 slots (L412–413). Because the slots stop at −20 and 20, forecasts can't run away (the <code>clamp</code> above).</p>
-</details>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">the histogram critic: target, re-binning, loss, and what is proven</span></summary><div class="lbody">
+<p>The return from \((s,a)\) is a random variable \(Z(s,a)\), and the Bellman equation holds for its whole distribution (Bellemare et al., 2017), here in SAC's soft form:</p>
+\[ Z(s,a)\ \overset{D}{=}\ r + \gamma\big(Z(s',a') - \alpha\log\pi(a'\mid s')\big),\qquad s'\sim p,\ a'\sim\pi, \]
+<p>where \(\overset{D}{=}\) means "has the same distribution". Taking expectations gives back the soft Bellman equation for \(Q = \mathbb E[Z]\).</p>
+<p>The critic represents \(Z\) on fixed slots \(z_j = -20 + 0.4j\), \(j = 0,\dots,100\), with probabilities \(p_j\). The target moves slot \(j\) to \(\hat z_j = \mathrm{clip}(r_{\text{soft}} + \gamma z_j,\,-20,\,20)\), with \(r_{\text{soft}} = r - \gamma\alpha\log\pi(\tilde a'\mid s')\). That point usually falls between two slots \(z_\ell\le\hat z_j\le z_u\), and its mass is split in proportion to closeness:</p>
+\[ \text{to } z_\ell:\ \ p_j\,\frac{z_u - \hat z_j}{\Delta z},\qquad \text{to } z_u:\ \ p_j\,\frac{\hat z_j - z_\ell}{\Delta z},\qquad \Delta z = 0.4. \]
+<p><b>The split keeps the average.</b> The two pieces have mean \(\big(z_\ell(z_u-\hat z_j) + z_u(\hat z_j - z_\ell)\big)/\Delta z = \hat z_j\), so when nothing is clipped,</p>
+\[ \sum_k z_k\,\hat p_k \;=\; \sum_j p_j\,\hat z_j \;=\; r_{\text{soft}} + \gamma\,\mathbb E\big[\bar Z(s',\tilde a')\big]: \]
+<p>the target histogram's average is exactly the scalar soft target (8.3294 in our worked example). Clipping at ±20 would break this; our returns stay within ±10 for ReachCube (within ±11.2 for PlaceCube), far inside.</p>
+<p><b>The loss splits in two.</b></p>
+\[ -\sum_k\hat p_k\log p^\theta_k \;=\; \underbrace{-\sum_k\hat p_k\log\hat p_k}_{\mathcal H(\hat p),\ \text{fixed}} \;+\; \underbrace{\sum_k\hat p_k\log\frac{\hat p_k}{p^\theta_k}}_{\mathrm{KL}(\hat p\,\|\,p^\theta)}, \]
+<p>so minimizing it over \(\theta\) minimizes the KL from the target histogram to the critic's (1.335 = 1.319 + 0.016 at tick 3).</p>
+<p><b>What is proven.</b> For a fixed policy, the distributional Bellman update is a \(\gamma\)-contraction in the maximal Wasserstein metric, though not in total variation (Bellemare et al., 2017, Lemma 3). Re-binning onto fixed slots breaks the Wasserstein contraction in general, but the re-binned update is a \(\sqrt\gamma\)-contraction in the maximal Cramér distance, with a unique fixed point (Rowland et al., 2018, Lemma 2 and Proposition 2). Both results assume exact updates without sampling. That the histogram critic trains faster is an empirical finding (Squint, section IV), not a theorem.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the re-binning, line by line</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\hat z_j = \mathrm{clip}(r_{\text{soft}} + \gamma z_j)\)</div><pre>target_z = rewards.unsqueeze(1) + bootstrap.unsqueeze(1) * discount * self.q_support
+target_z = target_z.clamp(self.v_min, self.v_max)</pre>
+<div class="eqc">slot position \(b = (\hat z_j + 20)/0.4\)</div><pre>b = (target_z - self.v_min) / delta_z
+lower, upper = torch.floor(b).long(), torch.ceil(b).long()</pre>
+<div class="eqc">split \(p_j\) between \(z_\ell, z_u\)</div><pre>proj.index_add_(0, lower_indices, (next_dists * (upper - b)).view(-1))
+proj.index_add_(0, upper_indices, (next_dists * (b - lower)).view(-1))</pre>
+<div class="eqc">\(Q = \sum_j p_j z_j\)</div><pre>probs = F.softmax(logits, dim=-1)
+return torch.sum(probs * self.q_support, dim=-1)</pre>
+<p class="where"><code>train_squint.py</code> L415–454, L412–413 (trimmed for reading). When b is a whole number, lines 429–431 shift an index so the mass still lands on its slot; in the one case b = 1 exactly, that shift counts the mass twice, which floating-point targets essentially never hit.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why does re-binning keep the histogram's average?</span></summary><div class="lbody">
+<p>Each moved point's mass is split between its two neighbouring slots in proportion to closeness, which keeps that point's mean; adding up all the points keeps the overall mean, unless something is clipped at ±20.</p>
+</div></details>
+
 
 <h3 id="sane">9.2 Small things that keep numbers sane</h3>
 <p>Every layer in all three networks is followed by layer normalization, which rescales that layer's numbers to a standard size. With each moment studied over a hundred times, nothing then drifts to extremes. The paper found it speeds training up (section IV).</p>
 <p>Episodes stop at 50 ticks because a clock runs out, not because the world ends. So every target keeps its "0.9 × next forecast" part, even at the last tick: a timer isn't treated as an ending (<code>bootstrap_at_done = "always"</code>, <code>train_squint.py</code> L897–899).</p>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">layer normalization, and bootstrapping through a time limit</span></summary><div class="lbody">
+<p>Layer normalization rescales each sample's feature vector, \(\mathrm{LN}(x) = g\odot\frac{x-\mu(x)}{\sqrt{\sigma^2(x)+\epsilon}} + b\), with \(\mu(x)\) and \(\sigma^2(x)\) the mean and variance over that vector's entries and \(g, b\) learned (Ba et al., 2016). Whatever the scale of the weights feeding it, its output has a controlled size. That it speeds training is an empirical finding (Squint, section IV).</p>
+<p>Time limits. If the clock isn't part of the state, ending the target at the time-out would make the same state worth different amounts depending on an unseen clock. When the limit is only a training convenience, the right target bootstraps from the state where the episode was cut, \(y = r + \gamma V(s'_{\text{last}})\) (Pardo et al., 2018). Squint does exactly this, with the real last picture as \(s'\).</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">never marking the end</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">never terminal: bootstrap always \(=1\)</div><pre>dones = torch.zeros_like(terminations, dtype=torch.bool)    # bootstrap_at_done == 'always'</pre>
+<div class="eqc">\(\mathrm{LN}\) after every linear layer</div><pre>nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim), nn.ReLU(),</pre>
+<p class="where"><code>train_squint.py</code> L897–899, L381–383 (critic), L291–293 (actor), L273–276 (projections).</p></div>
+</div></details>
+
 
 <h3 id="squinting">9.3 Squinting</h3>
 <p>The policy sees 16 × 16 pictures, which makes the networks, the memory and every update small and fast. The paper found smaller pictures learn just as much per moment but train faster per minute (section IV).</p>
@@ -583,16 +797,24 @@ q_losses = -torch.sum(target_distributions * q_log_probs, dim=-1).mean(dim=-1)</
   </div>
   <figcaption>Two real draws from the same simulated run: the jitter made tick 13 about 23% darker and tick 28 about 45% brighter.</figcaption>
 </figure>
-<details class="hood"><summary>Under the hood: the camera path</summary>
-<pre><span class="c"># utils.py: DownsampleObsWrapper, "using area interpolation"; deploy does the same (train_squint.py L500)</span>
-rgb = F.interpolate(rgb, size=(16, 16), mode='area')
-<span class="c"># train_squint.py L726-729: who updates what</span>
-critic_optimizer = optim.Adam(list(critic.parameters()) + list(encoder.parameters()), lr=args.q_lr)
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">squinting is an average</span></summary><div class="lbody">
+<p>Area downsampling from 128 to 16 averages each 8 × 8 block:</p>
+\[ x^{16}_{i,j,c} = \frac{1}{64}\sum_{u=0}^{7}\sum_{v=0}^{7} x^{128}_{8i+u,\ 8j+v,\ c}. \]
+<p>Every part of the scene contributes to the pixel it falls in, so thin or small things still register as a weaker colour instead of vanishing between sample points. The paper's reasoning is the same: averaging gives natural anti-aliasing and keeps the scene's structure (section IV). We checked that the policy's 16 × 16 input is exactly this block mean.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the camera path</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(x^{16} = \mathrm{blockmean}_{8\times8}(x^{128})\)</div><pre>rgb = F.interpolate(rgb, size=(16, 16), mode='area')</pre>
+<div class="eqc">encoder trained by the critic only</div><pre>critic_optimizer = optim.Adam(list(critic.parameters()) + list(encoder.parameters()), lr=args.q_lr)
 actor_optimizer = optim.Adam(list(actor.parameters()), lr=args.policy_lr)
-<span class="c"># L821: the actor gets the encoder's output detached</span>
-encoded_rgb=obs.detach()</pre>
-<p>Colour jitter is torchvision's <code>ColorJitter(0.3, 0.3, 0.3, 0.05)</code> (<code>utils.py</code>), drawn once per tick for all 1024 arms together.</p>
-</details>
+encoded_rgb = obs.detach()      # what the actor receives</pre>
+<div class="eqc">colour jitter, one draw per tick</div><pre>self.jitter = torchvision.transforms.ColorJitter(0.3, 0.3, 0.3, 0.05)</pre>
+<p class="where"><code>utils.py</code> (DownsampleObsWrapper, ColorJitterWrapper); <code>train_squint.py</code> L500, L726–729, L821.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why render at 128 and average down, instead of rendering at 16?</span></summary><div class="lbody">
+<p>Averaging lets everything in each 8 × 8 block contribute to its pixel, so small or thin things still show up faintly instead of disappearing between sample points: natural anti-aliasing.</p>
+</div></details>
+
 
 <h3 id="fast">9.4 Why minutes, not hours</h3>
 <p>All 1024 arms run on one GPU; the memory sits on the GPU too, because the pictures are tiny; and the update code is compiled (PyTorch compile and CUDA graphs) and runs in 16-bit floats, which the paper reports as more than 5× faster together. Given 15 minutes of training, Squint averaged 96.1% success in simulation across its 8 tasks and 73 of 80 trials on a real SO-101 (Squint, Tables I and II).</p>
@@ -600,8 +822,9 @@ encoded_rgb=obs.detach()</pre>
 
 <!-- 10 -->
 <section id="update">
-<h2><span class="num">10</span>One update, start to finish</h2>
-<p class="ask">Now all the pieces at once. What happens in one of the 256 updates?</p>
+<h2><span class="num">10</span>The whole picture</h2>
+<p class="ask">Now all the pieces at once. What happens in one of the 256 updates, and how much of it is proven?</p>
+<h3>One update, start to finish</h3>
 <ol class="steps">
 <li>Draw 512 random moments from <span class="k-mem">memory</span>: situation s, move a, reward r, next situation s′. <span class="src">L925</span></li>
 <li>Run all the pictures through the camera network. <span class="src">L763, L779</span></li>
@@ -613,6 +836,41 @@ encoded_rgb=obs.detach()</pre>
 <li>The <span class="k-target">slow copy</span> moves 1% toward the critic. <span class="src">L938</span></li>
 </ol>
 <p>After 256 of these, all 1024 arms take their next tick, and it starts again.</p>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">the whole algorithm in four lines</span></summary><div class="lbody">
+<div class="algo">
+\[ \begin{aligned}
+&\text{critic, head } i: && \min_{\theta_i}\ \mathbb E_{\mathcal D}\Big[-\textstyle\sum_k \hat p^{(i)}_k\,\log p^{\theta_i}_k(s,a)\Big], \qquad \hat p^{(i)} = \Phi\big(r_{\text{soft}} + \gamma\,\bar Z_i(s',\tilde a')\big)\\
+&\text{actor, every 4th:} && \min_\phi\ \mathbb E_{s\sim\mathcal D,\ \varepsilon}\Big[\alpha\log\pi_\phi(a\mid s) - \tfrac12\textstyle\sum_i Q_{\theta_i}(s,a)\Big], \qquad a = \tanh(\mu_\phi + \sigma_\phi\,\varepsilon)\\
+&\text{temperature:} && \min_{\log\alpha}\ \mathbb E\big[-\alpha\,(\log\pi(a\mid s) + \bar{\mathcal H})\big], \qquad \bar{\mathcal H} = -6\\
+&\text{slow copy:} && \bar\theta_i \leftarrow (1-\tau)\,\bar\theta_i + \tau\,\theta_i, \qquad \tau = 0.01
+\end{aligned} \]
+</div>
+<p>with \(r_{\text{soft}} = r - \gamma\alpha\log\pi(\tilde a'\mid s')\), \(\tilde a'\sim\pi(\cdot\mid s')\), \(\Phi\) the re-binning of section 9.1, \(\gamma = 0.9\), 512 moments per update and 256 updates per iteration.</p>
+</div></details>
+
+<h3 id="lineage">Where each part came from</h3>
+<p>None of Squint's parts is new on its own. Each one answered a failure that someone hit first:</p>
+<ol class="timeline">
+<li><span class="yr">1957</span><span class="who">Bellman</span>: a value can be written as one step plus the value of the next (section 3)</li>
+<li><span class="yr">1988</span><span class="who">Sutton</span>: temporal-difference learning, training a forecast toward the next forecast (section 4)</li>
+<li><span class="yr">1989</span><span class="who">Watkins</span>: Q-learning, learning the value of each move from experience (section 3)</li>
+<li><span class="yr">1992</span><span class="who">Lin</span>: experience replay, studying stored moments again and again (section 7)</li>
+<li><span class="yr">2015</span><span class="who">Mnih et al., DQN</span>: replay and a slowly updated target network, at scale (sections 7, 8.1)</li>
+<li><span class="yr">2016</span><span class="who">Ba, Kiros and Hinton</span>: layer normalization (section 9.2)</li>
+<li><span class="yr">2017</span><span class="who">Bellemare, Dabney and Munos, C51</span>: forecasting a histogram of returns (section 9.1)</li>
+<li><span class="yr">2018</span><span class="who">Fujimoto, van Hoof and Meger, TD3</span>: two critics against overestimation, and a delayed actor (sections 8.2, 8.3)</li>
+<li><span class="yr">2018</span><span class="who">Haarnoja et al., SAC</span>: an actor-critic that is paid for randomness, with a self-tuning temperature (sections 5, 6)</li>
+<li><span class="yr">2018</span><span class="who">Pardo et al.</span>: bootstrapping through training time limits (section 9.2)</li>
+<li><span class="yr">2020</span><span class="who">Kostrikov, Yarats and Fergus, DrQ</span>: SAC from pixels, with the critic training the camera network (section 9.3)</li>
+<li><span class="yr">2026</span><span class="who">Almuzairee and Christensen, Squint</span>: all of it at once, tuned to train a real arm's policy in minutes on one GPU</li>
+</ol>
+
+<h3 id="proven">What the proofs cover, and what they don't</h3>
+<p>Proven, for finite sets of moves and exact updates (no sampling, a table that can hold any value): the soft Bellman update converges to a unique answer (section 4); \(e^{Q/\alpha}/Z\) is the best random policy at a state (section 6); projecting the actor onto it never makes the policy worse, and alternating evaluation with projection converges to the best policy in the chosen family (SAC 2018a, Lemma 2 and Theorem 1); and the histogram critic's update converges too, in the right distance (section 9.1).</p>
+<p>Not covered by any of those proofs: continuous moves (a narrow bell curve's entropy is unbounded below, and the proofs need it bounded), neural networks (nothing guarantees the fitted critic reaches the fixed point), one gradient step at a time instead of each step run to the end, sampled averages, and every stabilizer in section 8 and section 9.2. Those are justified by experiments: SAC's, TD3's and Squint's ablations. The policy family matters too: one bell curve per joint cannot hold two different good ways to grasp, so SAC finds the best single bell.</p>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">In one update, which networks change, and which only get read?</span></summary><div class="lbody">
+<p>The critic and the camera network change every update; α changes every update; the actor changes on every 4th; the slow copy changes only by drifting 1% toward the critic, and is otherwise only read, to build targets.</p>
+</div></details>
 </section>
 
 <!-- 11 -->
@@ -668,25 +926,41 @@ encoded_rgb=obs.detach()</pre>
 <tr><td>slow-copy rate</td><td>none</td><td>τ</td><td>τ</td><td>ρ = 1 − τ</td><td class="m">tau</td></tr>
 </table></div>
 </section>
+
+<section id="checks">
+<h2><span class="num">14</span>How this page was checked</h2>
+<p class="ask">Why should you trust any of this?</p>
+<p>Every number from our runs is recomputed from the recorded trace and the checkpoints each time the page is built, and the build refuses to finish if the ported re-binning or the real-arm values disagree with the training code's output. Every derived number is checked by a script against the training code, a simulation or a numerical integral; this is its last run:</p>
+<div class="tablewrap"><table class="t" id="checks-table"><tr><th>§</th><th>Check</th><th>Computed</th><th>Expected</th><th></th></tr></table></div>
+<p>Every paper claim names the section, figure, lemma or equation it comes from, read in the paper itself; claims we could not find in a source were removed. Code is shown trimmed for reading (shorter names, no device arguments), and the line numbers point at the full lines in our Squint fork at <code>7145d47</code>.</p>
+<p>What the checking caught, so far: our own earlier notes said SAC "still learns with τ = 1, a hard copy every step"; the SAC paper's hard-copy variant copies every 1,000 steps, and its ablation shows a fast-moving target causing instability (corrected here, section 8.1). An estimate of the randomness terms' size, about 0.05, was for a different checkpoint; the trace gives −0.21 for this one (section 3). And the Squint paper's Algorithm 1 prints the temperature update with the sign flipped; the code is right (section 6).</p>
+</section>
 </main>
 
 <footer>
 <p>Sources</p>
 <ol>
-<li>A. Almuzairee and H. I. Christensen, <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint: Fast visual reinforcement learning for sim-to-real robotics</a>, 2026 (v2), sections III–IV, Tables I–II, Fig. 4.</li>
+<li>A. Almuzairee and H. I. Christensen, <a href="https://arxiv.org/abs/2602.21203" target="_blank" rel="noopener">Squint: Fast visual reinforcement learning for sim-to-real robotics</a>, 2026 (v2): sections III–IV, Algorithm 1, Tables I–II, Fig. 4.</li>
 <li>C. Finn, CS224R lecture 4, <a href="https://cs224r.stanford.edu/slides/04_cs224r_actor_critic_2026.pdf" target="_blank" rel="noopener">Actor-critic methods</a>, Stanford, 2026 (slide numbers are PDF pages).</li>
-<li>T. Haarnoja et al., <a href="https://arxiv.org/abs/1801.01290" target="_blank" rel="noopener">Soft actor-critic</a> (2018a) and <a href="https://arxiv.org/abs/1812.05905" target="_blank" rel="noopener">Soft actor-critic algorithms and applications</a> (2018b).</li>
-<li>S. Fujimoto, H. van Hoof and D. Meger, <a href="https://arxiv.org/abs/1802.09477" target="_blank" rel="noopener">Addressing function approximation error in actor-critic methods</a> (TD3), 2018.</li>
-<li>M. G. Bellemare, W. Dabney and R. Munos, <a href="https://arxiv.org/abs/1707.06887" target="_blank" rel="noopener">A distributional perspective on reinforcement learning</a> (C51), 2017.</li>
-<li>V. Mnih et al., Human-level control through deep reinforcement learning (DQN), Nature, 2015.</li>
+<li>T. Haarnoja, A. Zhou, P. Abbeel and S. Levine, <a href="https://arxiv.org/abs/1801.01290" target="_blank" rel="noopener">Soft actor-critic</a>, ICML 2018 (2018a): Eq. 1, Lemmas 1–2, Theorem 1, section 4.2 (Eqs. 11–12), section 5.2 and Fig. 3c, Appendix D.</li>
+<li>T. Haarnoja et al., <a href="https://arxiv.org/abs/1812.05905" target="_blank" rel="noopener">Soft actor-critic algorithms and applications</a>, 2018 (2018b): learned temperature.</li>
+<li>S. Fujimoto, H. van Hoof and D. Meger, <a href="https://arxiv.org/abs/1802.09477" target="_blank" rel="noopener">Addressing function approximation error in actor-critic methods</a> (TD3), ICML 2018: sections 4.2 and 5.2.</li>
+<li>M. G. Bellemare, W. Dabney and R. Munos, <a href="https://arxiv.org/abs/1707.06887" target="_blank" rel="noopener">A distributional perspective on reinforcement learning</a> (C51), ICML 2017: Lemma 3.</li>
+<li>M. Rowland, M. G. Bellemare, W. Dabney, R. Munos and Y. W. Teh, <a href="https://arxiv.org/abs/1802.08163" target="_blank" rel="noopener">An analysis of categorical distributional reinforcement learning</a>, AISTATS 2018: Lemma 2, Propositions 1–2.</li>
+<li>F. Pardo, A. Tavakoli, V. Levdik and P. Kormushev, <a href="https://arxiv.org/abs/1712.00378" target="_blank" rel="noopener">Time limits in reinforcement learning</a>, ICML 2018.</li>
+<li>J. L. Ba, J. R. Kiros and G. E. Hinton, <a href="https://arxiv.org/abs/1607.06450" target="_blank" rel="noopener">Layer normalization</a>, 2016.</li>
 <li>I. Kostrikov, D. Yarats and R. Fergus, <a href="https://arxiv.org/abs/2004.13649" target="_blank" rel="noopener">Image augmentation is all you need</a> (DrQ), 2020.</li>
+<li>V. Mnih et al., Human-level control through deep reinforcement learning (DQN), Nature 518, 2015.</li>
+<li>R. S. Sutton and A. G. Barto, Reinforcement learning: an introduction, 2nd edition, MIT Press, 2018: section 11.3.</li>
+<li>R. Bellman, Dynamic programming, Princeton University Press, 1957. R. S. Sutton, Learning to predict by the methods of temporal differences, Machine Learning 3, 1988. C. J. C. H. Watkins, Learning from delayed rewards, PhD thesis, Cambridge, 1989. L.-J. Lin, Self-improving reactive agents based on reinforcement learning, planning and teaching, Machine Learning 8, 1992.</li>
+<li>H. van Hasselt, Double Q-learning, NeurIPS 2010.</li>
 <li>Code: our Squint fork at <code>7145d47</code> (<code>train_squint.py</code>, <code>envs/</code>, <code>utils.py</code>); ManiSkill 3.0.1.</li>
 </ol>
 <p>Numbers: one simulated ReachCube episode of checkpoint A (seed 1, training-time camera pipeline, colour jitter and randomization on), and checkpoint P's critic on logged frames of real run ep025 (14 October). Built by <code>build.py</code>, which checks the ported re-binning against the trace and the real values against our logs before writing this page.</p>
 </footer>
 </div>
 
-<!--DATA--><script>const DATA = {"trace":{"alpha":0.0039,"gamma":0.9,"target_entropy":-6.0,"first_success":7,"reward":[0.2541,0.29,0.3323,0.3749,0.4173,0.7017,0.726,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],"q":[6.3223,6.787,7.843,8.2376,8.8438,9.3922,9.596,9.8697,9.864,9.8635,9.8607,9.866,9.8689,9.8666,9.8639,9.8683,9.863,9.862,9.867,9.8702,9.8697,9.8741,9.866,9.8504,9.8466,9.8583,9.8541,9.8635,9.871,9.8668,9.8652,9.8743,9.8554,9.8644,9.8707,9.8714,9.866,9.8597,9.8654,9.8687,9.8665,9.8611,9.8677,9.8632,9.8613,9.874,9.8646,9.8703,9.8722,9.862],"realised":[6.7064,7.2145,7.7357,8.2465,8.7759,9.3154,9.6044,9.8885,9.8844,9.8867,9.8827,9.8898,9.8886,9.8917,9.8896,9.8891,9.8775,9.8826,9.8823,9.8798,9.8792,9.8797,9.8703,9.8736,9.8804,9.8754,9.8733,9.8661,9.8625,9.8493,9.8448,9.8386,9.8423,9.8403,9.8322,9.8351,9.8259,9.8225,9.8236,9.8186,9.8091,9.7855,9.7817,9.7694,9.7562,9.741,9.7098,9.6777,9.6632,9.625],"std0":[0.1234,0.1287,0.365,0.2705,0.2549,0.5559],"std30":[0.1087,0.0952,0.0995,0.1105,0.1136,0.6353],"dq_da0":[-0.2551,-0.0872,0.0181,-0.0086,-0.0357,-0.2643],"mean0":[0.4736,0.2281,-1.7273,-1.119,1.4462,-2.7197],"mean30":[-0.1158,0.0011,0.1075,0.047,0.0894,-0.1906],"axes0":{"grid":[-1.0,-0.9,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.1,-0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],"base":[0.4411,0.2242,-0.9387,-0.8072,0.8949,-0.9914],"pan":[6.3781,6.392,6.4069,6.421,6.4296,6.4349,6.4484,6.4614,6.4723,6.4771,6.4701,6.4427,6.4076,6.3748,6.3461,6.3226,6.2996,6.2775,6.2605,6.2459,6.2335],"grip":[6.3388,6.316,6.2855,6.2502,6.2163,6.1854,6.1579,6.1335,6.1117,6.0894,6.071,6.0528,6.0397,6.033,6.0295,6.0227,6.0138,6.0015,5.9877,5.9729,5.9589]},"w3":{"reward":0.3749,"next_logp":8.9019,"r_soft":0.34367,"q_next":[8.873,8.8401],"y":[8.3294,8.2997],"q_cur":[8.2665,8.2087],"next_dist":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0008,0.0205,0.1767,0.4496,0.3032,0.0484,0.0008,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"target_dist":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0036,0.0602,0.2874,0.43,0.1957,0.0227,0.0003,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"cur_dist":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0001,0.0061,0.0825,0.3264,0.4205,0.1525,0.0117,0.0001,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"ce":[1.335,1.3509],"h_target":[1.3188,1.32]},"params":{"encoder":34400,"actor":269986,"critic":1536096,"critic_proj":55190,"actor_proj":55190},"img":{"t0_128":"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","t0_16":"iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAo0lEQVR4nGNgGAUjEMiqqRRN6zFzccCjhglZdVRFgbGB4f+fvwlrkFVTiSzPExUReXjz1vWLl/BoYISrZuPg0FNVXz9/8S8WpjdPnl07fc7K1+PYph2vnz5D0QA3+9v3H1L8gluWrSpqqN5z8vj///9V5eS/vvuQ5R+OrIElvCSHjYPj45cvIvwCl06d3bh4OQcXp6qdBQMDw4snz45u3IbmJABFuj8xm3YqnQAAAABJRU5ErkJggg==","j13":["iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA6ElEQVR4nGNgGAX0AewMDMbEq9ZgYJjPyLiTiUmbGNUqDAxnmJhuMzPfZmaewMyMVQ0LMkfC0+VIRpL0tl3M7z/qrt1EQIN/SpxTkK+GgvJv9Uc3lOUPcXEyLFiGqYEJQvkmxTgH+YnwCy6fPW/qoaMszMyOIf42fp7YNfgmxbqHBrIwMYkJCR/fe+DCmXPS4hLMTExR2akaxgboGhyD/dxC/FmYmTnYOfZs3X7/xq1Xz1+8e/WakYHx799/vgnR6BoCk2MZGBl+//nDwc5+Yv/BX79+/f37d8vqtSBJRgYZJQUVPZQQBgA2ZUQtACr6qwAAAABJRU5ErkJggg==","iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA90lEQVR4nGNkZWVlIAUwkaSaYVQDDLAyMigw/2cgMlglmf7Hsv8NYv8nzfSfsAYxpv+pnP9UWRhEmRjs2LHbwILM4dHUvGJjJXLjCtP379JXLzIwMOLToGtloWqgJyEkzPD2zTNh0btMHAwnTuN0ko6luZqBHg8n59ljxw/cvs/ExKRiqK+kp4Ndg46luYaRARMjIy8X9/2bt54+fCzAy8fEyGhsZy0uJ4uuQdVAX8NQn5mRkZWF9eaVq+9evvr86dPXz58ZGRj///uvY2GGrkHPyoyBkeHvv3+sLCwPbt/+8+fPv3//rp6/AJJkZOAXFhaVlkLWAAA1Y0TANazUKQAAAABJRU5ErkJggg=="],"j28":["iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA30lEQVR4nGNgGAWDEXAzMPgxMAgRqdqUgWElI+MlZuYERkZcapiQObnysl9rSt462LhoqqFIMCAAC5wlr6H2tKlKU0X1k4DgC0U5g/5p5w4fw2mDvIZaYWeToKDg0/sPrz59wcbOHl2Sq26kj12DqLRkVlM1GzubgpT08lnzGqbO5OHiYmdjS6oqllJSQNcgKi1Z1t/Bx8/Hxsb24d37O1ev//r5U1JUnJGRUURIOK2unIkJxTtMOW31XHy8//7/52Bj37R89YsnTxkYGJbPnc/IwPDz108RcTEDW0tkDQCvrjvNVFGKRgAAAABJRU5ErkJggg==","iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAtUlEQVR4nO2OsQpBcRSHDyarxSIpMolBKZPFHTyAhMEo5TUsvITploHhPoAshlsMGCh13S42Mchg+uRvkW65o8E3nvP9zvmJ/PlFgiJdkbBHuyaCCAEZegyQDjEd0SpRiH+3k/mciWJnLkGrV77YGzjCHtaGvoUVZEuaux2Ox+bgqOvldlN8/gtYMINoJuViL+AAJxWIJJ7tARvOMOb6GZhws9X6Dh29/xr2jIGjflpQbFTf/Qfda2y7AOKymAAAAABJRU5ErkJggg=="],"t7_128":"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","t7_16":"iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA8ElEQVR4nGNgGAV0A1zEK2VmYAhgYJjNxCRCpOpmRsZrTEzXmZnLmZiwqmFC5qgYG/BN6vwrI/2Xl1e6skhESgKfBgMby9TaMg1n5xdfvh7mYBfx8cxur8fUA9WgZ2WeUl0iIii4f9tO73fvyr5/f/HsubCISFp9BQ8/H7oGPSvzpMoiJiYmaTGJXes3/WJg+Pzx08s7D/4zMEjLy6XUlrGwsiI06FqZpdWUcnJwcLCxXbt0+ealKxCJ189f/P//7////yramtZerggNyRXFDIyMv//84WBj37Fu49fPXyAS65Yu//fvP4Rt5+vJBAs0ANMqTNRAz+ePAAAAAElFTkSuQmCC"}},"real":{"hist":{"75":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0001,0.0002,0.0006,0.0012,0.0023,0.004,0.0065,0.0107,0.0178,0.03,0.0484,0.0704,0.0852,0.1035,0.1334,0.1402,0.1345,0.119,0.0696,0.0198,0.0025,0.0002,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"200":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0004,0.0557,0.9418,0.0021,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"300":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0004,0.0083,0.036,0.0538,0.057,0.0564,0.0544,0.0512,0.0483,0.0457,0.0442,0.0447,0.0412,0.0359,0.0307,0.0266,0.0241,0.0228,0.0205,0.0182,0.0195,0.0186,0.02,0.0273,0.0478,0.0644,0.0451,0.0286,0.0084,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},"V":{"75":5.61,"200":9.98,"300":4.09},"img200_128":"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","img200_16":"iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAACK0lEQVR42i3Qu28cZRhG8fO838zOeuNlsa2IIMdKEKFJIEgWN2GQuRR0dBQ0FDTpQEJCQBGl49IhGv4FapAouDWhoAcJGoSE5AuyY4Vgs+vMfO9DEfrT/I42Hlyr2CljXEnbaVto0F2oxSipjhSOUVMxGTDgBFVhIrANKBWGAlUI0N0oiVXBRgYDgIUdtSilJCFFCg1qUshJ2pIgElAasoBUU2ljAsCpJp2BHRKAJFWTkkREuW86K7B7eOCUoYtsQoGd0pOPbb6y9ZLUdN343APnVlbWRt0omub7H7678dknwoFB4UiAYDweX730yNqkW10er04nI4Y6P6mLed/3aSokMm4aR5Vl7e3vtWh25sx0ZXWWtabmSMLcE6SUEk1RsYfEO3s7BVbsyz/eHO3vHhz/M3/jzWayjH1vW4CsABVJaKjDwe2jcdsuBe7a23/tnv570nVdicDIwthEKEJqccDhyXGsX/j77FkijjcuttPZ0nhSIgDhggWNVLCCRVOaOl6+dXp6s8/HN5++f319dv7C8mQ6X8xHUUdRHSjVmDTRjibvvXP92We2v/n6iw8//zSH+tDGxtYTzz+1ufXlt191UUswyBV05eFLNYd33/rgxe2XDw73P/r4/Z9++TnT1D5rxVQRInC1nDQXzz/6+muvbj/3wqLvd/747dbRkWwkoiUGm5L/11gKmrevXbt65fJi6BeLxZ+//3p4545kGXmAxEigHPrWECz9B+3OI4I0bfi9AAAAAElFTkSuQmCC"}};</script><!--/DATA-->
+<!--DATA--><script>const DATA = {"trace":{"alpha":0.0039,"gamma":0.9,"target_entropy":-6.0,"first_success":7,"reward":[0.2541,0.29,0.3323,0.3749,0.4173,0.7017,0.726,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0],"q":[6.3223,6.787,7.843,8.2376,8.8438,9.3922,9.596,9.8697,9.864,9.8635,9.8607,9.866,9.8689,9.8666,9.8639,9.8683,9.863,9.862,9.867,9.8702,9.8697,9.8741,9.866,9.8504,9.8466,9.8583,9.8541,9.8635,9.871,9.8668,9.8652,9.8743,9.8554,9.8644,9.8707,9.8714,9.866,9.8597,9.8654,9.8687,9.8665,9.8611,9.8677,9.8632,9.8613,9.874,9.8646,9.8703,9.8722,9.862],"realised":[6.7064,7.2145,7.7357,8.2465,8.7759,9.3154,9.6044,9.8885,9.8844,9.8867,9.8827,9.8898,9.8886,9.8917,9.8896,9.8891,9.8775,9.8826,9.8823,9.8798,9.8792,9.8797,9.8703,9.8736,9.8804,9.8754,9.8733,9.8661,9.8625,9.8493,9.8448,9.8386,9.8423,9.8403,9.8322,9.8351,9.8259,9.8225,9.8236,9.8186,9.8091,9.7855,9.7817,9.7694,9.7562,9.741,9.7098,9.6777,9.6632,9.625],"std0":[0.1234,0.1287,0.365,0.2705,0.2549,0.5559],"std30":[0.1087,0.0952,0.0995,0.1105,0.1136,0.6353],"dq_da0":[-0.2551,-0.0872,0.0181,-0.0086,-0.0357,-0.2643],"mean0":[0.4736,0.2281,-1.7273,-1.119,1.4462,-2.7197],"mean30":[-0.1158,0.0011,0.1075,0.047,0.0894,-0.1906],"axes0":{"grid":[-1.0,-0.9,-0.8,-0.7,-0.6,-0.5,-0.4,-0.3,-0.2,-0.1,-0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0],"base":[0.4411,0.2242,-0.9387,-0.8072,0.8949,-0.9914],"pan":[6.3781,6.392,6.4069,6.421,6.4296,6.4349,6.4484,6.4614,6.4723,6.4771,6.4701,6.4427,6.4076,6.3748,6.3461,6.3226,6.2996,6.2775,6.2605,6.2459,6.2335],"grip":[6.3388,6.316,6.2855,6.2502,6.2163,6.1854,6.1579,6.1335,6.1117,6.0894,6.071,6.0528,6.0397,6.033,6.0295,6.0227,6.0138,6.0015,5.9877,5.9729,5.9589]},"w3":{"reward":0.3749,"next_logp":8.9019,"r_soft":0.34367,"q_next":[8.873,8.8401],"y":[8.3294,8.2997],"q_cur":[8.2665,8.2087],"next_dist":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0008,0.0205,0.1767,0.4496,0.3032,0.0484,0.0008,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"target_dist":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0036,0.0602,0.2874,0.43,0.1957,0.0227,0.0003,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"cur_dist":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0001,0.0061,0.0825,0.3264,0.4205,0.1525,0.0117,0.0001,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"ce":[1.335,1.3509],"h_target":[1.3188,1.32]},"params":{"encoder":34400,"actor":269986,"critic":1536096,"critic_proj":55190,"actor_proj":55190},"img":{"t0_128":"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","t0_16":"iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAo0lEQVR4nGNgGAUjEMiqqRRN6zFzccCjhglZdVRFgbGB4f+fvwlrkFVTiSzPExUReXjz1vWLl/BoYISrZuPg0FNVXz9/8S8WpjdPnl07fc7K1+PYph2vnz5D0QA3+9v3H1L8gluWrSpqqN5z8vj///9V5eS/vvuQ5R+OrIElvCSHjYPj45cvIvwCl06d3bh4OQcXp6qdBQMDw4snz45u3IbmJABFuj8xm3YqnQAAAABJRU5ErkJggg==","j13":["iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA6ElEQVR4nGNgGAX0AewMDMbEq9ZgYJjPyLiTiUmbGNUqDAxnmJhuMzPfZmaewMyMVQ0LMkfC0+VIRpL0tl3M7z/qrt1EQIN/SpxTkK+GgvJv9Uc3lOUPcXEyLFiGqYEJQvkmxTgH+YnwCy6fPW/qoaMszMyOIf42fp7YNfgmxbqHBrIwMYkJCR/fe+DCmXPS4hLMTExR2akaxgboGhyD/dxC/FmYmTnYOfZs3X7/xq1Xz1+8e/WakYHx799/vgnR6BoCk2MZGBl+//nDwc5+Yv/BX79+/f37d8vqtSBJRgYZJQUVPZQQBgA2ZUQtACr6qwAAAABJRU5ErkJggg==","iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA90lEQVR4nGNkZWVlIAUwkaSaYVQDDLAyMigw/2cgMlglmf7Hsv8NYv8nzfSfsAYxpv+pnP9UWRhEmRjs2LHbwILM4dHUvGJjJXLjCtP379JXLzIwMOLToGtloWqgJyEkzPD2zTNh0btMHAwnTuN0ko6luZqBHg8n59ljxw/cvs/ExKRiqK+kp4Ndg46luYaRARMjIy8X9/2bt54+fCzAy8fEyGhsZy0uJ4uuQdVAX8NQn5mRkZWF9eaVq+9evvr86dPXz58ZGRj///uvY2GGrkHPyoyBkeHvv3+sLCwPbt/+8+fPv3//rp6/AJJkZOAXFhaVlkLWAAA1Y0TANazUKQAAAABJRU5ErkJggg=="],"j28":["iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA30lEQVR4nGNgGAWDEXAzMPgxMAgRqdqUgWElI+MlZuYERkZcapiQObnysl9rSt462LhoqqFIMCAAC5wlr6H2tKlKU0X1k4DgC0U5g/5p5w4fw2mDvIZaYWeToKDg0/sPrz59wcbOHl2Sq26kj12DqLRkVlM1GzubgpT08lnzGqbO5OHiYmdjS6oqllJSQNcgKi1Z1t/Bx8/Hxsb24d37O1ev//r5U1JUnJGRUURIOK2unIkJxTtMOW31XHy8//7/52Bj37R89YsnTxkYGJbPnc/IwPDz108RcTEDW0tkDQCvrjvNVFGKRgAAAABJRU5ErkJggg==","iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAtUlEQVR4nO2OsQpBcRSHDyarxSIpMolBKZPFHTyAhMEo5TUsvITploHhPoAshlsMGCh13S42Mchg+uRvkW65o8E3nvP9zvmJ/PlFgiJdkbBHuyaCCAEZegyQDjEd0SpRiH+3k/mciWJnLkGrV77YGzjCHtaGvoUVZEuaux2Ox+bgqOvldlN8/gtYMINoJuViL+AAJxWIJJ7tARvOMOb6GZhws9X6Dh29/xr2jIGjflpQbFTf/Qfda2y7AOKymAAAAABJRU5ErkJggg=="],"t7_128":"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","t7_16":"iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAA8ElEQVR4nGNgGAV0A1zEK2VmYAhgYJjNxCRCpOpmRsZrTEzXmZnLmZiwqmFC5qgYG/BN6vwrI/2Xl1e6skhESgKfBgMby9TaMg1n5xdfvh7mYBfx8cxur8fUA9WgZ2WeUl0iIii4f9tO73fvyr5/f/HsubCISFp9BQ8/H7oGPSvzpMoiJiYmaTGJXes3/WJg+Pzx08s7D/4zMEjLy6XUlrGwsiI06FqZpdWUcnJwcLCxXbt0+ealKxCJ189f/P//7////yramtZerggNyRXFDIyMv//84WBj37Fu49fPXyAS65Yu//fvP4Rt5+vJBAs0ANMqTNRAz+ePAAAAAElFTkSuQmCC"}},"real":{"hist":{"75":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0001,0.0002,0.0006,0.0012,0.0023,0.004,0.0065,0.0107,0.0178,0.03,0.0484,0.0704,0.0852,0.1035,0.1334,0.1402,0.1345,0.119,0.0696,0.0198,0.0025,0.0002,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"200":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0004,0.0557,0.9418,0.0021,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"300":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0004,0.0083,0.036,0.0538,0.057,0.0564,0.0544,0.0512,0.0483,0.0457,0.0442,0.0447,0.0412,0.0359,0.0307,0.0266,0.0241,0.0228,0.0205,0.0182,0.0195,0.0186,0.02,0.0273,0.0478,0.0644,0.0451,0.0286,0.0084,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},"V":{"75":5.61,"200":9.98,"300":4.09},"img200_128":"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","img200_16":"iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAACK0lEQVR42i3Qu28cZRhG8fO838zOeuNlsa2IIMdKEKFJIEgWN2GQuRR0dBQ0FDTpQEJCQBGl49IhGv4FapAouDWhoAcJGoSE5AuyY4Vgs+vMfO9DEfrT/I42Hlyr2CljXEnbaVto0F2oxSipjhSOUVMxGTDgBFVhIrANKBWGAlUI0N0oiVXBRgYDgIUdtSilJCFFCg1qUshJ2pIgElAasoBUU2ljAsCpJp2BHRKAJFWTkkREuW86K7B7eOCUoYtsQoGd0pOPbb6y9ZLUdN343APnVlbWRt0omub7H7678dknwoFB4UiAYDweX730yNqkW10er04nI4Y6P6mLed/3aSokMm4aR5Vl7e3vtWh25sx0ZXWWtabmSMLcE6SUEk1RsYfEO3s7BVbsyz/eHO3vHhz/M3/jzWayjH1vW4CsABVJaKjDwe2jcdsuBe7a23/tnv570nVdicDIwthEKEJqccDhyXGsX/j77FkijjcuttPZ0nhSIgDhggWNVLCCRVOaOl6+dXp6s8/HN5++f319dv7C8mQ6X8xHUUdRHSjVmDTRjibvvXP92We2v/n6iw8//zSH+tDGxtYTzz+1ufXlt191UUswyBV05eFLNYd33/rgxe2XDw73P/r4/Z9++TnT1D5rxVQRInC1nDQXzz/6+muvbj/3wqLvd/747dbRkWwkoiUGm5L/11gKmrevXbt65fJi6BeLxZ+//3p4545kGXmAxEigHPrWECz9B+3OI4I0bfi9AAAAAElFTkSuQmCC"},"checks":[{"section":"1","name":"ReachCube reward recomputed term by term vs the simulator's, worst of 100 ticks","computed":0.0,"expected":0.0,"tol":1e-09,"ok":true,"source":"envs/reach.py L374-400 recomputed by ../2026-10-16_sac-trace.py"},{"section":"1","name":"tick 3 reward = (reach + closedness + reached) / 4","computed":0.3749,"expected":0.3749,"tol":0.0001,"ok":true,"source":"trace tick 3"},{"section":"1","name":"tick 3 reach term = 1 - tanh(5 d), d stored to 0.1 mm","computed":0.777295,"expected":0.7771,"tol":0.0005,"ok":true,"source":"envs/reach.py L378"},{"section":"2","name":"a reward 10 ticks away is weighted 0.9^10","computed":0.348678,"expected":0.3487,"tol":0.0001,"ok":true,"source":"geometric weight"},{"section":"2","name":"largest return 1/(1 - 0.9)","computed":10.0,"expected":10.0,"tol":1e-09,"ok":true,"source":"geometric series"},{"section":"3","name":"soft part of the realised return at tick 0 (randomness term, summed)","computed":-0.2067,"expected":null,"tol":null,"ok":true,"source":"trace: realised soft return minus discounted rewards, 100 ticks"},{"section":"4","name":"TD target y = r + 0.9 (Q_bar - alpha log pi), head 1","computed":8.329373,"expected":8.3294,"tol":0.0001,"ok":true,"source":"trace tick 3, train_squint.py L771-776"},{"section":"4","name":"toy: gap between two guesses after 10 backups = 20 x 0.9^10","computed":6.973569,"expected":6.973569,"tol":1e-09,"ok":true,"source":"contraction proof"},{"section":"4","name":"toy chain after 6 passes: first moment = 0.9^5","computed":0.59049,"expected":0.59049,"tol":1e-12,"ok":true,"source":"value iteration"},{"section":"6","name":"Gaussian entropy at sigma = 0.1","computed":-0.883647,"expected":-0.8836,"tol":0.0001,"ok":true,"source":"1/2 log(2 pi e sigma^2)"},{"section":"6","name":"Gaussian entropy at sigma = 0.1, by sampling","computed":-0.883819,"expected":-0.883647,"tol":0.002,"ok":true,"source":"2,000,000 samples"},{"section":"6","name":"spread whose entropy is -1: e^-1 / sqrt(2 pi e)","computed":0.089016,"expected":0.089,"tol":0.0001,"ok":true,"source":"solve H = -1"},{"section":"6","name":"toy Q = (2, 1, 0), alpha = 1: best policy's p1","computed":0.665241,"expected":0.665,"tol":0.0005,"ok":true,"source":"e^{Q/alpha} / Z"},{"section":"6","name":"toy: E[Q] + alpha H at the best policy = alpha log Z","computed":2.407606,"expected":2.407606,"tol":1e-09,"ok":true,"source":"soft value"},{"section":"6","name":"toy: no random policy beats e^{Q}/Z (best of 20,000 random ones)","computed":2.407559,"expected":2.407606,"tol":0.01,"ok":true,"source":"maximum of the objective is log Z"},{"section":"6","name":"toy: soft value alpha log Z at alpha = 0.01 equals max Q","computed":2.0,"expected":2.0,"tol":1e-06,"ok":true,"source":"log-sum-exp -> max"},{"section":"6","name":"KL(pi || e^Q/Z) = E_pi[log pi - Q] + log Z","computed":0.077953,"expected":0.077953,"tol":1e-12,"ok":true,"source":"identity"},{"section":"6","name":"code's squashed log-probability integrates to 1 (center 0.0, spread 0.1)","computed":0.999999,"expected":1.0,"tol":0.002,"ok":true,"source":"train_squint.py L330-334 (the +1e-6 guard makes it 1 only approximately)"},{"section":"6","name":"code's squashed log-probability integrates to 1 (center -2.72, spread 0.56)","computed":0.999892,"expected":1.0,"tol":0.002,"ok":true,"source":"train_squint.py L330-334 (the +1e-6 guard makes it 1 only approximately)"},{"section":"6","name":"thermostat: log pi = 9.0 (entropy below target) moves alpha up","computed":1.0,"expected":1.0,"tol":0,"ok":true,"source":"train_squint.py L808"},{"section":"6","name":"thermostat: log pi = 3.0 (entropy above target) moves alpha down","computed":-1.0,"expected":-1.0,"tol":0,"ok":true,"source":"train_squint.py L808"},{"section":"7","name":"average draws per stored moment = 256 x 512 / 1024","computed":128.0,"expected":128.0,"tol":0,"ok":true,"source":"train_squint.py L90, L124, L126"},{"section":"7","name":"bytes per moment: two 16x16x3 pictures + 31 floats + a flag","computed":1661.0,"expected":1661.0,"tol":0,"ok":true,"source":"transition fields, L908-916"},{"section":"8.1","name":"half-life of the slow copy at tau = 0.01","computed":68.967564,"expected":68.97,"tol":0.01,"ok":true,"source":"ln(1/2) / ln(1 - tau)"},{"section":"8.2","name":"E[max of 2 standard normals] = 1/sqrt(pi)","computed":0.56419,"expected":0.56419,"tol":1e-06,"ok":true,"source":"numerical integration"},{"section":"8.2","name":"E[max of 10 standard normals]","computed":1.538753,"expected":1.5388,"tol":0.0001,"ok":true,"source":"numerical integration"},{"section":"8.2","name":"simulated, 10 moves: best of one forecast","computed":1.538967,"expected":1.538753,"tol":0.01,"ok":true,"source":"400,000 trials"},{"section":"8.2","name":"simulated, 10 moves: best of the average of two = e10 / sqrt(2)","computed":1.088615,"expected":1.088062,"tol":0.01,"ok":true,"source":"averaging halves the noise variance"},{"section":"8.2","name":"simulated, 10 moves: best of the smaller of two","computed":0.6745,"expected":null,"tol":null,"ok":true,"source":"400,000 trials (the widget shows 0.67 from 4,000)"},{"section":"9.1","name":"port of Critic.categorical vs the target the training code produced","computed":5e-06,"expected":0.0,"tol":0.0002,"ok":true,"source":"trace tick 3, train_squint.py L415-454"},{"section":"9.1","name":"re-binning keeps the average: sum(target * z) = r_soft * sum(p) + 0.9 * sum(p * z)","computed":8.329467,"expected":8.329467,"tol":1e-09,"ok":true,"source":"linear split between neighbouring slots; exact for any masses"},{"section":"9.1","name":"same, with the stored histogram renormalized to sum to 1 (it was rounded to 5 decimals)","computed":8.329384,"expected":8.329384,"tol":1e-09,"ok":true,"source":"linear split between neighbouring slots"},{"section":"9.1","name":"cross-entropy = target entropy + KL (head 1, tick 3)","computed":1.335,"expected":1.33504,"tol":0.0002,"ok":true,"source":"trace tick 3, L787"},{"section":"9.3","name":"area downsample 128 -> 16 = mean of each 8x8 block","computed":0.0,"expected":0.0,"tol":0.0001,"ok":true,"source":"train_squint.py L500, utils.py"}]};</script><!--/DATA-->
 <script>
 (function () {
   "use strict";
@@ -983,6 +1257,93 @@ encoded_rgb=obs.detach()</pre>
       for (const v of [0, 4, 8, 12]) txt(svg, x(v), base + 15, String(v), { "text-anchor": "middle" });
     });
     txt(svg, W / 2, H - 4, "possible return (the 101 slots, zoomed to −2 to 12)", { "text-anchor": "middle" });
+  })();
+  // ---- section 3: the measured randomness part of the return
+  (function softPart() {
+    const c = (DATA.checks || []).find((c) => c.name.startsWith("soft part"));
+    if (c && $("soft-part")) $("soft-part").textContent = f(c.computed, 2);
+  })();
+
+  // ---- section 4: values flowing backward along a chain (toy)
+  (function chainW() {
+    const svg = $("chain-svg"); let vals = [0, 0, 0, 0, 0, 0], n = 0;
+    const W = 640, H = 176, L = 16, R = 16, Tp = 24, B = 40, cw = (W - L - R) / 6;
+    function draw() {
+      clear(svg);
+      const y = lin(0, 1, H - B, Tp);
+      el("line", { x1: L, x2: W - R, y1: H - B, y2: H - B, class: "axis" }, svg);
+      vals.forEach((v, i) => {
+        const x0 = L + i * cw + 9, w = cw - 18;
+        if (v > 0) el("rect", { x: x0, y: y(v), width: w, height: H - B - y(v), rx: 3, fill: i === 5 ? "var(--c-act)" : "var(--c-critic)", opacity: 0.9 }, svg);
+        txt(svg, x0 + w / 2, (v > 0 ? y(v) : H - B) - 7, v.toFixed(2), { "text-anchor": "middle", class: "ink" });
+        txt(svg, x0 + w / 2, H - B + 16, i === 5 ? "last: pays 1" : "moment " + (i + 1), { "text-anchor": "middle" });
+      });
+      txt(svg, (L + W - R) / 2, H - 4, "value of each moment after " + n + " pass" + (n === 1 ? "" : "es"), { "text-anchor": "middle" });
+      $("chain-n").textContent = n;
+    }
+    $("chain-step").addEventListener("click", () => { vals = vals.map((v, i) => (i === 5 ? 1 : 0) + (i < 5 ? 0.9 * vals[i + 1] : 0)); n++; draw(); });
+    $("chain-reset").addEventListener("click", () => { vals = [0, 0, 0, 0, 0, 0]; n = 0; draw(); });
+    draw();
+  })();
+
+  // ---- section 4: two guesses, one answer (toy contraction)
+  (function contractW() {
+    const svg = $("contract-svg"), inp = $("kb"), K = 40, a = [0], b = [20];
+    for (let k = 0; k < K; k++) { a.push(1 + 0.9 * a[k]); b.push(1 + 0.9 * b[k]); }
+    const W = 640, H = 200, L = 34, R = 96, Tp = 12, B = 30;
+    const x = lin(0, K, L, W - R), y = lin(0, 20, H - B, Tp);
+    function draw() {
+      const k = +inp.value; clear(svg);
+      for (const v of [0, 5, 10, 15, 20]) { el("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: "grid" }, svg); txt(svg, L - 6, y(v) + 4, String(v), { "text-anchor": "end" }); }
+      for (const t of [0, 10, 20, 30, 40]) txt(svg, x(t), H - B + 16, String(t), { "text-anchor": "middle" });
+      el("line", { x1: L, x2: W - R, y1: y(10), y2: y(10), stroke: "var(--ink)", "stroke-dasharray": "4 4", opacity: 0.6 }, svg);
+      txt(svg, W - R + 6, y(10) + 4, "true value 10", { class: "ink" });
+      for (const [seq, col] of [[a, "var(--c-critic)"], [b, "var(--c-target)"]]) {
+        el("path", { d: path(seq.slice(0, k + 1).map((v, i) => [x(i), y(v)])), fill: "none", stroke: col, "stroke-width": 2.2 }, svg);
+        el("circle", { cx: x(k), cy: y(seq[k]), r: 5, fill: col }, svg);
+      }
+      txt(svg, (L + W - R) / 2, H - 2, "backups applied", { "text-anchor": "middle" });
+      $("kb-val").textContent = k;
+      $("contract-out").textContent = "After " + k + " backup" + (k === 1 ? "" : "s") + " the guesses are " + a[k].toFixed(2) + " and " + b[k].toFixed(2) + ": " + (b[k] - a[k]).toFixed(3) + " apart, which is 20 × 0.9^" + k + ".";
+    }
+    inp.addEventListener("input", draw); draw();
+  })();
+
+  // ---- section 6: the best random policy over three moves (toy)
+  (function boltzW() {
+    const svg = $("boltz-svg"), inp = $("balpha"), Qv = [2, 1, 0];
+    const W = 640, H = 196, L = 40, R = 16, Tp = 18, B = 40;
+    function draw() {
+      const al = Math.pow(10, +inp.value);
+      const e = Qv.map((q) => Math.exp((q - 2) / al)), Zs = e.reduce((u, v) => u + v, 0), pr = e.map((v) => v / Zs);
+      const EQ = pr.reduce((acc, v, i) => acc + v * Qv[i], 0), Hs = -pr.reduce((acc, v) => acc + (v > 0 ? v * Math.log(v) : 0), 0);
+      const logZ = 2 / al + Math.log(Zs);
+      clear(svg);
+      const bw = 120, gap = (W - L - R - 3 * bw) / 4, y = lin(0, 1, H - B, Tp);
+      for (const v of [0, 0.5, 1]) { el("line", { x1: L, x2: W - R, y1: y(v), y2: y(v), class: "grid" }, svg); txt(svg, L - 6, y(v) + 4, String(v), { "text-anchor": "end" }); }
+      pr.forEach((v, i) => {
+        const x0 = L + gap + i * (bw + gap);
+        el("rect", { x: x0, y: y(v), width: bw, height: Math.max(0, H - B - y(v)), rx: 3, fill: "var(--c-actor)", opacity: 0.85 }, svg);
+        txt(svg, x0 + bw / 2, y(v) - 6, (100 * v).toFixed(1) + "%", { "text-anchor": "middle", class: "ink" });
+        txt(svg, x0 + bw / 2, H - B + 16, "forecast " + Qv[i], { "text-anchor": "middle" });
+      });
+      $("balpha-val").textContent = al < 1 ? al.toFixed(3) : al.toFixed(2);
+      $("boltz-out").textContent = "Expected forecast " + EQ.toFixed(3) + ", plus α × entropy " + (al * Hs).toFixed(3) + ", makes " + (EQ + al * Hs).toFixed(3) + ": exactly α log Z = " + (al * logZ).toFixed(3) + ". Committing to the best move alone would score 2.";
+    }
+    inp.addEventListener("input", draw); draw();
+  })();
+
+  // ---- section 14: the checks table
+  (function checksT() {
+    const t = $("checks-table"); if (!t || !DATA.checks) return;
+    const fv = (v) => (v === null || v === undefined) ? "" : minus(Math.abs(v) >= 100 || Number.isInteger(v) ? String(Math.round(v * 1e6) / 1e6) : v.toFixed(4));
+    for (const c of DATA.checks) {
+      const row = document.createElement("tr");
+      for (const [cls, val] of [["m", c.section], ["", c.name], ["m", fv(c.computed)], ["m", fv(c.expected)], ["ok", c.ok ? "✓" : "✗"]]) {
+        const td = document.createElement("td"); if (cls) td.className = cls; td.textContent = val; row.appendChild(td);
+      }
+      t.appendChild(row);
+    }
   })();
 })();
 </script>
