@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning to Fold, part 2: folding more often · Phi</title>
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Learning to Fold, part 2: folding more often">
+<meta property="og:description" content="How the policy learned to fold four times in five in simulation: scoring its own tries, judging each moment, and practising what worked.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/learning-to-fold-2.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Yashvardhan Gupta">
+<meta name="description" content="Learning to Fold, part 2: the dense reward, the policy as its own value, advantages, AWR, RECAP and guidance, best-of-N, and why the real round went back to copying, on our own simulator runs.">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+  svg: { fontCache: "global" },
+  options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"] }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] },
+  svg: { fontCache: "global" },
+  options: { skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"] }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #f7f6f2; --ink: #1b1e24; --muted: #5d636e; --rule: #dcd9d0; --tint: #eceae2; --tint2: #e4e1d7;
+  --accent: #2f6db3;
+  --c-act: #2f6db3; --c-mem: #4d6b86; --c-critic: #0f7b6c; --c-actor: #b03a78; --c-alpha: #966200; --c-target: #6b4fb0; --c-real: #b4531d;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --measure: 44rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121418; --ink: #e7e6e2; --muted: #9ba1ab; --rule: #2b2f36; --tint: #1a1d23; --tint2: #22262d;
+    --accent: #84b4ec;
+    --c-act: #84b4ec; --c-mem: #93adc6; --c-critic: #5fcab7; --c-actor: #e88cbe; --c-alpha: #e2b452; --c-target: #b6a0f2; --c-real: #ec9a63;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121418; --ink: #e7e6e2; --muted: #9ba1ab; --rule: #2b2f36; --tint: #1a1d23; --tint2: #22262d;
+  --accent: #84b4ec;
+  --c-act: #84b4ec; --c-mem: #93adc6; --c-critic: #5fcab7; --c-actor: #e88cbe; --c-alpha: #e2b452; --c-target: #b6a0f2; --c-real: #ec9a63;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 1.0625rem; line-height: 1.62; }
+a { color: var(--accent); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: var(--measure); margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header { padding: 3.2rem 0 1rem; }
+.kicker { font-family: var(--f-display); font-size: .95rem; color: var(--muted); margin: 0 0 .6rem; letter-spacing: .01em; }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.12; text-wrap: balance; }
+h1 { font-size: clamp(2.3rem, 8vw, 3.4rem); margin: 0 0 .8rem; letter-spacing: -.01em; }
+h2 { font-size: clamp(1.5rem, 4vw, 1.95rem); margin: 3.6rem 0 .5rem; }
+h2 .num { font-family: var(--f-mono); font-weight: 400; font-size: .58em; color: var(--muted); margin-right: .55rem; vertical-align: .16em; }
+h3 { font-size: 1.22rem; margin: 2.2rem 0 .5rem; }
+p { margin: 0 0 1rem; }
+.lede { font-size: 1.17rem; color: var(--muted); margin-bottom: .8rem; }
+.howto { font-size: .98rem; color: var(--muted); margin-bottom: 1.4rem; }
+.ask { font-family: var(--f-display); font-size: 1.08rem; color: var(--muted); margin: 0 0 1.1rem; }
+ul, ol { margin: 0 0 1rem; padding-left: 1.3rem; }
+li { margin: .3rem 0; }
+code, .mono { font-family: var(--f-mono); font-size: .84em; }
+.k-critic { color: var(--c-critic); } .k-actor { color: var(--c-actor); } .k-mem { color: var(--c-mem); } .k-alpha { color: var(--c-alpha); } .k-target { color: var(--c-target); } .k-act { color: var(--c-act); } .k-real { color: var(--c-real); }
+.name { font-family: var(--f-display); font-weight: 600; }
+figure { margin: 1.6rem 0; }
+figcaption { font-size: .92rem; color: var(--muted); margin-top: .55rem; line-height: 1.5; }
+svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+svg.chart text { font-family: var(--f-display); font-size: 12.5px; fill: var(--muted); }
+svg.chart text.ink { fill: var(--ink); }
+svg.chart .grid { stroke: var(--rule); stroke-width: 1; }
+svg.chart .axis { stroke: var(--muted); stroke-width: 1; }
+.widget { background: var(--tint); border-radius: 10px; padding: 14px 14px 12px; margin: 1.5rem 0; }
+.widget .controls { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; font-family: var(--f-display); font-size: .98rem; margin-bottom: .6rem; }
+.widget label { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.widget input[type=range] { width: min(240px, 62vw); accent-color: var(--accent); }
+.widget .val { font-family: var(--f-mono); font-size: .9rem; min-width: 3.2rem; }
+.widget button { font-family: var(--f-display); font-size: .92rem; background: var(--paper); color: var(--ink); border: 1px solid var(--rule); border-radius: 6px; padding: .25rem .6rem; cursor: pointer; }
+.widget button:hover { border-color: var(--muted); }
+.readout { font-family: var(--f-display); font-size: 1rem; margin: .5rem 0 0; }
+.toy { font-family: var(--f-display); font-size: .85rem; color: var(--muted); }
+.box { border-left: 3px solid var(--c-critic); padding: .3rem 0 .3rem 1rem; margin: 1.3rem 0; }
+.box p:last-child, .box ul:last-child { margin-bottom: 0; }
+.worked { width: 100%; border-collapse: collapse; font-size: .98rem; margin: .4rem 0; }
+.worked td { padding: .28rem .3rem; border-bottom: 1px solid var(--rule); }
+.worked td.n { font-family: var(--f-mono); font-size: .9rem; text-align: right; white-space: nowrap; }
+.eq { font-family: var(--f-mono); font-size: .9rem; background: var(--tint); border-radius: 6px; padding: .6rem .8rem; margin: .4rem 0 1.1rem; overflow-x: auto; white-space: pre; line-height: 1.55; }
+details.layer { border: 1px solid var(--rule); border-radius: 10px; margin: .7rem 0; background: var(--paper); }
+details.layer > summary { cursor: pointer; list-style: none; padding: .55rem .9rem; font-family: var(--f-display); display: flex; flex-wrap: wrap; gap: .25rem .7rem; align-items: baseline; }
+details.layer > summary::-webkit-details-marker { display: none; }
+details.layer > summary::after { content: "+"; margin-left: auto; font-family: var(--f-mono); color: var(--muted); }
+details.layer[open] > summary::after { content: "\2212"; }
+details.layer .lt { font-weight: 600; font-size: .78rem; letter-spacing: .03em; padding: .06rem .55rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+details.layer .lsum { color: var(--muted); font-size: 1rem; }
+details.layer > .lbody { padding: .4rem 1rem 1rem; border-top: 1px solid var(--rule); }
+details.layer > .lbody p { font-size: .98rem; }
+.layer.maths .lt { color: var(--c-target); } .layer.code .lt { color: var(--c-mem); } .layer.check .lt { color: var(--c-alpha); }
+ol.deriv { padding-left: 1.4rem; } ol.deriv li { margin: .55rem 0; }
+.pairs { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.6fr); gap: .55rem 1rem; align-items: center; margin: .5rem 0 .8rem; }
+.pairs .eqc { font-size: .95rem; overflow-x: auto; }
+.pairs pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.pairs .where { grid-column: 1 / -1; font-family: var(--f-display); font-size: .86rem; color: var(--muted); margin: .2rem 0 0; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: .15rem 0; }
+mjx-container:not([display]) { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; padding: .1rem 0; }
+.timeline { list-style: none; padding: 0; margin: 1rem 0 1.4rem; border-left: 2px solid var(--rule); }
+.timeline li { position: relative; padding: .15rem 0 .55rem 1.1rem; margin: 0; }
+.timeline li::before { content: ""; position: absolute; left: -6px; top: .62rem; width: 10px; height: 10px; border-radius: 50%; background: var(--paper); border: 2px solid var(--muted); }
+.timeline .yr { font-family: var(--f-mono); font-size: .85rem; color: var(--muted); margin-right: .5rem; }
+.timeline .who { font-family: var(--f-display); font-weight: 600; }
+.algo { background: var(--tint); border-radius: 8px; padding: .4rem .8rem; margin: .6rem 0 1rem; overflow-x: auto; }
+table.t td.ok { font-family: var(--f-mono); font-size: .86rem; white-space: nowrap; }
+@media (max-width: 640px) { .pairs { grid-template-columns: 1fr; } }
+pre { font-family: var(--f-mono); font-size: .78rem; line-height: 1.5; background: var(--tint2); border-radius: 6px; padding: .7rem .8rem; overflow-x: auto; margin: .5rem 0 .9rem; }
+pre .c { color: var(--muted); }
+.src { font-family: var(--f-display); font-size: .88rem; color: var(--muted); }
+.tablewrap { overflow-x: auto; margin: 1rem 0 1.4rem; }
+table.t { border-collapse: collapse; width: 100%; font-size: .93rem; }
+table.t th, table.t td { border-bottom: 1px solid var(--rule); padding: .45rem .5rem; text-align: left; vertical-align: top; }
+table.t th { font-family: var(--f-display); font-weight: 600; white-space: nowrap; }
+table.t td.m { font-family: var(--f-mono); font-size: .86rem; }
+.imgs { display: flex; flex-wrap: wrap; gap: 18px 26px; align-items: flex-start; }
+.imgs .pair { display: flex; gap: 8px; align-items: flex-end; }
+.imgs img { width: 128px; height: 128px; border-radius: 4px; display: block; background: var(--tint2); }
+.imgs img.pix { image-rendering: pixelated; }
+.imgs .lab { font-family: var(--f-display); font-size: .85rem; color: var(--muted); margin-top: .3rem; }
+.toc { font-family: var(--f-display); font-size: 1rem; margin: 1.2rem 0 0; padding: 0; list-style: none; columns: 2; column-gap: 2rem; }
+.toc li { margin: .2rem 0; break-inside: avoid; }
+.toc a { text-decoration: none; }
+.toc .num { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); display: inline-block; width: 1.8rem; }
+.sched { display: grid; grid-template-columns: auto 1fr; gap: .35rem 1rem; font-size: .98rem; margin: 1rem 0 1.2rem; }
+.sched .when { font-family: var(--f-display); font-weight: 600; color: var(--muted); }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps li { counter-increment: s; position: relative; padding-left: 2.2rem; margin: .7rem 0; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: .05rem; font-family: var(--f-mono); font-size: .85rem; color: var(--muted); width: 1.6rem; text-align: right; }
+.steps .src { white-space: nowrap; }
+.confusions li { margin: .6rem 0; }
+.confusions .wrong { font-family: var(--f-display); font-weight: 600; }
+footer { margin: 4rem 0 3rem; padding-top: 1.2rem; border-top: 1px solid var(--rule); font-size: .92rem; color: var(--muted); }
+footer ol { padding-left: 1.2rem; }
+@media (max-width: 560px) {
+  .toc { columns: 1; }
+  .imgs img { width: 112px; height: 112px; }
+  svg.chart:not(.map) text { font-size: 18px; }
+  body { font-size: 1.02rem; }
+}
+
+/* part 1 additions */
+.series { font-family: var(--f-display); font-size: .95rem; color: var(--muted); margin: 0 0 .8rem; }
+.series b { color: var(--ink); font-weight: 600; }
+.cell img { width: 100%; height: auto; display: block; border-radius: 4px; background: var(--tint2); }
+.cell .lab { font-family: var(--f-display); font-size: .85rem; color: var(--muted); margin-top: .3rem; line-height: 1.35; }
+.grid4 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.strip4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.models { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 560px; }
+.pair2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+video { width: 100%; display: block; border-radius: 6px; background: var(--tint2); }
+.seg { display: flex; gap: 6px; margin: 0 0 .5rem; }
+.seg button { font-family: var(--f-display); font-size: .92rem; background: var(--paper); color: var(--muted); border: 1px solid var(--rule); border-radius: 6px; padding: .25rem .65rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { color: var(--ink); border-color: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: var(--f-display); font-size: .9rem; color: var(--muted); margin: 0 0 .5rem; }
+.legend span::before { content: ""; display: inline-block; width: 11px; height: 11px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--sw); }
+svg .badges circle { fill: var(--paper); stroke: var(--muted); stroke-width: 1; }
+svg.chart .badges text { font-family: var(--f-mono); font-size: 10.5px; fill: var(--ink); }
+#uc-table th { white-space: nowrap; }
+@media (max-width: 640px) { .strip4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .models { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+:root { --paper: #f4f6f8; --ink: #18202b; --muted: #586273; --rule: #d5dae2; --tint: #e8ecf1; --tint2: #dde3ea; --accent: #2c5d8f; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --paper: #10151c; --ink: #e2e7ee; --muted: #9ba5b5; --rule: #29313c; --tint: #18202a; --tint2: #202935; --accent: #80b2e6; }
+}
+:root[data-theme="dark"] { --paper: #10151c; --ink: #e2e7ee; --muted: #9ba5b5; --rule: #29313c; --tint: #18202a; --tint2: #202935; --accent: #80b2e6; }
+img { max-width: 100%; }
+</style>
+</head>
+<body>
+<header class="phi-bar" style="position:relative;z-index:60;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 18px;padding:10px clamp(16px,4vw,32px);border-bottom:1px solid var(--rule);background:var(--paper);font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.05em">
+  <a href="../index.html" style="color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:9px"><span style="font-family:var(--f-body),Georgia,serif;font-size:20px;line-height:1">&Phi;</span><span>Physical Hardware Intelligence</span></a>
+  <nav aria-label="Phi" style="display:flex;gap:16px">
+    <a href="../learn.html" style="color:var(--muted);text-decoration:none">Learn</a>
+    <a href="../research.html" style="color:var(--muted);text-decoration:none">Research</a>
+    <a href="index.html" style="color:var(--muted);text-decoration:none">Writing</a>
+  </nav>
+</header>
+<div class="wrap">
+<header>
+  <p class="kicker">Deep dive · 30 October 2026</p>
+  <h1>Learning to Fold, part 2: folding more often</h1>
+  <p class="lede">The copying robot of part 1 folds some of the time. This part is how Ilia Larchenko's policy learned to fold four times in five in simulation: by scoring its own tries, judging each moment, and practising what worked. The numbers are from our own runs of his policy.</p>
+  <p class="series"><a class="part1" href="learning-to-fold-end-to-end.html">Part 1, copying a fold</a> · <b>Part 2, folding more often</b> · <a class="part3" href="learning-to-fold-3.html">Part 3, building on it</a></p>
+  <p class="howto">Each chapter tells one idea with pictures and our own numbers. Under it, <span class="k-target name">The maths</span> derives that idea, <span class="k-mem name">The code</span> puts each equation beside the line that computes it, and <span class="k-alpha name">Check yourself</span> asks one question. Open them in any order, or not at all.</p>
+
+  <figure>
+    <svg class="chart map" viewBox="0 0 640 270" role="img" aria-labelledby="map-t map-d">
+      <title id="map-t">Part 2 in one picture</title>
+      <desc id="map-d">Simulators try to fold with the newest policy. Every moment of every try is scored: a reward from the checker, the policy's own forecast of success, and from those two an advantage. Training then practises the good moments more often and learns what a good move looks like, and the new policy goes back to the simulators. When it runs, the policy tries several plans and keeps the best.</desc>
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6"/></marker></defs>
+      <g fill="none" stroke-width="1.3">
+        <path d="M150 74 H188" stroke="var(--muted)" marker-end="url(#ah)"/>
+        <path d="M452 74 H486" stroke="var(--muted)" marker-end="url(#ah)"/>
+        <path d="M560 104 V200 H96 V112" stroke="var(--c-actor)" marker-end="url(#ah)"/>
+      </g>
+      <g>
+        <rect x="14" y="44" width="136" height="60" rx="8" fill="var(--tint)" stroke="var(--c-act)"/>
+        <text x="82" y="68" text-anchor="middle" class="ink" style="font-weight:600">Try</text>
+        <text x="82" y="86" text-anchor="middle">simulators, thousands of times</text>
+        <rect x="192" y="18" width="260" height="112" rx="8" fill="none" stroke="var(--c-critic)"/>
+        <text x="322" y="12" text-anchor="middle" class="ink" style="font-weight:600">Score every moment</text>
+        <rect x="204" y="30" width="236" height="26" rx="5" fill="var(--tint)"/><text x="322" y="48" text-anchor="middle" class="ink">reward from the checker</text>
+        <rect x="204" y="62" width="236" height="26" rx="5" fill="var(--tint)"/><text x="322" y="80" text-anchor="middle" class="ink">the policy's own forecast</text>
+        <rect x="204" y="94" width="236" height="26" rx="5" fill="var(--tint)"/><text x="322" y="112" text-anchor="middle" class="ink">advantage: better than expected?</text>
+        <rect x="490" y="44" width="136" height="60" rx="8" fill="var(--tint)" stroke="var(--c-alpha)"/>
+        <text x="558" y="68" text-anchor="middle" class="ink" style="font-weight:600">Practise</text>
+        <text x="558" y="86" text-anchor="middle">good moments, more often</text>
+        <text x="330" y="222" text-anchor="middle">newer weights go back to the simulators</text>
+        <rect x="14" y="232" width="250" height="30" rx="6" fill="var(--tint)" stroke="var(--c-target)" stroke-dasharray="4 3"/>
+        <text x="139" y="252" text-anchor="middle" class="ink">when it runs: try several plans, keep the best</text>
+      </g>
+      <g class="badges">
+        <circle cx="22" cy="44" r="9"/><text x="22" y="48" text-anchor="middle">1</text>
+        <circle cx="212" cy="30" r="9"/><text x="212" y="34" text-anchor="middle">2</text>
+        <circle cx="212" cy="62" r="9"/><text x="212" y="66" text-anchor="middle">3</text>
+        <circle cx="212" cy="94" r="9"/><text x="212" y="98" text-anchor="middle">4</text>
+        <circle cx="498" cy="44" r="9"/><text x="498" y="48" text-anchor="middle">5</text>
+        <circle cx="618" cy="44" r="9"/><text x="618" y="48" text-anchor="middle">6</text>
+        <circle cx="22" cy="232" r="9"/><text x="22" y="236" text-anchor="middle">7</text>
+      </g>
+    </svg>
+    <figcaption>Part 2 in one picture. The small numbers are the chapters; chapter 8 puts the whole loop together.</figcaption>
+  </figure>
+
+  <ol class="toc">
+    <li><a href="#ceiling"><span class="num">1</span>Copying has a ceiling</a></li>
+    <li><a href="#reward"><span class="num">2</span>Scoring half a fold</a></li>
+    <li><a href="#value"><span class="num">3</span>The policy judges itself</a></li>
+    <li><a href="#advantage"><span class="num">4</span>Better than expected</a></li>
+    <li><a href="#awr"><span class="num">5</span>Practise what worked</a></li>
+    <li><a href="#recap"><span class="num">6</span>Ask for the good version</a></li>
+    <li><a href="#bestofn"><span class="num">7</span>Try several, keep the best</a></li>
+    <li><a href="#loop"><span class="num">8</span>The whole loop, and how it did</a></li>
+    <li><a href="#transfer"><span class="num">9</span>From the simulator to our table</a></li>
+    <li><a href="#whole"><span class="num">10</span>The whole of part 2</a></li>
+    <li><a href="#checks"><span class="num">11</span>How this page was checked</a></li>
+  </ol>
+</header>
+
+<main>
+<!-- 1 -->
+<section id="ceiling">
+<h2><span class="num">1</span>Copying has a ceiling</h2>
+<p class="ask">The copying robot of part 1 folds some of the time. Why not every time?</p>
+<p>A copier is only as good as what it copies, and it only learns what the recordings show. In the simulation round of the LeHome Challenge the starting recordings came from a scripted policy: clean folds, no mistakes, and so no recoveries (report §1.1, §2.2). A policy that copies them folds some of the time, and when it slips it has never seen what to do next.</p>
+<p>To do better, Ilia let the policy practise. A simulator can fold thousands of times with nobody watching. His pool at the end held about 12,500 practice episodes, 4.3 million frames, and he generated a few times more over the run (report §8.2). The question this part answers: how does a policy learn from its own tries, when nobody tells it which move was right? That is reinforcement learning, in a gentle form.</p>
+<figure>
+  <video controls muted playsinline preload="metadata" src="../assets/blog/ltf-top-long-0-seed42.mp4" id="simvid"></video>
+  <figcaption>Ilia's simulation policy folding a long-sleeved top it never trained on, on our RTX 4080 SUPER (17 October).</figcaption>
+</figure>
+<p>We ran his simulation policy on 16 garments it never trained on: 13 folded on the first run, and all 16 when we ran the same 16 starts again. Only 6 of the 16 came out exactly the same, outcome and length. The starting noise from part 1's chapter 3 makes every run different, and that difference is what practice learns from.</p>
+<div class="box"><p>The loop in four words: <b>try</b>, <b>score</b>, <b>judge</b>, <b>practise</b>. Chapters 2 to 6 take them one at a time.</p></div>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">what practice is trying to raise</span></summary><div class="lbody">
+<p>Reinforcement learning looks for the policy with the highest expected return, the total reward of an episode:</p>
+\[ J(\pi) = \mathbb E_{\pi}\Big[\sum_{t=0}^{T-1} r_t\Big]. \]
+<p>Ilia builds the reward so that every episode's total is exactly its outcome, \(\sum_t r_t = \mathbb 1[\text{success}]\) (chapter 2), so \(J(\pi)\) is simply the policy's success rate. Everything on this page is a way to raise that number without a person labelling which moves were good.</p>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why can't copying clean recordings teach recovery?</span></summary><div class="lbody">
+<p>Recordings with no mistakes contain no moments after a mistake, so the copier never sees what a good move looks like from there (report §2.2, §10.4).</p>
+</div></details>
+</section>
+
+<!-- 2 -->
+<section id="reward">
+<h2><span class="num">2</span>Scoring half a fold</h2>
+<p class="ask">The simulator only says pass or fail at the very end. How do you give credit along the way?</p>
+<p>The simulator decides success by measuring distances between marked points on the garment. Points that should meet, like the two sleeves, must come closer than a threshold; points that should stay apart must not (report §1.1). With only that final verdict, a good grasp in the first second earns nothing until the very end.</p>
+<p>Ilia reuses the same distance tests to add a checkpoint partway: reaching it is worth 0.5, and success brings the total to 1.0. For tops the first half arrives gradually, in step with how far the main distance has closed (report §6.1). Here is a fold from our repeat run:</p>
+<figure>
+  <div class="controls seg"><button type="button" id="rw-ok" aria-pressed="true">as it happened (folded)</button><button type="button" id="rw-fail" aria-pressed="false">as if it had failed</button></div>
+  <svg class="chart" id="rw-svg" viewBox="0 0 640 230" role="img" aria-label="Running total of the reward over one simulated short-sleeved top"></svg>
+  <figcaption id="rw-cap"></figcaption>
+</figure>
+<p>One more rule: if an episode fails, everything it earned is taken back, spread over the frames after its best moment. So a whole episode is always worth exactly 1 or 0 (report §6.1). The checkpoints give credit inside an episode; the total stays honest about the outcome.</p>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">the gradual checkpoint and the withdrawal</span></summary><div class="lbody">
+<p>For tops, let \(d_t\) be the main distance as a fraction of its threshold, \(m_t = \min_{\tau\le t} d_\tau\) its lowest value so far, and \(t_1\) the frame the first checkpoint is reached. The running total from that checkpoint is</p>
+\[ R^{\text{cp1}}_t = 0.5\,\mathrm{clip}\!\left(\frac{d_0 - m_t}{d_0 - d_{t_1}},\,0,\,1\right), \qquad r_t \mathrel{+}= R^{\text{cp1}}_t - R^{\text{cp1}}_{t-1}. \]
+<p>If the episode fails, with \(t_p\) the last frame where a reward brought the total to its peak, the total is taken back evenly over the remaining frames:</p>
+\[ r_t \mathrel{-}= \frac{\sum_\tau r_\tau}{T - t_p - 1}, \qquad t_p < t < T, \qquad \text{so} \quad \sum_t r_t = \mathbb 1[\text{success}]. \]
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the gradual share, and the spread-out withdrawal</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\frac{d_0 - m_t}{d_0 - d_{t_1}}\)</div><pre>frac = (d_init - running_min) / (d_init - d_first_cp)</pre>
+<div class="eqc">over \(T - t_p - 1\) frames</div><pre>n_spread = len(rewards) - peak_frame - 1</pre>
+<p class="where"><code>eval/dataset_writer.py</code> L655, L683 · lehome_solution @ <code>ca73828</code>. The "as if it had failed" view runs a port of the withdrawal on the same rewards.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why take the reward back on failure, instead of keeping the checkpoint credit?</span></summary><div class="lbody">
+<p>A checkpoint can hold while the rest of the garment is in a state that makes success unlikely. Keeping its credit would reward progress that misled (report §6.1).</p>
+</div></details>
+</section>
+
+<!-- 3 -->
+<section id="value">
+<h2><span class="num">3</span>The policy judges itself</h2>
+<p class="ask">To know which moments were good, you need to know how each one was going. Who decides that?</p>
+<p>Reinforcement learning usually trains a second network for this job, a critic. Ilia puts it inside the policy. Remember the query from part 1, the blank token that sees only the pictures? It feeds a small head that predicts the chance this episode ends in success (report §5.1). Because a whole episode is worth exactly 1 for success, that chance, minus the reward already collected, is the reward still to come: the value (report §6.2).</p>
+<p>Here is the same short-sleeved top, from the same starting layout, run twice on our GPU:</p>
+<figure>
+  <svg class="chart" id="vf-svg" viewBox="0 0 640 250" role="img" aria-label="The policy's success forecast over two runs of the same start"></svg>
+  <figcaption>Short-sleeved top, unseen garment 1, same start (seed 49). Lines: the policy's own forecast of success. The failed run peaked at <span id="vf-peak"></span> at step <span id="vf-peakstep"></span>; the evaluator saved that moment as a failure state at frame <span id="vf-snap"></span>, when the smoothed forecast fell by more than 0.12 from a peak above 0.25 (report §3.2). It ran out of time at step 600.</figcaption>
+</figure>
+<p>The forecast has weak spots. On easy garments it sits above 0.9 and says little, and it drifts, because the same network is also learning to move (report §6.3). So a second head predicts how far along the fold is, from 0 to 1, trained only on episodes that succeeded. In the failed run above it ended at <span id="vf-compl"></span>: from the pictures the fold looked nearly done when it wasn't, a trap the report names (§6.2).</p>
+<p>The real checkpoint keeps that progress head and retrained it on real recordings (report §9.5). On our table it still tells a fold from a failure:</p>
+<figure>
+  <svg class="chart" id="rc-svg" viewBox="0 0 640 230" role="img" aria-label="The completion head on our rig: a towel that folded and shorts that did not"></svg>
+  <figcaption>Our rig, 30 October: the hand towel that folded (run 2) and the blue shorts that did not. Each dot is one answer from the model.</figcaption>
+</figure>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">success chance as a value, smoothed</span></summary><div class="lbody">
+<p>With \(\sum_t r_t = \mathbb 1[\text{success}]\) and \(R^{\text{cum}}_t\) the reward collected before \(t\), the expected reward still to come is</p>
+\[ V(s_t) = \mathbb E\Big[\sum_{\tau \ge t} r_\tau \,\Big|\, s_t\Big] = P(\text{success}\mid s_t) - R^{\text{cum}}_t . \]
+<p>The head's raw guesses are noisy, so every use takes an exponential moving average, \(\bar S_t = 0.2\,\hat P_t + 0.8\,\bar S_{t-1}\). Near a successful ending the head is biased low, because "almost done" frames mostly come from failed episodes, which sit in that state for a long time. Offline, where the outcome \(y\) is known, the last 30 frames of \(\bar S\) are replaced by a straight line to \(y\) (report §6.2).</p>
+<p>The progress head is trained on \(t/T\) in successful episodes only, with a squared error.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">both heads, on the query</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\hat P_t\)</div><pre>success_pred = jax.nn.sigmoid(self.success_head(success_hidden).squeeze(-1))</pre>
+<div class="eqc">progress, \(t/T\)</div><pre>completion_pred = jax.nn.sigmoid(self.completion_head(success_hidden).squeeze(-1))</pre>
+<p class="where"><code>models/pi_modified.py</code> L1527, L1530 · lehome_solution @ <code>ca73828</code>. <code>success_hidden</code> is Gemma's output at the query, which sees only pictures.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why train the progress head only on episodes that succeeded?</span></summary><div class="lbody">
+<p>In a failed episode, \(t/T\) doesn't measure how much of the fold is done: the fold never got done. Only in a success does the last frame mean "finished".</p>
+</div></details>
+</section>
+
+<!-- 4 -->
+<section id="advantage">
+<h2><span class="num">4</span>Better than expected</h2>
+<p class="ask">An episode succeeded. Was every move in it a good one?</p>
+<p>No. Some moves made the fold more likely, some wasted time, and some made things worse before luck rescued them. What matters for one move is whether things went better than expected after it. That is its <b>advantage</b>. The simplest version: after each move, how much did the success forecast rise?</p>
+<p>Ilia mixes in the checkpoint reward too, and trusts the forecast only halfway, because it is a model's guess. With \(\alpha = 0.5\), each step scores roughly \((1-\alpha)\) times the reward plus \(\alpha\) times the rise in the forecast (report §6.2). Trust the forecast fully and the reward all but cancels out; ignore it and only the checkpoints speak. Progress adds a small push of its own (report §6.4). Then each move's score adds up what followed it, fading by 0.989 per step, so a grasp gets credit for the fold it set up.</p>
+<div class="widget" id="w-adv">
+  <div class="controls"><label for="adv-a">trust in the forecast, α <input id="adv-a" type="range" min="0" max="1" step="0.05" value="0.5"> <span class="val" id="adv-a-val"></span></label></div>
+  <svg class="chart" id="adv-svg" viewBox="0 0 640 250" role="img" aria-label="The advantage of every frame of one simulated fold"></svg>
+  <p class="readout" id="adv-out" aria-live="polite"></p>
+  <p class="toy">Real data: the forecast, progress and reward of the folded short-sleeved top above, computed with a port of Ilia's code that matches his on every one of the 4,138 frames of our run.</p>
+</div>
+<div class="box"><p>This is the part of the advantage one episode decides. Ilia then blends in an outcome-only score for older episodes, normalises across the whole pool and clips; those steps need all 12,500 episodes, so they are left out here (report §6.5, §6.6).</p></div>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">why trust the forecast only partly, and the backward sum</span></summary><div class="lbody">
+<p>Let \(G_t = \mathbb 1[\text{success}] - R^{\text{cum}}_t\) be the reward that actually came after \(t\), and \(\hat V_t\) the model's estimate of it. Subtracting a fraction of the estimate, \(\hat A_t = G_t - \alpha \hat V_t\), has variance</p>
+\[ \operatorname{Var}(G - \alpha \hat V) = \operatorname{Var}(G) - 2\alpha\operatorname{Cov}(G,\hat V) + \alpha^2 \operatorname{Var}(\hat V), \qquad \alpha^\star = \frac{\operatorname{Cov}(G,\hat V)}{\operatorname{Var}(\hat V)} . \]
+<p>If the estimate is the truth plus independent noise, \(\alpha^\star = \sigma_V^2/(\sigma_V^2 + \sigma_\varepsilon^2) = \rho^2 < 1\): the worse the forecast, the less of it to subtract (report §6.2). Ilia used \(\alpha = 0.5\); estimated afterwards on his rollouts, \(\alpha^\star\) ranged from about 0.4 to 0.8.</p>
+<p>With \(\hat V_t = \alpha(\bar S_t - R^{\text{cum}}_t)\), one step of the sum is</p>
+\[ \delta_t = r_t + \gamma \hat V_{t+1} - \hat V_t = (1 - \alpha\gamma)\,r_t + \alpha\,(\gamma \bar S_{t+1} - \bar S_t) + \alpha(1-\gamma)\,R^{\text{cum}}_t , \]
+<p>and the advantage adds the future back in, \(A_t = \delta_t + \gamma\lambda A_{t+1}\), with \(\gamma = 0.999\), \(\lambda = 0.99\) (GAE). Progress adds \(\alpha_c(\gamma \bar C_{t+1} - \bar C_t)\) through the same backward sum (report §6.4).</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the dampened value, one step, the backward sum</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\hat V_t = \alpha(\bar S_t - R^{\text{cum}}_t)\)</div><pre>v_hat = [success_alpha * (ema_s_arr[t] - cum_before[t]) for t in range(T)]</pre>
+<div class="eqc">\(\delta_t = r_t + \gamma\hat V_{t+1} - \hat V_t\)</div><pre>delta = r[t] + gamma * v_hat[t + 1] - v_hat[t]</pre>
+<div class="eqc">\(A_t = \delta_t + \gamma\lambda A_{t+1}\)</div><pre>gae[t] = delta + gl * gae[t + 1]</pre>
+<div class="eqc">progress: \(\alpha_c(\gamma\bar C_{t+1} - \bar C_t)\)</div><pre>delta_c = completion_alpha * (gamma * ema_c_arr[t + 1] - ema_c_arr[t])</pre>
+<p class="where"><code>eval/dataset_writer.py</code> L803, L814, L815, L870 · lehome_solution @ <code>ca73828</code>. The rewritten form of \(\delta_t\) is checked against the direct one on every frame below.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">With α = 1, what does the checkpoint reward add to a move's score?</span></summary><div class="lbody">
+<p>Almost nothing. It is already counted in the reward collected so far, so it cancels against the value, and only the change in the success forecast is left (report §6.2). With \(\gamma = 0.999\) the cancelling is not quite exact: the reward keeps \(1 - \alpha\gamma = 0.001\) of its size. Try it on the slider.</p>
+</div></details>
+</section>
+
+<!-- 5 -->
+<section id="awr">
+<h2><span class="num">5</span>Practise what worked</h2>
+<p class="ask">Every frame now has a score. How does the policy learn from it?</p>
+<p>The best-known reinforcement learning methods, PPO and its relatives, push the probability of good actions up and of bad actions down. That needs each action's probability, which a flow-matching policy doesn't give cheaply, and pushing away from bad actions tends to push its plans off the thin set of motions that actually work (report §2.2).</p>
+<p>So Ilia only ever pushes toward good actions the policy already makes: it <b>practises the good moments more often</b> (advantage-weighted regression, Peng et al., 2019). Each frame is drawn for training with a probability that grows like \(e^{A}\), with \(A\) clipped to between −2 and 2, so a frame at the top is drawn about 55 times as often as one at the bottom. The training step itself is still part 1's plain copying (report §2.3).</p>
+<div class="widget" id="w-awr">
+  <svg class="chart" id="awr-svg" viewBox="0 0 640 220" role="img" aria-label="Toy: the policy's moves, and the moves AWR practises"></svg>
+  <p class="readout" id="awr-out"></p>
+  <p class="toy">A toy, computed exactly: 70% of the moves are poor ones near −1, 30% good ones near +1, and a move's advantage is its position. Not our data.</p>
+</div>
+<p>The success and progress heads must not be fooled by this tilt: they predict over the real mix of moments, not the tilted one. So every drawn frame carries a weight that undoes its extra draws, for the heads only (report §2.3).</p>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">where e^A comes from, and why sampling is the same</span></summary><div class="lbody">
+<p>AWR asks for the policy that gains the most advantage while staying close to the data's policy \(\mu\):</p>
+\[ \max_\pi\ \mathbb E_{a\sim\pi}[A(s,a)] \quad\text{subject to}\quad \mathrm{KL}(\pi \,\|\, \mu) \le \epsilon \quad\Longrightarrow\quad \pi^\star(a\mid s) \propto \mu(a\mid s)\, e^{A(s,a)/\beta} \]
+<p>(Peng et al., 2019). Fitting \(\pi^\star\) by copying the data with weights \(e^{A/\beta}\) is the same, in expectation, as copying the data drawn with probability proportional to those weights. Ilia draws: \(P(i) \propto e^{\mathrm{clip}(A_i,-2,2)}\), \(\beta = 1\). A frame at weight \(e^{-2}\) is almost never loaded, so no batch slot is spent on it.</p>
+<p>The heads get importance weights \(w_i = 1/(N\,p_i\,T_{\mathrm{ep}(i)})\), so their averages are over the data, not the tilt.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the draw probabilities</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">\(\mathrm{clip}(A, -2, 2)\)</div><pre>advantage_weighting_clipping: tuple[float, float] = (-2.0, 2.0)
+clipped = np.clip(valid_advs, clip_min, clip_max)</pre>
+<div class="eqc">\(P \propto e^{\mathrm{clip}(A)}\)</div><pre>priorities = np.exp(clipped)</pre>
+<p class="where"><code>training/config.py</code> L302 · <code>training/data_loader.py</code> L929–930 · lehome_solution @ <code>ca73828</code>.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why draw good frames more often, instead of weighting their loss?</span></summary><div class="lbody">
+<p>In expectation it's the same. But a frame with weight \(e^{-2}\) almost never gets loaded, so its pictures are never decoded and it takes no room in a batch: all the compute goes to the moves worth learning (report §2.3).</p>
+</div></details>
+</section>
+
+<!-- 6 -->
+<section id="recap">
+<h2><span class="num">6</span>Ask for the good version</h2>
+<p class="ask">Could the policy learn what a good move looks like, and then be asked for one?</p>
+<p>Yes: give it one more input. In training an <b>advantage token</b> is switched on for frames that went better than expected and off for the rest. For good frames it is also switched off at random, between 10% and 50% of the time, so the model still learns the plain version (report §4.3). This is RECAP, from Physical Intelligence's π*0.6 (2025). When the policy runs, the token is always on: <i>do what your good frames did.</i></p>
+<p><b>Guidance</b> then pushes further (classifier-free guidance, Ho and Salimans, 2022). At every nudge of part 1's chapter 3, the action expert runs twice, with the token and without, and the plan moves in the "with" direction plus \(s\) times the difference. Ilia's tuning pushed \(s\) up to between 7 and 9 (report §7.3, §7.7).</p>
+<div class="widget" id="w-recap">
+  <div class="controls seg" role="group" aria-label="What shapes the moves">
+    <button type="button" data-m="mu" aria-pressed="false">the moves</button><button type="button" data-m="awr" aria-pressed="false">AWR</button><button type="button" data-m="recap" aria-pressed="false">token</button><button type="button" data-m="both" aria-pressed="true">both</button>
+  </div>
+  <div class="controls"><label for="cfg-s">guidance, s <input id="cfg-s" type="range" min="1" max="9" step="1" value="1"> <span class="val" id="cfg-s-val"></span></label></div>
+  <svg class="chart" id="recap-svg" viewBox="0 0 640 220" role="img" aria-label="Toy: what the token and guidance do to the moves"></svg>
+  <p class="readout" id="recap-out" aria-live="polite"></p>
+  <p class="toy">The same toy. The token is on for a move with probability Φ(A), as if each frame's advantage were measured with noise; guidance is shown in its ideal form, \(p_s \propto p_{\text{off}}^{\,1-s}\,p_{\text{on}}^{\,s}\).</p>
+</div>
+<p>On our robot none of this runs. The real checkpoint has no advantage token, so the guidance setting that the robot program sends is ignored (part 1; code L1642–1646).</p>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">the token's schedule, and what guidance does</span></summary><div class="lbody">
+<p><b>The token.</b> For \(A < 0\) it is always off. For \(A \ge 0\) it is off with probability falling in a straight line from 0.5 at \(A = 0\) to 0.1 at \(A \ge 2\) (report §4.3). The same switch drives an extra vector in every layer of the action expert (part 1, chapter 6).</p>
+<p><b>Guidance.</b> With \(v_{\text{on}}\) and \(v_{\text{off}}\) the expert's two answers at one nudge,</p>
+\[ \hat v = v_{\text{off}} + s\,(v_{\text{on}} - v_{\text{off}}) . \]
+<p>For exact score functions this samples \(p_s \propto p_{\text{off}}^{\,1-s}\,p_{\text{on}}^{\,s}\): at \(s = 1\) the plain "with token" model, above 1 a sharper version that leans further toward what makes the token likely. For a learned flow and ten steps it is an approximation.</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the schedule, the guard, the mix</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">off with 0.5 at \(A = 0\), 0.1 at \(A \ge 2\)</div><pre>neutral_prob_at_zero: float = 0.5
+neutral_prob_at_max: float = 0.1</pre>
+<div class="eqc">only with an advantage input</div><pre>use_cfg = (
+    self.config.use_advantage_embedding
+    and adv_token_idx is not None ...</pre>
+<div class="eqc">\(v_{\text{off}} + s(v_{\text{on}} - v_{\text{off}})\)</div><pre>v_t = v_uncond + cs * (v_cond - v_uncond)</pre>
+<p class="where"><code>models/pi_modified_config.py</code> L77, L79 · <code>models/pi_modified.py</code> L339 (the rule), L1642–1646, L1738 · lehome_solution @ <code>ca73828</code>.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">What does guidance with s = 1 do? And s = 0?</span></summary><div class="lbody">
+<p>At \(s = 1\) it is just the "with token" answer. At \(s = 0\) it is the plain model, as if the token weren't there. Only \(s > 1\) extrapolates past what the token alone asks for.</p>
+</div></details>
+</section>
+
+<!-- 7 -->
+<section id="bestofn">
+<h2><span class="num">7</span>Try several, keep the best</h2>
+<p class="ask">The same weights fold more or less often depending on how they're run. Can that be tuned too?</p>
+<p><b>Best-of-N.</b> From the same snapshot, draw two or three plans, each from its own noise. Score each with a head that predicts how much that plan will raise the chance of success, and play the best. If every candidate scores below zero, draw twice as many more and pick from all of them (report §7.4). The surprise: in Ilia's tests that score barely tracked real outcomes, yet two or three candidates still beat one. His guess is that the candidates usually agree, and at the rare forks picking one avoids the worst.</p>
+<p>Our own simulator log fits that picture: of 1,241 plans, <span id="bon-red"></span> redrew because every candidate looked bad, and even then the chosen plan scored above zero only <span id="bon-pos"></span> of the time.</p>
+<div class="tablewrap"><table class="t" id="bon-table"></table></div>
+<p><b>Seven settings, tuned while practising.</b> How many moves to play per plan, how fast to play them, how much of the old plan to keep, when the anchor lets go, the guidance scale, the noise size and the number of candidates: each was tuned per garment during practice, not by a grid search (report §7.7). Each candidate value is an arm of a bandit with a belief about how well it does, and each practice episode tries the arms its beliefs currently favour (Thompson sampling). After the episode, its result minus that garment's average success updates the arms it used.</p>
+<div class="tablewrap"><table class="t">
+<tr><th>Frozen for the final run</th><th>long top</th><th>short top</th><th>long pants</th><th>shorts</th></tr>
+<tr><td>moves played per plan</td><td class="m">5</td><td class="m">5</td><td class="m">3</td><td class="m">3</td></tr>
+<tr><td>moves kept as the anchor</td><td class="m">6</td><td class="m">3</td><td class="m">3</td><td class="m">3</td></tr>
+<tr><td>anchor lets go below</td><td class="m">0.4</td><td class="m">0.4</td><td class="m">0.5</td><td class="m">0.5</td></tr>
+<tr><td>guidance scale</td><td class="m">7</td><td class="m">7</td><td class="m">9</td><td class="m">7</td></tr>
+<tr><td>noise size</td><td class="m">0.9</td><td class="m">0.7</td><td class="m">0.7</td><td class="m">0.7</td></tr>
+<tr><td>candidates</td><td class="m">2</td><td class="m">3</td><td class="m">3</td><td class="m">3</td></tr>
+</table></div>
+<p>The report's table (§7.7); playback matched the moves played for every garment. Every episode of our simulator run used exactly these settings for its garment. What the bandit found is itself a finding: guidance far stronger than Ilia first guessed (he started at 0 to 2), candidates above one but not above three, and short plays between re-plans.</p>
+<details class="layer maths"><summary><span class="lt">The maths</span><span class="lsum">Thompson sampling, one arm at a time</span></summary><div class="lbody">
+<p>Each value \(k\) of a setting is an arm with a Beta belief \(\mathrm{Beta}(\alpha_k, \beta_k)\) about how often it beats the garment's average. For an exploration episode, draw \(\theta_k \sim \mathrm{Beta}(\alpha_k,\beta_k)\) for every arm and use the arm with the largest draw. After the episode, with \(r = \mathbb 1[\text{success}] - \overline{\mathrm{SR}}(\text{garment})\),</p>
+\[ \alpha_k \mathrel{+}= \max(r, 0), \qquad \beta_k \mathrel{+}= \max(-r, 0). \]
+<p>The settings are tuned independently, the beliefs fade toward even each iteration so they follow the improving policy, and only unbiased episodes update them (report §7.7).</p>
+</div></details>
+<details class="layer code"><summary><span class="lt">The code</span><span class="lsum">the all-negative redraw</span></summary><div class="lbody">
+<div class="pairs">
+<div class="eqc">every candidate \(< 0\)?</div><pre>if fin and max(fin) &lt; 0.0:
+    retry_needed.append(i)</pre>
+<div class="eqc">draw \(2N\) more</div><pre>R_per_group = [2 * n_list[i] for i in retry_needed]</pre>
+<p class="where"><code>shared/eval_wrapper.py</code> L241, L252 · lehome_solution @ <code>ca73828</code>. The pool size it reports is \(N\), or \(3N\) after a redraw, which is how our log shows the redraws.</p></div>
+</div></details>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why don't replays of saved states update the bandit?</span></summary><div class="lbody">
+<p>Replays start from states chosen to be easier or harder than a fresh episode, so their success rates would mislead the beliefs. They still feed training (report §3.2, §7.7).</p>
+</div></details>
+</section>
+
+<!-- 8 -->
+<section id="loop">
+<h2><span class="num">8</span>The whole loop, and how it did</h2>
+<p class="ask">How does it all fit together, and how well did it work?</p>
+<figure>
+  <svg class="chart" viewBox="0 0 640 220" role="img" aria-labelledby="fly-t fly-d">
+    <title id="fly-t">The flywheel</title>
+    <desc id="fly-d">Rollout machines run three to five simulators each with the newest weights and upload episodes with the policy's forecasts. The trainer downloads them, recomputes every advantage, trains about a thousand steps and uploads new weights every five hundred or so. A person at a station fixes saved failures by hand. Everything passes through one shared store.</desc>
+    <g fill="none" stroke-width="1.3">
+      <path d="M180 70 H262" stroke="var(--c-act)" marker-end="url(#ah)"/>
+      <path d="M378 70 H460" stroke="var(--c-alpha)" marker-end="url(#ah)"/>
+      <path d="M520 102 V160 H120 V102" stroke="var(--c-actor)" marker-end="url(#ah)"/>
+      <path d="M320 188 V104" stroke="var(--c-target)" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+    </g>
+    <g>
+      <rect x="20" y="40" width="160" height="62" rx="8" fill="var(--tint)" stroke="var(--c-act)"/>
+      <text x="100" y="64" text-anchor="middle" class="ink" style="font-weight:600">Rollout machines</text>
+      <text x="100" y="82" text-anchor="middle">3–5 simulators each</text>
+      <rect x="262" y="40" width="116" height="62" rx="8" fill="var(--tint)" stroke="var(--c-mem)"/>
+      <text x="320" y="64" text-anchor="middle" class="ink" style="font-weight:600">Shared store</text>
+      <text x="320" y="82" text-anchor="middle">episodes, weights</text>
+      <rect x="460" y="40" width="160" height="62" rx="8" fill="var(--tint)" stroke="var(--c-alpha)"/>
+      <text x="540" y="64" text-anchor="middle" class="ink" style="font-weight:600">Trainer, one H200</text>
+      <text x="540" y="82" text-anchor="middle">advantages, ~1000 steps</text>
+      <text x="221" y="60" text-anchor="middle">episodes</text>
+      <text x="419" y="60" text-anchor="middle">all episodes</text>
+      <text x="320" y="176" text-anchor="middle">new weights about every 500 steps</text>
+      <rect x="230" y="188" width="180" height="28" rx="6" fill="var(--tint)" stroke="var(--c-target)" stroke-dasharray="4 3"/>
+      <text x="320" y="207" text-anchor="middle" class="ink">a person fixes saved failures</text>
+    </g>
+  </svg>
+  <figcaption>The flywheel (report §2.1, §2.6). No part waits for another: the trainer uses whatever has arrived, the simulators use the newest weights.</figcaption>
+</figure>
+<p>The result: first of 62 teams, with 79.63% of folds succeeding over 80 test garments tried 10 times each, 6.1 points ahead of second (report §8.1).</p>
+<div class="tablewrap"><table class="t">
+<tr><th>Team</th><th>long top</th><th>short top</th><th>long pants</th><th>shorts</th><th>overall</th></tr>
+<tr><td><b>Ilia Larchenko</b></td><td class="m">74.5%</td><td class="m"><b>70.0%</b></td><td class="m"><b>80.5%</b></td><td class="m"><b>93.5%</b></td><td class="m"><b>79.63%</b></td></tr>
+<tr><td>Shubham @ Vorwerk</td><td class="m">73.0%</td><td class="m">62.5%</td><td class="m">71.5%</td><td class="m">87.0%</td><td class="m">73.50%</td></tr>
+<tr><td>Dum-E</td><td class="m">76.5%</td><td class="m">62.0%</td><td class="m">75.5%</td><td class="m">79.5%</td><td class="m">73.38%</td></tr>
+<tr><td>SCUT-Unlimited</td><td class="m">65.5%</td><td class="m">66.0%</td><td class="m">70.0%</td><td class="m">91.0%</td><td class="m">73.13%</td></tr>
+<tr><td>GraspYesAI</td><td class="m">73.5%</td><td class="m">61.0%</td><td class="m">69.0%</td><td class="m">79.0%</td><td class="m">70.63%</td></tr>
+</table></div>
+<p>The top five of the simulation round (report §8.1). What still failed, in Ilia's words: folds that look right but land just the wrong side of a threshold, the simulator's simplified physics letting a garment slip, and no recovery once something went wrong (report §8.2).</p>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Why can more rollout machines be added at any time?</span></summary><div class="lbody">
+<p>They share nothing but the store: each pulls the newest weights and pushes its episodes. Adding collection is starting one more machine (report §2.1).</p>
+</div></details>
+</section>
+
+<!-- 9 -->
+<section id="transfer">
+<h2><span class="num">9</span>From the simulator to our table</h2>
+<p class="ask">It folds four times in five in simulation. Why not run that on a real robot?</p>
+<p>It didn't work. The simulation policy had learned the simulator's quirks: it could tell apart two ways of shrinking the same picture that look identical to a person (report §9.1; part 1, chapter 7). The real recordings also folded some garments differently: the short top from the other sleeve, long pants from the other end, and the shorts turned around in half the episodes.</p>
+<p>So in one week for the real round, Ilia started from a strong but deliberately not the latest simulation checkpoint (report §9.4). He removed everything that needs the simulator: the checker's rewards, the advantage token and guidance, best-of-N and the extra heads. And he went back to copying: 500 folds by the organisers, 792 of his own episodes at home including corrections, and 1,723 replays of successful simulated folds, mixed 60, 30 and 10 percent (report §9.5, §9.6).</p>
+<div class="box"><p>That is the checkpoint of part 1. The reinforcement learning on this page shaped where it started; on our table it runs as a copier, with two of these heads retrained on real recordings: progress (chapter 3) and the garment guess (part 1).</p></div>
+<p>In that mix his corrections at home were "the only source of recovery" (report §9.6), and recovering without a person is the problem he leaves open (report §10.4). Part 3 starts there.</p>
+<details class="layer check"><summary><span class="lt">Check yourself</span><span class="lsum">Which tools from this page still work on our robot?</span></summary><div class="lbody">
+<p>The progress and garment heads, which the real checkpoint retrained. Rewards, advantages, the token, guidance and best-of-N all need either the simulator's checker or advantage labels, which the real round doesn't have (report §9.5).</p>
+</div></details>
+</section>
+
+<!-- 10 -->
+<section id="whole">
+<h2><span class="num">10</span>The whole of part 2</h2>
+<p class="ask">One round of practice, end to end?</p>
+<ol class="steps">
+<li>Rollout machines fold with the newest weights, trying several plans per snapshot and the settings the bandit favours. Each frame keeps the policy's own success and progress forecasts. <span class="src">(chapters 3, 7)</span></li>
+<li>The checker's distances turn each episode into rewards: credit at the checkpoint, everything back if it failed. <span class="src">(2)</span></li>
+<li>Before each round of training, every frame of every episode gets an advantage: reward and the rise in the forecast, mixed, plus progress, summed backwards. <span class="src">(4)</span></li>
+<li>Training draws good frames more often and copies them, with the advantage token on for the good ones. The heads learn from the untilted mix. <span class="src">(5, 6)</span></li>
+<li>New weights go back to the rollout machines, and the loop goes round again. <span class="src">(8)</span></li>
+</ol>
+<h3 id="lineage">Where each part came from</h3>
+<ul class="timeline">
+<li><span class="yr">1933</span><span class="who">Thompson</span>: try each option as often as it might be the best. Thompson sampling.</li>
+<li><span class="yr">1999</span><span class="who">Ng, Harada and Russell</span>: shaping rewards by a potential, which adds progress without changing which policy is best.</li>
+<li><span class="yr">2011</span><span class="who">Ross, Gordon and Bagnell</span>: DAgger, a person correcting the policy where it actually goes.</li>
+<li><span class="yr">2013</span><span class="who">Deng et al.</span>: CUPED, subtracting a prediction to cut the noise of a measurement. The idea behind trusting the forecast partly.</li>
+<li><span class="yr">2015</span><span class="who">Schulman et al.</span>: generalized advantage estimation, the backward sum.</li>
+<li><span class="yr">2019</span><span class="who">Peng, Kumar, Zhang and Levine</span>: advantage-weighted regression.</li>
+<li><span class="yr">2022</span><span class="who">Ho and Salimans</span>: classifier-free guidance.</li>
+<li><span class="yr">2025</span><span class="who">Physical Intelligence</span>: RECAP in π*0.6, the advantage as an input.</li>
+<li><span class="yr">2026</span><span class="who">Larchenko</span>: all of it in one policy, with the critic inside it (report §1.3).</li>
+</ul>
+</section>
+
+<!-- 11 -->
+<section id="checks">
+<h2><span class="num">11</span>How this page was checked</h2>
+<p class="ask">Why should you trust any of this?</p>
+<p>Every number from our runs is read from their logs each time the page is built: the simulator runs of 17 October and the rig runs of 30 October. Every derived number is recomputed by a script against Ilia's code, the report's tables, our logs, or a closed form, and the build refuses to finish if any check fails. This is its last run:</p>
+<div class="tablewrap"><table class="t" id="checks-table"><tr><th>§</th><th>Check</th><th>Computed</th><th>Expected</th><th></th></tr></table></div>
+<p>Every claim from the report names the section it comes from, read in the report itself; code is shown trimmed for reading, and the line numbers point at the full lines.</p>
+<p>What the checking caught: the simulator videos we saved from that day are probably from the repeat run, not the first, so only the one garment that folded in both runs is shown here. A short-sleeved top that failed on the first run folded on the repeat from the same start, which is why this page shows both forecasts. And the toy's shares are checked against closed forms, after a first draft of this page had guessed them.</p>
+</section>
+</main>
+
+<footer>
+<p>Sources</p>
+<ol>
+<li>I. Larchenko, <a href="https://arxiv.org/abs/2606.27163" target="_blank" rel="noopener">LeHome Challenge 2026 tech report</a>, 2026: §1.1, §1.3, §2.1–2.3, §2.6, §3.2, §4.3, §5.1, §6.1–6.6, §7.3, §7.4, §7.7, §8.1, §8.2, §9.1, §9.4–9.6, §10.4.</li>
+<li>Code: <a href="https://github.com/IliaLarchenko/lehome_solution" target="_blank" rel="noopener">lehome_solution</a> at <code>ca73828</code>. Policy: <a href="https://huggingface.co/IliaLarchenko/lehome_sim" target="_blank" rel="noopener">IliaLarchenko/lehome_sim</a>.</li>
+<li>X. B. Peng, A. Kumar, G. Zhang and S. Levine, <a href="https://arxiv.org/abs/1910.00177" target="_blank" rel="noopener">Advantage-weighted regression</a>, 2019.</li>
+<li>Physical Intelligence, <a href="https://arxiv.org/abs/2511.14759" target="_blank" rel="noopener">π*0.6: a VLA that learns from experience</a> (RECAP), 2025.</li>
+<li>J. Ho and T. Salimans, <a href="https://arxiv.org/abs/2207.12598" target="_blank" rel="noopener">Classifier-free diffusion guidance</a>, 2022.</li>
+<li>J. Schulman, P. Moritz, S. Levine, M. Jordan and P. Abbeel, <a href="https://arxiv.org/abs/1506.02438" target="_blank" rel="noopener">High-dimensional continuous control using generalized advantage estimation</a>, 2015.</li>
+<li>A. Y. Ng, D. Harada and S. Russell, Policy invariance under reward transformations, ICML 1999. A. Deng, Y. Xu, R. Kohavi and T. Walker, Improving the sensitivity of online controlled experiments by utilizing pre-experiment data (CUPED), WSDM 2013. S. Ross, G. Gordon and J. A. Bagnell, A reduction of imitation learning and structured prediction to no-regret online learning (DAgger), AISTATS 2011. W. R. Thompson, On the likelihood that one unknown probability exceeds another, Biometrika 1933.</li>
+</ol>
+<p>Our runs: Ilia's simulation policy on our RTX 4080 SUPER, 17 October 2026, 16 unseen garments twice (the first run's per-chunk log, and the repeat's per-frame forecasts and rewards from his evaluator); our bimanual SO-101 rig, 30 October 2026. Built by <code>build.py</code> after <code>checks.py</code>.</p>
+</footer>
+</div>
+
+<script>const DATA = {"sim":{"folded":{"values":[0.60938,0.60938,0.60938,0.60938,0.60938,0.77344,0.77344,0.77344,0.77344,0.77344,0.79297,0.79297,0.79297,0.79297,0.79297,0.76172,0.76172,0.76172,0.76172,0.76172,0.77734,0.77734,0.77734,0.77734,0.77734,0.76953,0.76953,0.76953,0.76953,0.76953,0.78906,0.78906,0.78906,0.78906,0.78906,0.80078,0.80078,0.80078,0.80078,0.80078,0.77734,0.77734,0.77734,0.77734,0.77734,0.82812,0.82812,0.82812,0.82812,0.82812,0.875,0.875,0.875,0.875,0.875,0.92578,0.92578,0.92578,0.92578,0.92578,0.89453,0.89453,0.89453,0.89453,0.89453,0.85938,0.85938,0.85938,0.85938,0.85938,0.85547,0.85547,0.85547,0.85547,0.85547,0.83203,0.83203,0.83203,0.83203,0.83203,0.82812,0.82812,0.82812,0.82812,0.82812,0.84375,0.84375,0.84375,0.84375,0.84375,0.78516,0.78516,0.78516,0.78516,0.78516,0.85547,0.85547,0.85547,0.85547,0.85547,0.87109,0.87109,0.87109,0.87109,0.87109,0.86328,0.86328,0.86328,0.86328,0.86328,0.87109,0.87109,0.87109,0.87109,0.87109,0.82812,0.82812,0.82812,0.82812,0.82812,0.83984,0.83984,0.83984,0.83984,0.83984,0.82031,0.82031,0.82031,0.82031,0.82031,0.81641,0.81641,0.81641,0.81641,0.81641,0.82031,0.82031,0.82031,0.82031,0.82031,0.84375,0.84375,0.84375,0.84375,0.84375,0.86719,0.86719,0.86719,0.86719,0.86719,0.88672,0.88672,0.88672,0.88672,0.88672,0.86719,0.86719,0.86719,0.86719,0.86719,0.85938,0.85938,0.85938,0.85938,0.85938,0.88281,0.88281,0.88281,0.88281,0.88281,0.89844,0.89844,0.89844,0.89844,0.89844,0.88281,0.88281,0.88281,0.88281,0.88281,0.89844,0.89844,0.89844,0.89844,0.89844,0.87109,0.87109,0.87109,0.87109,0.87109,0.82031,0.82031,0.82031,0.82031,0.82031,0.85156,0.85156,0.85156,0.85156,0.85156,0.8125,0.8125,0.8125,0.8125,0.8125,0.86328,0.86328,0.86328,0.86328,0.86328,0.85938,0.85938,0.85938,0.85938,0.85938,0.81641,0.81641,0.81641,0.81641,0.81641,0.82422,0.82422,0.82422,0.82422,0.82422,0.84375,0.84375,0.84375,0.84375,0.84375,0.89062,0.89062,0.89062,0.89062,0.89062,0.85156,0.85156,0.85156,0.85156,0.85156,0.89453,0.89453,0.89453,0.89453,0.89453,0.93359,0.93359,0.93359,0.93359,0.93359,0.96484,0.96484,0.96484,0.96484,0.96484,0.97266,0.97266,0.97266,0.97266,0.97266,0.96875,0.96875,0.96875,0.96875,0.96875,0.97266,0.97266,0.97266,0.97266,0.97266,0.97656,0.97656,0.97656,0.97656,0.97656,0.98047,0.98047,0.98047,0.98047,0.98047,0.98047,0.98047,0.98047,0.98047,0.98047,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438,0.98438],"completion":[0.02124,0.02124,0.02124,0.02124,0.02124,0.02515,0.02515,0.02515,0.02515,0.02515,0.03174,0.03174,0.03174,0.03174,0.03174,0.0498,0.0498,0.0498,0.0498,0.0498,0.05933,0.05933,0.05933,0.05933,0.05933,0.11768,0.11768,0.11768,0.11768,0.11768,0.11963,0.11963,0.11963,0.11963,0.11963,0.1582,0.1582,0.1582,0.1582,0.1582,0.17285,0.17285,0.17285,0.17285,0.17285,0.1543,0.1543,0.1543,0.1543,0.1543,0.20801,0.20801,0.20801,0.20801,0.20801,0.21875,0.21875,0.21875,0.21875,0.21875,0.22559,0.22559,0.22559,0.22559,0.22559,0.22559,0.22559,0.22559,0.22559,0.22559,0.22949,0.22949,0.22949,0.22949,0.22949,0.24219,0.24219,0.24219,0.24219,0.24219,0.25586,0.25586,0.25586,0.25586,0.25586,0.26367,0.26367,0.26367,0.26367,0.26367,0.28516,0.28516,0.28516,0.28516,0.28516,0.31445,0.31445,0.31445,0.31445,0.31445,0.36914,0.36914,0.36914,0.36914,0.36914,0.32812,0.32812,0.32812,0.32812,0.32812,0.36133,0.36133,0.36133,0.36133,0.36133,0.35352,0.35352,0.35352,0.35352,0.35352,0.4043,0.4043,0.4043,0.4043,0.4043,0.4375,0.4375,0.4375,0.4375,0.4375,0.43359,0.43359,0.43359,0.43359,0.43359,0.44531,0.44531,0.44531,0.44531,0.44531,0.45117,0.45117,0.45117,0.45117,0.45117,0.45508,0.45508,0.45508,0.45508,0.45508,0.43945,0.43945,0.43945,0.43945,0.43945,0.48047,0.48047,0.48047,0.48047,0.48047,0.49023,0.49023,0.49023,0.49023,0.49023,0.48438,0.48438,0.48438,0.48438,0.48438,0.49609,0.49609,0.49609,0.49609,0.49609,0.51562,0.51562,0.51562,0.51562,0.51562,0.52734,0.52734,0.52734,0.52734,0.52734,0.55078,0.55078,0.55078,0.55078,0.55078,0.58203,0.58203,0.58203,0.58203,0.58203,0.60547,0.60547,0.60547,0.60547,0.60547,0.62109,0.62109,0.62109,0.62109,0.62109,0.48047,0.48047,0.48047,0.48047,0.48047,0.50391,0.50391,0.50391,0.50391,0.50391,0.57812,0.57812,0.57812,0.57812,0.57812,0.59375,0.59375,0.59375,0.59375,0.59375,0.61719,0.61719,0.61719,0.61719,0.61719,0.60547,0.60547,0.60547,0.60547,0.60547,0.67188,0.67188,0.67188,0.67188,0.67188,0.71094,0.71094,0.71094,0.71094,0.71094,0.71484,0.71484,0.71484,0.71484,0.71484,0.73828,0.73828,0.73828,0.73828,0.73828,0.78125,0.78125,0.78125,0.78125,0.78125,0.82031,0.82031,0.82031,0.82031,0.82031,0.88281,0.88281,0.88281,0.88281,0.88281,0.88672,0.88672,0.88672,0.88672,0.88672,0.90234,0.90234,0.90234,0.90234,0.90234,0.91406,0.91406,0.91406,0.91406,0.91406,0.90625,0.90625,0.90625,0.90625,0.90625,0.90625,0.90625,0.90625,0.90625,0.90625,0.91797,0.91797,0.91797],"rewards":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.22289,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.27711,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.5],"length":299},"failed":{"step":[0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100,105,110,115,120,125,130,135,140,145,150,155,160,165,170,175,180,185,190,195,200,205,210,215,220,225,230,235,240,245,250,255,260,265,270,275,280,285,290,295,300,305,310,315,320,325,330,335,340,345,350,355,360,365,370,375,380,385,390,395,400,405,410,415,420,425,430,435,440,445,450,455,460,465,470,475,480,485,490,495,500,505,510,515,520,525,530,535,540,545,550,555,560,565,570,575,580,585,590,595],"values":[0.6289,0.75,0.8086,0.7656,0.7812,0.7773,0.8008,0.8242,0.7773,0.8711,0.8984,0.9375,0.9297,0.9297,0.875,0.8438,0.8828,0.8555,0.8242,0.7695,0.7617,0.8906,0.8242,0.707,0.7188,0.7891,0.832,0.8281,0.8281,0.8438,0.9219,0.9258,0.9492,0.9453,0.9648,0.9727,0.9648,0.9727,0.9727,0.9766,0.9375,0.918,0.6875,0.5039,0.4492,0.4609,0.3027,0.2334,0.2148,0.3477,0.291,0.2949,0.332,0.3633,0.5547,0.6211,0.4531,0.3398,0.3574,0.625,0.3633,0.5664,0.4844,0.4844,0.4102,0.3457,0.249,0.2422,0.2969,0.3359,0.3418,0.3359,0.3379,0.3438,0.3105,0.377,0.332,0.2422,0.3242,0.6992,0.5391,0.249,0.3633,0.334,0.2656,0.3145,0.2266,0.1826,0.1826,0.2383,0.208,0.1836,0.2236,0.2617,0.2871,0.2891,0.2637,0.2148,0.2148,0.3027,0.5156,0.3848,0.4453,0.4238,0.3516,0.334,0.3418,0.1973,0.1787,0.1914,0.2617,0.2871,0.2637,0.3047,0.2637,0.3086,0.4141,0.3691,0.3496,0.3438],"completion":[0.0223,0.0288,0.0378,0.0435,0.051,0.0942,0.104,0.126,0.1729,0.1338,0.1807,0.207,0.209,0.2363,0.2188,0.2314,0.2256,0.2617,0.2832,0.3418,0.3691,0.3438,0.3223,0.3594,0.3555,0.377,0.4922,0.5078,0.4707,0.6133,0.6719,0.7383,0.7461,0.7422,0.8438,0.8945,0.875,0.8867,0.9023,0.9023,0.832,0.8516,0.7227,0.6562,0.5391,0.6016,0.6289,0.6094,0.6367,0.6914,0.7305,0.7422,0.7656,0.8047,0.8281,0.8438,0.8008,0.7969,0.7695,0.8125,0.6875,0.582,0.5742,0.6211,0.5586,0.582,0.6484,0.6211,0.6484,0.7383,0.7617,0.793,0.7969,0.8125,0.8281,0.8477,0.7969,0.793,0.8164,0.8711,0.8008,0.5977,0.5586,0.582,0.6445,0.5977,0.6055,0.4785,0.625,0.625,0.7578,0.7578,0.7422,0.7852,0.8086,0.8164,0.793,0.7695,0.8047,0.8516,0.8281,0.6484,0.5742,0.5352,0.6211,0.6445,0.6016,0.5938,0.543,0.6328,0.668,0.6133,0.7852,0.7227,0.7734,0.793,0.7969,0.7734,0.793,0.8008],"length":600,"snapshot":215}},"real":{"towel":{"t":[0.0,0.52,0.99,1.45,1.91,2.37,2.84,3.31,3.79,4.28,4.74,5.21,5.67,6.13,6.61,7.07,7.52,8.0,8.45,8.91,9.38,9.84,10.3,10.76,11.22,11.66,12.13,12.58,13.05,13.5,13.96,14.42,14.89,15.35,15.82,16.28,16.74,17.21,17.67,18.13,18.65,19.15,19.67,20.19,20.72,21.24,21.77,22.29,22.82,23.34,23.87,24.39,24.92,25.44,26.14,26.69,27.22,27.74,28.24,28.78,29.3,29.82,30.33,30.86,31.38,31.91,32.43,32.96,33.48,34.01,34.53,34.99,35.45,35.91,36.42,36.95,37.47,37.93,38.39,38.85,39.32,39.78,40.24,40.7,41.16,41.61,42.08,42.54,43.01,43.47,43.93,44.39,44.86,45.33,45.8,46.26,46.73,47.19,47.66,48.12,48.59,49.06,49.53,50.37,50.9,51.43,51.94,52.44,52.94,53.43,53.93,54.42,54.92,55.4,55.87,56.34,56.81,57.3,57.78,58.26,58.73,59.21,59.68,60.15,60.63,61.1,61.58,62.05,62.53,63.0,63.46,63.93,64.4,64.85,65.31,65.78,66.24,66.7,67.16,67.61,68.09,68.57,69.06,69.53,70.01,70.48,70.95,71.43,71.9,72.35,72.81,73.28,73.75,74.21,74.67],"completion":[0.24512,0.26953,0.21289,0.18262,0.1875,0.15332,0.19043,0.19434,0.22754,0.24609,0.26562,0.27148,0.27539,0.28906,0.33203,0.33594,0.35156,0.33789,0.36133,0.36719,0.34766,0.38672,0.40039,0.41797,0.43164,0.46289,0.49023,0.51562,0.54297,0.57422,0.51953,0.53906,0.51562,0.57031,0.69531,0.75,0.78125,0.77344,0.80078,0.80078,0.80078,0.81641,0.77734,0.76172,0.81641,0.85547,0.87891,0.91016,0.88672,0.88672,0.90625,0.90234,0.90234,0.89062,0.90234,0.90234,0.89062,0.88281,0.88672,0.88672,0.88281,0.89453,0.89062,0.88672,0.87109,0.89844,0.89844,0.89453,0.90625,0.90625,0.90625,0.91797,0.91406,0.91797,0.92188,0.91797,0.91406,0.90234,0.92188,0.91797,0.92188,0.91797,0.92578,0.91797,0.91016,0.91797,0.91016,0.90234,0.92578,0.91406,0.91016,0.90234,0.90625,0.89844,0.90234,0.90625,0.90625,0.90234,0.90625,0.90625,0.90625,0.91016,0.90625,0.90625,0.90625,0.90234,0.90234,0.90625,0.90625,0.91406,0.91406,0.90625,0.90625,0.91016,0.91406,0.91406,0.91406,0.91797,0.91406,0.91797,0.91797,0.91406,0.91797,0.92188,0.92578,0.92969,0.93359,0.91797,0.92188,0.92188,0.91797,0.92578,0.92188,0.92969,0.91797,0.92188,0.91406,0.92578,0.92969,0.92578,0.92578,0.92578,0.93359,0.92969,0.93359,0.9375,0.93359,0.93359,0.92969,0.93359,0.92969,0.92969,0.93359,0.92578,0.92969],"success":[0.30859,0.29883,0.32422,0.36328,0.38281,0.36914,0.42578,0.45312,0.41992,0.41602,0.38672,0.37891,0.375,0.36133,0.36719,0.34766,0.36523,0.35547,0.34375,0.33789,0.33203,0.32422,0.33203,0.3418,0.38672,0.39258,0.41211,0.42578,0.41211,0.46484,0.50391,0.47852,0.41797,0.41992,0.50391,0.51953,0.55078,0.58984,0.625,0.65234,0.64453,0.64453,0.52734,0.5,0.55078,0.40234,0.41211,0.37695,0.38867,0.37695,0.38477,0.38867,0.38477,0.34961,0.36719,0.38867,0.36133,0.33594,0.34375,0.34375,0.35547,0.35742,0.36914,0.35938,0.33789,0.35352,0.35352,0.36328,0.39062,0.39062,0.39062,0.39453,0.38672,0.38867,0.39258,0.39453,0.39453,0.375,0.40625,0.39453,0.4082,0.38672,0.40039,0.39648,0.39844,0.40039,0.36914,0.38281,0.38867,0.39453,0.39258,0.38477,0.38477,0.38086,0.36914,0.40039,0.40039,0.38477,0.39844,0.39062,0.39062,0.38867,0.40039,0.4043,0.41602,0.39062,0.39844,0.39062,0.39844,0.38867,0.4043,0.39062,0.39453,0.39453,0.39453,0.39453,0.39453,0.4043,0.4082,0.4082,0.41602,0.40234,0.40039,0.41211,0.40234,0.40234,0.40039,0.38672,0.4043,0.39062,0.39453,0.40234,0.39844,0.40234,0.39844,0.39062,0.39453,0.39648,0.40625,0.39258,0.39648,0.39844,0.40234,0.41016,0.41016,0.41602,0.4082,0.40625,0.4082,0.41406,0.40039,0.40234,0.42188,0.40234,0.4082]},"shorts":{"t":[0.0,0.48,0.95,1.42,1.88,2.34,2.8,3.27,3.73,4.22,4.69,5.16,5.62,6.09,6.55,7.02,7.49,7.94,8.4,8.87,9.34,9.8,10.27,10.74,11.2,11.66,12.12,12.58,13.04,13.51,13.97,14.44,14.9,15.36,15.83,16.29,16.74,17.3,17.83,18.36,18.88,19.41,19.93,20.46,20.98,21.5,22.02,22.55,23.07,23.6,24.12,24.64,25.17,25.7,26.22,27.1,28.15,28.67,29.19,29.7,30.24,30.77,31.29,31.81,32.34,32.86,33.39,33.91,34.41,34.87,35.35,35.82,36.27,36.74,37.21,37.67,38.14,38.59,39.06,39.51,39.98,40.44,40.91,41.36,41.82,42.29,42.75,43.21,43.68,44.14,44.6,45.07,45.53,45.98,46.44,46.92,47.39,47.86,48.32,48.78,49.24,49.7,50.16,50.62,51.08,51.54,52.01,52.47,52.92,53.39,53.86,54.32,54.78,55.24,55.7,56.16,56.63,57.09,57.55,58.01,58.47,58.93,59.4,59.87,60.34,60.79,61.25,61.71,62.17,62.64,63.11,63.57,64.04,64.5,64.96,65.42,65.89,66.35,66.82,67.28,67.75,68.21,68.67,69.14,69.6,70.07,70.52,70.98,71.44,71.91,72.37,72.83,73.3,73.76,74.23,74.7],"completion":[0.07471,0.08398,0.08154,0.08154,0.08301,0.07568,0.0791,0.08984,0.09424,0.08301,0.09424,0.09814,0.08887,0.10791,0.10254,0.15137,0.1875,0.22168,0.23633,0.26367,0.22168,0.22949,0.19727,0.24219,0.25391,0.25195,0.27344,0.25781,0.22949,0.21875,0.20801,0.19531,0.18066,0.17285,0.18848,0.24316,0.22266,0.20312,0.2002,0.14844,0.12061,0.16211,0.15723,0.13477,0.17285,0.14062,0.1543,0.14453,0.16797,0.14648,0.14062,0.13574,0.11572,0.13184,0.15039,0.17188,0.15918,0.24902,0.31055,0.36914,0.29883,0.23633,0.19238,0.20898,0.1748,0.15137,0.40039,0.20605,0.22363,0.21289,0.22363,0.21484,0.25195,0.29492,0.26367,0.2832,0.31641,0.27148,0.22266,0.22168,0.21777,0.24023,0.15527,0.18457,0.1875,0.15918,0.14062,0.13477,0.15723,0.15332,0.14844,0.16797,0.16113,0.1416,0.20312,0.25781,0.25391,0.25195,0.27148,0.30273,0.27734,0.33008,0.34766,0.33203,0.31641,0.32031,0.3125,0.31445,0.32227,0.30859,0.32617,0.37695,0.4043,0.41602,0.41797,0.41602,0.41016,0.43164,0.37695,0.39062,0.36914,0.30664,0.29297,0.30078,0.32227,0.31641,0.30859,0.32227,0.31445,0.2832,0.30273,0.32812,0.31641,0.31836,0.28516,0.27734,0.26562,0.26758,0.25781,0.22949,0.17578,0.24023,0.25195,0.22266,0.16309,0.16113,0.14648,0.19141,0.19531,0.23535,0.19434,0.16113,0.12402,0.11768,0.1377,0.18457],"success":[0.25781,0.25977,0.25781,0.25781,0.25195,0.24902,0.25586,0.23926,0.24316,0.25391,0.27148,0.25977,0.24805,0.25781,0.33008,0.36719,0.33789,0.35742,0.36133,0.38086,0.30859,0.32227,0.3125,0.31836,0.30469,0.31445,0.28516,0.2832,0.2832,0.30859,0.28906,0.23242,0.23828,0.21191,0.21875,0.23242,0.23633,0.23242,0.23926,0.24316,0.24512,0.24023,0.24316,0.25195,0.21973,0.22656,0.24023,0.24902,0.23242,0.22949,0.22656,0.24512,0.24902,0.25781,0.24316,0.24023,0.24219,0.33984,0.30273,0.24805,0.20898,0.22168,0.16797,0.15723,0.25195,0.24805,0.25391,0.26367,0.20215,0.18945,0.19238,0.20703,0.20801,0.2041,0.18457,0.18945,0.19043,0.18457,0.18848,0.20215,0.20898,0.21191,0.21973,0.2334,0.22754,0.22559,0.23145,0.23633,0.21973,0.23828,0.24902,0.24902,0.24902,0.25391,0.23633,0.23926,0.22559,0.20801,0.22266,0.2041,0.21973,0.21191,0.21289,0.22168,0.22656,0.2334,0.22754,0.24219,0.23145,0.20801,0.21484,0.20801,0.20801,0.20898,0.20801,0.19043,0.19434,0.19141,0.17969,0.19727,0.2002,0.19922,0.20801,0.20703,0.21289,0.21777,0.21875,0.23145,0.2002,0.21191,0.21875,0.21289,0.20801,0.21289,0.21484,0.27148,0.25586,0.22363,0.22949,0.20312,0.20605,0.23145,0.24219,0.23145,0.22949,0.21191,0.21484,0.20801,0.22168,0.24805,0.21582,0.17188,0.17188,0.1582,0.18652,0.23828]}},"bon":{"Pant_Long":{"plans":438,"redraw":235,"positive":209},"Pant_Short":{"plans":227,"redraw":152,"positive":78},"Top_Long":{"plans":246,"redraw":136,"positive":115},"Top_Short":{"plans":330,"redraw":157,"positive":175}},"poster":"data:image/jpeg;base64,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","checks":[{"section":"all","name":"cited code lines found at the cited line numbers (18 lines)","computed":18.0,"expected":18.0,"tol":0,"ok":true,"source":"lehome_solution @ ca73828"},{"section":"4","name":"page's advantage code vs Ilia's Python, worst difference over 4138 frames","computed":0.0,"expected":0.0,"tol":1e-09,"ok":true,"source":"tools/test_ltfmath.js; reference computed on the GPU box with compute_gae, compute_completion_gae"},{"section":"2","name":"short top seed 49: total reward of a fold","computed":1.0,"expected":1.0,"tol":1e-09,"ok":true,"source":"dense_reward column, repeat run"},{"section":"2","name":"first frame with any reward","computed":88.0,"expected":88.0,"tol":0,"ok":true,"source":"the gradual first checkpoint starts"},{"section":"2","name":"first frame where the running total reaches 0.5","computed":118.0,"expected":118.0,"tol":0,"ok":true,"source":"first checkpoint reached"},{"section":"2","name":"frame where the total reaches 1.0","computed":297.0,"expected":297.0,"tol":0,"ok":true,"source":"success"},{"section":"2","name":"the same rewards withdrawn as if the run had failed: total","computed":0.0,"expected":0.0,"tol":1e-09,"ok":true,"source":"ltfmath.withdraw, port of L663-689"},{"section":"3","name":"failed run (S2): highest success forecast","computed":0.9766,"expected":0.98,"tol":0.005,"ok":true,"source":"s2_traces, per-chunk value"},{"section":"3","name":"failed run (S2): step of that peak","computed":195.0,"expected":195.0,"tol":0,"ok":true,"source":"s2_traces"},{"section":"3","name":"failed run (S2): frame of the failure snapshot","computed":215.0,"expected":215.0,"tol":0,"ok":true,"source":"evaluator event"},{"section":"3","name":"failed run (S2): forecast at the end","computed":0.3438,"expected":0.34,"tol":0.005,"ok":true,"source":"last chunk, step 595"},{"section":"3","name":"folded run (repeat): forecast at the start","computed":0.60938,"expected":0.61,"tol":0.005,"ok":true,"source":"visuals_export"},{"section":"3","name":"folded run (repeat): forecast at the end","computed":0.98438,"expected":0.98,"tol":0.005,"ok":true,"source":"visuals_export"},{"section":"3","name":"S2 smoke run: unseen garments folded, of 16","computed":13.0,"expected":13.0,"tol":0,"ok":true,"source":"s2_traces"},{"section":"3","name":"repeat of the same 16 starts: folded","computed":16.0,"expected":16.0,"tol":0,"ok":true,"source":"visuals_export"},{"section":"3","name":"episodes that came out identical in both runs (outcome and length)","computed":6.0,"expected":6.0,"tol":0,"ok":true,"source":"the runs are random"},{"section":"3","name":"our rig, towel folded (30 Oct, run 2): highest completion","computed":0.9375,"expected":0.94,"tol":0.005,"ok":true,"source":"calls.jsonl"},{"section":"3","name":"our rig, blue shorts not folded (30 Oct): highest completion","computed":0.431641,"expected":0.43,"tol":0.005,"ok":true,"source":"calls.jsonl"},{"section":"4","name":"TD step rewritten as (1-\u03b1\u03b3)r + \u03b1(\u03b3S'-S) + \u03b1(1-\u03b3)R, worst difference","computed":0.0,"expected":0.0,"tol":1e-12,"ok":true,"source":"report 6.4, on all frames of seed 49"},{"section":"4","name":"\u03b3\u03bb, how much of the future each step passes back","computed":0.98901,"expected":0.989,"tol":0.0005,"ok":true,"source":"\u03b3 = 0.999, \u03bb = 0.99"},{"section":"5","name":"draw ratio between A = 2 and A = -2: e^2 / e^-2","computed":54.59815,"expected":54.6,"tol":0.05,"ok":true,"source":"P \u221d exp(clip(A, -2, 2))"},{"section":"5","name":"toy: share of the people's moves on the good side","computed":0.300845,"expected":0.3,"tol":0.001,"ok":true,"source":"0.7 bad at -1, 0.3 good at +1"},{"section":"5","name":"toy: AWR share on the good side, grid vs closed form E[e^a] = e^(m + s\u00b2/2)","computed":0.760821,"expected":0.760004,"tol":0.005,"ok":true,"source":"the clip at \u00b12 barely matters here"},{"section":"6","name":"toy: conditioning alone (RECAP), grid vs closed form E[\u03a6(a)] = \u03a6(m / \u221a(1 + s\u00b2))","computed":0.673958,"expected":0.672578,"tol":0.002,"ok":true,"source":"token on with probability \u03a6(A/1)"},{"section":"6","name":"toy: both, grid vs closed form e^(m+s\u00b2/2) \u03a6((m+s\u00b2)/\u221a(1+s\u00b2))","computed":0.93078,"expected":0.930032,"tol":0.003,"ok":true,"source":"AWR sampling, then conditioning"},{"section":"6","name":"toy: guidance at scale 1 gives back plain conditioning (worst difference)","computed":0.0,"expected":0.0,"tol":1e-12,"ok":true,"source":"p_u^(1-s) p_c^s at s = 1"},{"section":"7","name":"plans scored by best-of-N in the S2 run","computed":1241.0,"expected":1241.0,"tol":0,"ok":true,"source":"s2_traces, per-chunk log"},{"section":"7","name":"share that redrew because every candidate scored below zero","computed":0.547945,"expected":0.548,"tol":0.001,"ok":true,"source":"n_valid > N means the retry fired (eval_wrapper.py L211-212)"},{"section":"7","name":"share where the chosen plan's score was above zero","computed":0.464948,"expected":0.465,"tol":0.001,"ok":true,"source":"best_of_n_score_chosen"},{"section":"7","name":"S2 episodes run with exactly the report's frozen settings for their garment","computed":16.0,"expected":16.0,"tol":0,"ok":true,"source":"report table, section 7.7"},{"section":"8","name":"overall = mean of the four garment types","computed":79.625,"expected":79.63,"tol":0.005,"ok":true,"source":"report 8.1"}]};</script>
+<script>
+/* Pure ports of Ilia Larchenko's advantage functions (lehome_solution @ ca73828,
+   src/lehome_solution/eval/dataset_writer.py: _ema_with_tail_correction, compute_gae,
+   compute_completion_gae). Tested against the Python originals before every build. */
+(function (root) {
+  "use strict";
+  const EMA = 0.2;
+  function emaTail(raw, y, K) {
+    const T = raw.length, o = new Array(T);
+    if (!T) return o;
+    o[0] = raw[0];
+    for (let t = 1; t < T; t++) o[t] = EMA * raw[t] + (1 - EMA) * o[t - 1];
+    if (K > 0 && y !== null && T > K + 1) {
+      const ai = T - K - 1, an = o[ai];
+      for (let i = 1; i <= K; i++) o[ai + i] = an + (y - an) * (i / K);
+    }
+    return o;
+  }
+  function successGAE(vals, r, opt) {
+    const lam = opt.lam, gamma = opt.gamma, as = opt.alphaS, y = opt.y;
+    const T = vals.length, S = emaTail(vals, y, opt.K), cum = new Array(T);
+    let c = 0;
+    for (let t = 0; t < T; t++) { cum[t] = c; c += r[t]; }
+    const vh = S.map((s, t) => as * (s - cum[t])), vT = as * (y - c), g = new Array(T), gl = gamma * lam;
+    if (T === 1) return { g: [r[0] + gamma * vT - vh[0]], S: S, cum: cum };
+    g[T - 1] = r[T - 1] + gamma * vT - vh[T - 1];
+    for (let t = T - 2; t >= 0; t--) g[t] = r[t] + gamma * vh[t + 1] - vh[t] + gl * g[t + 1];
+    return { g: g, S: S, cum: cum };
+  }
+  function completionGAE(cp, opt) {
+    const lam = opt.lam, gamma = opt.gamma, ac = opt.alphaC, y = opt.y;
+    const T = cp.length;
+    if (!T || ac === 0) return { g: new Array(T).fill(0), C: cp.slice() };
+    const C = new Array(T);
+    C[0] = cp[0];
+    for (let t = 1; t < T; t++) C[t] = EMA * cp[t] + (1 - EMA) * C[t - 1];
+    const g = new Array(T), gl = gamma * lam;
+    if (T === 1) return { g: [ac * (gamma * y - C[0])], C: C };
+    g[T - 1] = ac * (gamma * y - C[T - 1]);
+    for (let t = T - 2; t >= 0; t--) g[t] = ac * (gamma * C[t + 1] - C[t]) + gl * g[t + 1];
+    return { g: g, C: C };
+  }
+  /* Failure withdrawal, ported from compute_dense_reward (dataset_writer.py:668-689):
+     take back everything collected, spread evenly after the last frame where a positive
+     reward brought the running total to its peak. */
+  function withdraw(rewards) {
+    const r = rewards.slice();
+    const cum = r.reduce((s, v) => s + v, 0);
+    if (!r.length || Math.abs(cum) <= 1e-9) return r;
+    let running = 0, peak = 0, peakFrame = 0;
+    for (let t = 0; t < r.length; t++) {
+      running += r[t];
+      if (r[t] > 1e-9 && running >= peak - 1e-9) { peak = Math.max(peak, running); peakFrame = t; }
+    }
+    const nSpread = r.length - peakFrame - 1;
+    if (nSpread > 0) { const per = -cum / nSpread; for (let t = peakFrame + 1; t < r.length; t++) r[t] += per; }
+    else r[r.length - 1] -= cum;
+    return r;
+  }
+  const api = { emaTail: emaTail, successGAE: successGAE, completionGAE: completionGAE, withdraw: withdraw };
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.LTFMATH = api;
+})(typeof window !== "undefined" ? window : this);
+</script>
+<script>
+(function () {
+  "use strict";
+  const SIM = DATA.sim, M = window.LTFMATH, NS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  const minus = (s) => String(s).replace(/^-/, "−");
+  const f = (v, n = 2) => minus(Number(v).toFixed(n));
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function txt(parent, x, y, s, attrs) {
+    const t = el("text", Object.assign({ x, y }, attrs || {}), parent);
+    t.textContent = s;
+    return t;
+  }
+  const clear = (n) => { while (n.firstChild) n.removeChild(n.firstChild); };
+  const lin = (d0, d1, r0, r1) => (v) => r0 + ((v - d0) * (r1 - r0)) / (d1 - d0);
+  const path = (pts) => pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+  function axes(svg, X, Y, xs, ys, xlab, yfmt) {
+    for (const v of ys) {
+      el("line", { x1: X(xs[0]), x2: X(xs[xs.length - 1]), y1: Y(v), y2: Y(v), class: "grid" }, svg);
+      txt(svg, X(xs[0]) - 6, Y(v) + 4, yfmt ? yfmt(v) : String(v), { "text-anchor": "end" });
+    }
+    for (const v of xs) txt(svg, X(v), Y(ys[0]) + 18, String(v), { "text-anchor": "middle" });
+    if (xlab) txt(svg, (X(xs[0]) + X(xs[xs.length - 1])) / 2, Y(ys[0]) + 34, xlab, { "text-anchor": "middle" });
+  }
+  function mark(svg, X, y0, y1, v, label, color, anchor) {
+    el("line", { x1: X(v), x2: X(v), y1: y0, y2: y1, stroke: color || "var(--muted)", "stroke-dasharray": "3 3", "stroke-width": 1 }, svg);
+    if (label) txt(svg, X(v) + (anchor === "end" ? -4 : 4), y0 - 6, label, { "text-anchor": anchor || "start" });
+  }
+  const OPT = (alphaS) => ({ lam: 0.99, gamma: 0.999, alphaS, alphaC: 0.5, y: 1, K: 30 });
+  const vid = $("simvid"); if (vid && DATA.poster) vid.poster = DATA.poster;
+
+  // ---- 2: the running total of the reward, and the withdrawal
+  (function reward() {
+    const svg = $("rw-svg"), r = SIM.folded.rewards, T = r.length;
+    const X = lin(0, 300, 56, 620), Y = lin(-0.05, 1.05, 190, 14);
+    function draw(failed) {
+      clear(svg);
+      axes(svg, X, Y, [0, 50, 100, 150, 200, 250, 300], [0, 0.5, 1], "simulator step", (v) => v.toFixed(1));
+      const rr = failed ? M.withdraw(r) : r;
+      let c = 0; const pts = rr.map((v, t) => { c += v; return [X(t), Y(c)]; });
+      el("path", { d: path(pts), fill: "none", stroke: failed ? "var(--c-actor)" : "var(--c-critic)", "stroke-width": 2.2 }, svg);
+      mark(svg, X, 14, 190, 88, "", null); mark(svg, X, 14, 190, 118, "", null); mark(svg, X, 14, 190, 297, "", null);
+      txt(svg, X(88) - 4, 30, "starts, 88", { "text-anchor": "end" });
+      txt(svg, X(118) + 4, 30, "checkpoint, 118", {});
+      txt(svg, X(297) - 4, 30, failed ? "end, 297" : "folded, 297", { "text-anchor": "end" });
+      $("rw-cap").textContent = failed
+        ? "The same rewards, as if the episode had failed: everything earned is taken back, spread over the frames after its last gain, so the total ends at 0. A what-if on real rewards; this episode folded."
+        : "Running total of the reward on a short-sleeved top that folded (unseen garment 1, seed 49, our repeat run). The first half trickles in from step 88 as the main distance closes, the checkpoint lands at step 118, success at step 297.";
+      $("rw-ok").setAttribute("aria-pressed", String(!failed)); $("rw-fail").setAttribute("aria-pressed", String(failed));
+    }
+    $("rw-ok").addEventListener("click", () => draw(false)); $("rw-fail").addEventListener("click", () => draw(true));
+    draw(false);
+  })();
+
+  // ---- 3: the forecast, same garment and start, two runs; then our rig
+  (function forecast() {
+    const svg = $("vf-svg"), F = SIM.failed, G = SIM.folded;
+    const X = lin(0, 600, 56, 620), Y = lin(0, 1, 200, 14);
+    axes(svg, X, Y, [0, 100, 200, 300, 400, 500, 600], [0, 0.25, 0.5, 0.75, 1], "simulator step", (v) => v.toFixed(2));
+    el("path", { d: path(G.values.map((v, t) => [X(t), Y(v)])), fill: "none", stroke: "var(--c-critic)", "stroke-width": 2 }, svg);
+    el("path", { d: path(F.step.map((s, i) => [X(s), Y(F.values[i])])), fill: "none", stroke: "var(--c-actor)", "stroke-width": 2 }, svg);
+    let pk = 0; F.values.forEach((v, i) => { if (v > F.values[pk]) pk = i; });
+    mark(svg, X, 14, 200, F.snapshot, "", "var(--c-actor)");
+    txt(svg, X(F.snapshot) + 4, Y(0.12), "failure state saved, " + F.snapshot, {});
+    txt(svg, X(G.values.length) - 4, Y(G.values[G.values.length - 1]) - 8, "folded, step 299", { "text-anchor": "end", class: "ink" });
+    txt(svg, X(600) - 4, Y(0.06), "failed, ran out of time at 600", { "text-anchor": "end", class: "ink" });
+    $("vf-peak").textContent = F.values[pk].toFixed(2); $("vf-peakstep").textContent = F.step[pk];
+    $("vf-snap").textContent = F.snapshot; $("vf-compl").textContent = F.completion[F.completion.length - 1].toFixed(2);
+
+    const rc = $("rc-svg"), R = DATA.real;
+    const tmax = Math.ceil(Math.max(R.towel.t.at(-1), R.shorts.t.at(-1)) / 10) * 10;
+    const X2 = lin(0, tmax, 56, 620), Y2 = lin(0, 1, 180, 14);
+    const ticks = []; for (let v = 0; v <= tmax; v += 10) ticks.push(v);
+    axes(rc, X2, Y2, ticks, [0, 0.25, 0.5, 0.75, 1], "seconds into the run", (v) => v.toFixed(2));
+    for (const [run, col, lab] of [[R.shorts, "var(--c-actor)", "blue shorts, not folded"], [R.towel, "var(--c-critic)", "towel, folded"]]) {
+      el("path", { d: path(run.t.map((t, i) => [X2(t), Y2(run.completion[i])])), fill: "none", stroke: col, "stroke-width": 1.6, "stroke-opacity": 0.8 }, rc);
+      run.t.forEach((t, i) => el("circle", { cx: X2(t), cy: Y2(run.completion[i]), r: 1.8, fill: col }, rc));
+      const below = run === R.shorts;  // keep each label clear of its own line
+      txt(rc, X2(run.t.at(-1)) - 4, below ? Y2(0) - 6 : Y2(run.completion.at(-1)) - 8, lab, { "text-anchor": "end", class: "ink" });
+    }
+    txt(rc, 60, 12, "progress head, from 0 to 1", {});
+  })();
+
+  // ---- 4: the advantage, with the trust in the forecast as a slider
+  (function advantage() {
+    const svg = $("adv-svg"), inp = $("adv-a"), G = SIM.folded;
+    function draw() {
+      const a = Number(inp.value);
+      $("adv-a-val").textContent = a.toFixed(2);
+      const s = M.successGAE(G.values, G.rewards, OPT(a)).g, c = M.completionGAE(G.completion, OPT(a)).g;
+      const A = s.map((v, i) => v + c[i]);
+      const lo = Math.min(0, ...A), hi = Math.max(...A);
+      const X = lin(0, 300, 56, 620), Y = lin(lo - 0.02, hi + 0.02, 200, 34);
+      clear(svg);
+      const step = hi - lo > 0.8 ? 0.25 : 0.1, ys = [];
+      for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ys.push(Math.round(v * 100) / 100);
+      axes(svg, X, Y, [0, 50, 100, 150, 200, 250, 300], ys, "simulator step", (v) => f(v, 2));
+      el("path", { d: path(A.map((v, t) => [X(t), Y(v)])), fill: "none", stroke: "var(--c-alpha)", "stroke-width": 2 }, svg);
+      for (const [v, l, an] of [[88, "reward starts", "end"], [118, "checkpoint", "start"], [297, "folded", "end"]]) mark(svg, X, 30, 200, v, l, null, an);
+      let mx = 0; A.forEach((v, i) => { if (v > A[mx]) mx = i; });
+      el("circle", { cx: X(mx), cy: Y(A[mx]), r: 4, fill: "var(--c-alpha)" }, svg);
+      const amin = Math.min(...A);
+      $("adv-out").textContent = (a >= 0.999 ? "α = 1: the rise in the forecast is nearly all that counts; the checkpoint reward keeps only 0.1% of its size (1 − γ). "
+        : a <= 0.001 ? "α = 0: only the checkpoint rewards count, summed over what follows. " : "") +
+        "Highest advantage at step " + mx + " (" + f(A[mx], 3) + "); lowest " + f(amin, 3) + ".";
+    }
+    inp.addEventListener("input", draw); draw();
+  })();
+
+  // ---- 5, 6: the toy (same formulas as checks.py)
+  const TOY = (function () {
+    const a = [], n = 601; for (let i = 0; i < n; i++) a.push(-3 + (6 * i) / (n - 1));
+    const N = (x, m, s) => Math.exp(-0.5 * ((x - m) / s) ** 2) / (s * Math.sqrt(2 * Math.PI));
+    const erf = (x) => { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return x >= 0 ? y : -y; };
+    const Phi = (x) => 0.5 * (1 + erf(x / Math.SQRT2));
+    const mu = a.map((x) => 0.7 * N(x, -1, 0.35) + 0.3 * N(x, 1, 0.35));
+    const awr = mu.map((m, i) => m * Math.exp(Math.max(-2, Math.min(2, a[i]))));
+    const recap = mu.map((m, i) => m * Phi(a[i]));
+    const both = awr.map((m, i) => m * Phi(a[i]));
+    const guided = (s) => awr.map((u, i) => Math.pow(u, 1 - s) * Math.pow(both[i], s));
+    const good = (p) => { let g = 0, t = 0; p.forEach((v, i) => { t += v; if (a[i] > 0) g += v; }); return g / t; };
+    const norm = (p) => { const t = p.reduce((s, v) => s + v, 0) * (a[1] - a[0]); return p.map((v) => v / t); };
+    return { a, mu, awr, recap, both, guided, good, norm };
+  })();
+  function drawToy(svg, curves) {
+    clear(svg);
+    const X = lin(-3, 3, 30, 610);
+    let hi = 0; curves.forEach((c) => { c.p = TOY.norm(c.p); hi = Math.max(hi, ...c.p); });
+    const Y = lin(0, hi * 1.08, 180, 14);
+    el("line", { x1: X(-3), x2: X(3), y1: Y(0), y2: Y(0), class: "axis" }, svg);
+    el("line", { x1: X(0), x2: X(0), y1: Y(0), y2: 14, class: "grid" }, svg);
+    txt(svg, X(-1), 200, "poor moves", { "text-anchor": "middle" }); txt(svg, X(1), 200, "good moves", { "text-anchor": "middle" });
+    txt(svg, X(0), 214, "a move's advantage grows to the right", { "text-anchor": "middle" });
+    for (const c of curves) {
+      const pts = TOY.a.map((x, i) => [X(x), Y(c.p[i])]);
+      el("path", { d: path(pts) + ` L${X(3)} ${Y(0)} L${X(-3)} ${Y(0)} Z`, fill: c.color, "fill-opacity": c.fill || 0, stroke: "none" }, svg);
+      el("path", { d: path(pts), fill: "none", stroke: c.color, "stroke-width": c.w || 2, "stroke-dasharray": c.dash || "none" }, svg);
+    }
+  }
+  (function awrToy() {
+    drawToy($("awr-svg"), [{ p: TOY.mu, color: "var(--muted)", w: 1.5, dash: "4 3" }, { p: TOY.awr, color: "var(--c-alpha)", fill: 0.15 }]);
+    $("awr-out").textContent = "Dashed: the policy's own moves, " + Math.round(100 * TOY.good(TOY.mu)) + "% on the good side. Filled: the moves AWR practises, " +
+      Math.round(100 * TOY.good(TOY.awr)) + "% on the good side. Nothing new is invented: the poor moves are only practised less.";
+  })();
+  (function recapToy() {
+    const svg = $("recap-svg"), sIn = $("cfg-s"), btns = Array.from(document.querySelectorAll("#w-recap [data-m]"));
+    let m = "both";
+    const LABEL = { mu: "the policy's own moves", awr: "AWR alone", recap: "the token alone", both: "AWR and the token" };
+    function draw() {
+      const s = Number(sIn.value);
+      $("cfg-s-val").textContent = s;
+      btns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === m)));
+      sIn.disabled = m !== "both";
+      const p = m === "both" ? (s === 1 ? TOY.both : TOY.guided(s)) : TOY[m];
+      drawToy(svg, [{ p: TOY.mu, color: "var(--muted)", w: 1.5, dash: "4 3" }, { p, color: "var(--c-critic)", fill: 0.15 }]);
+      const g = TOY.good(p), pct = g > 0.999 ? "over 99.9" : g > 0.995 ? (100 * g).toFixed(1) : String(Math.round(100 * g));
+      $("recap-out").textContent = m === "mu"
+        ? "The policy's own moves: " + pct + "% on the good side."
+        : LABEL[m] + (m === "both" && s > 1 ? ", with guidance at s = " + s : "") + ": " + pct +
+          "% of the moves on the good side, against " + Math.round(100 * TOY.good(TOY.mu)) + "% for the policy's own.";
+    }
+    btns.forEach((b) => b.addEventListener("click", () => { m = b.dataset.m; draw(); }));
+    sIn.addEventListener("input", draw); draw();
+  })();
+
+  // ---- 7: best-of-N in our simulator run
+  (function bestOfN() {
+    const B = DATA.bon, NAMES = { Top_Long: "long top", Top_Short: "short top", Pant_Long: "long pants", Pant_Short: "shorts" };
+    let P = 0, R = 0, Q = 0;
+    const t = $("bon-table"), head = document.createElement("tr");
+    ["garment", "plans", "redrew (all candidates below zero)", "chosen plan scored above zero"].forEach((h) => { const th = document.createElement("th"); th.textContent = h; head.appendChild(th); });
+    t.appendChild(head);
+    for (const k of ["Top_Long", "Top_Short", "Pant_Long", "Pant_Short"]) {
+      const b = B[k]; P += b.plans; R += b.redraw; Q += b.positive;
+      const row = document.createElement("tr");
+      [NAMES[k], b.plans, Math.round(100 * b.redraw / b.plans) + "%", Math.round(100 * b.positive / b.plans) + "%"].forEach((v, i) => {
+        const td = document.createElement("td"); if (i) td.className = "m"; td.textContent = v; row.appendChild(td);
+      });
+      t.appendChild(row);
+    }
+    $("bon-red").textContent = Math.round(100 * R / P) + "%"; $("bon-pos").textContent = Math.round(100 * Q / P) + "%";
+  })();
+
+  // ---- 11: the checks table
+  (function checksT() {
+    const t = $("checks-table"); if (!t || !DATA.checks) return;
+    const fv = (v) => (v === null || v === undefined) ? "" : minus(Math.abs(v) >= 100 || Number.isInteger(v) ? String(Math.round(v * 1e6) / 1e6) : v.toFixed(4));
+    for (const c of DATA.checks) {
+      const row = document.createElement("tr");
+      for (const [cls, val] of [["m", c.section], ["", c.name], ["m", fv(c.computed)], ["m", fv(c.expected)], ["ok", c.ok ? "✓" : "✗"]]) {
+        const td = document.createElement("td"); if (cls) td.className = cls; td.textContent = val; row.appendChild(td);
+      }
+      t.appendChild(row);
+    }
+  })();
+})();
+</script>
+<footer class="phi-foot" style="border-top:1px solid var(--rule);margin-top:48px;padding:22px clamp(16px,4vw,32px) 36px;font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.04em;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:space-between">
+  <span>Written by Yashvardhan Gupta &middot; &Phi; Physical Hardware Intelligence, Northeastern University Silicon Valley</span>
+  <span><a href="index.html#deep" style="color:var(--muted)">More deep dives</a> &middot; <a href="https://github.com/physical-hardware-intelligence" style="color:var(--muted)">GitHub</a></span>
+</footer>
+</body>
+</html>
