@@ -335,7 +335,7 @@ text_hidden_states = self.condition_embedder.text_embedder(input_dict["text_emb"
 <p><b>Check yourself.</b> Our two-arm SO-101 has three cameras. At 128 × 128 each, what is the shape of one moment? <em>Answer:</em> <code>[3, 3, 128, 128]</code>, 147,456 numbers.</p>
 </div></details>
 <details class="layer maths fp"><summary><span class="lt">First principles</span><span class="lsum">words to numbers</span></summary><div class="lbody">
-<figure><div class="svgscroll"><svg class="sketch" id="fp-words" viewBox="0 0 760 470" role="img" aria-label="The sentence is cut into 9 pieces, each picks a row of a table, 24 layers mix them, the padding is blanked, a small net maps 4096 to 3072, and every picture token reads all 512 slots"></svg></div>
+<figure><div class="svgscroll"><svg class="sketch" id="fp-words" viewBox="0 0 760 470" role="img" aria-label="The sentence is cut into 9 pieces, each picks a row of a table, 24 attention layers let each word read the others, the padding is blanked, a small net maps 4096 to 3072, and every picture token reads all 512 slots"></svg></div>
 <figcaption>The trap: the 503 blank slots all become the same vector, and nothing masks them.</figcaption></figure>
 <p><b>Check yourself.</b> If all 512 slots scored the same, what share would the 9 real ones get? <em>Answer:</em> 9/512 = 1.8%.</p>
 </div></details>
@@ -1267,8 +1267,8 @@ mask_list.append(and_masks(noise2noise_mask, block_self_mask))                 <
     strip(240, 156, "pad"); S.shape(240, 246, "[512, 4096]", { size: 11.5, color: INK });
     S.arrow([[204, 191], [234, 191]], { stroke: T });
     S.arrow([[352, 191], [402, 191]], { stroke: T });
-    K.step(400, 130, "3", "mix, 24 layers");
-    S.text(400, 146, "slots read each other", { size: 13, color: M });
+    K.step(400, 130, "3", "24 attention layers");
+    S.text(400, 146, "each word reads the others", { size: 13, color: M });
     strip(410, 156, "zero");
     S.shape(410, 246, "[512, 4096]", { size: 11.5, color: INK });
     K.step(400, 268, "4", "blanks set to 0", { size: 13, color: M });
