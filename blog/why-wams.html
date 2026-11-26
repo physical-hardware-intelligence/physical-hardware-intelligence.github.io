@@ -323,7 +323,8 @@ img { max-width: 100%; }
 <!-- ================================================================== 1 -->
 <section id="inside">
 <h2><span class="num">1</span>One second inside its head</h2>
-<p>The robot is LingBot-VA, an open model from Robbyant (Ant Group), run through LeRobot's code in LIBERO: a simulated kitchen with one arm, two cameras and 20 moves a second. The task is <em>"put both moka pots on the stove"</em>. It took 361 moves in 23 plans: the first plan covers 12 moves, each later one 16, and the task was done 13 moves into the last. We freeze it at plan 3, which starts at move 28, and follow one second. (Timings come from a separate run of all 10 LIBERO-Long tasks: 10 of 10 solved.)</p>
+<p>The robot is LingBot-VA, an open model from Robbyant (Ant Group), run through LeRobot's code in LIBERO: a simulated kitchen with one arm, two cameras and 20 moves a second. The task is <em>"put both moka pots on the stove"</em>, and it took 361 moves.</p>
+<p>The robot works in rounds we call <b>plans</b>. In each plan it looks, imagines the next 16 moves as video, reads those 16 moves off the imagined video, plays them, and checks what really happened. Then it plans again. Everything it has seen and done recently sits in a memory it looks back at. Our run took 23 plans (the first covers 12 moves, each later one 16, and the task was done 13 moves into the last). We follow plan 3, which starts at move 28, through its five steps. (Timings come from a separate run of all 10 LIBERO-Long tasks: 10 of 10 solved.)</p>
 <nav class="beatmap" aria-label="The five steps">
   <a href="#beat-look">look</a><span>→</span><a href="#beat-shrink">shrink</a><span>→</span><a href="#beat-imagine">imagine</a><span>→</span><a href="#beat-moves">read the moves</a><span>→</span><a href="#beat-check">move and check</a>
 </nav>
@@ -498,11 +499,13 @@ if is_first:
 </div></details>
 
 <h3 id="beat-check">It moves, then checks</h3>
+<p>The arm plays the 16 moves without looking: 0.8 seconds. The cameras keep recording. Then the robot swaps: it throws away the 4 frames it imagined for this plan and writes the real ones in their place, squeezed the same way, with the 16 moves it actually made. The next plan imagines from what really happened, not from its own guess, so errors can't pile up.</p>
 <figure>
-  <div class="svgscroll"><svg class="sketch" id="t-memory" viewBox="0 0 760 182" role="img" aria-label="The model's memory as a strip of the last 15 plans, as the cameras really saw them"></svg></div>
+  <div class="svgscroll"><svg class="sketch" id="t-swap" viewBox="0 0 760 226" role="img" aria-label="The memory across one plan: while plan 3 thinks it holds the real plans 1 and 2 and the imagined plan 3; after the moves, imagined plan 3 is replaced by the real one; then plan 4 is imagined next to it"></svg></div>
 </figure>
-<p>The arm plays all 16 moves without looking. Then the robot throws away what it imagined and writes into its memory what the cameras really saw and the moves it really made. The next plan starts from what happened, not from its own guess.</p>
-<p>The memory is a strip of recent plans. Each plan is stored already worked through, so later plans can look back at it without redoing the work (in transformer terms, a <span class="name">KV cache</span>). It holds 15 plans, about 12 seconds; when it is full, the oldest drops out.</p>
+<p>The memory is the recent past the model looks back at whenever it imagines or reads moves: the real frames and moves of the last 15 plans, about 12 seconds. When it is full, the oldest plan drops out.</p>
+<p>Why not feed it the whole past again each time? That would mean pushing all of it through the 30 layers at every pass, 74 passes per plan. Instead, the first time a token goes through, each layer keeps the two things attention will need from it later, its key and its value, and later passes reuse them. That store is the <span class="name">KV cache</span>.</p>
+<p>The swap matters because the imagination gets worse the further ahead it looks:</p>
 <figure>
   <div class="svgscroll"><svg class="chart" id="realfig" viewBox="0 0 640 260" role="img" aria-label="How wrong the imagination is, by how far ahead it looks, against copying the last real frame"></svg></div>
   <figcaption id="real-cap">How wrong the imagination is, by how far ahead it looks.</figcaption>
@@ -1679,6 +1682,24 @@ mask_list.append(and_masks(noise2noise_mask, block_self_mask))                 <
     });
     S.text(40, 222, "16 move tokens, stamped in time between the frames", { size: 13.5, color: M });
     S.text(40, 242, "coral: move 2, between now and +4 moves, the before and after of its step", { size: 13.5, color: O });
+  })();
+
+  // ---- move and check: the memory across one plan, imagined swapped for real ----------------------------------------------
+  (function swap() {
+    const svg = $("t-swap"); if (!svg) return;
+    const S = sketch(svg), K = fpKit(S);
+    const rows = [["1", "plan 3 thinks", [1, 1, 0, -1]], ["2", "plan 3's moves played", [1, 1, 2, -1]], ["3", "plan 4 thinks", [1, 1, 1, 0]]];
+    rows.forEach(([n, title, slots], r) => {
+      const y = 22 + r * 72;
+      K.step(20, y + 27, n, title, { size: 14.5 });
+      slots.forEach((k, c) => {
+        if (k < 0) return;
+        const x = 230 + c * 122, lab = `plan ${c + 1}`;
+        if (k === 0) K.chip(x, y, 110, 44, lab, "imagined", { stroke: V, fill: V, op: 0.16, dash: [5, 4] });
+        else K.chip(x, y, 110, 44, lab, "real", { stroke: R, fill: R, op: k === 2 ? 0.34 : 0.16 });
+      });
+      if (r === 1) S.text(230 + 3 * 122, y + 27, "imagined out, real in", { size: 13.5, color: R });
+    });
   })();
 })();
 </script>
