@@ -1,0 +1,1436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inside the Joint · Phi</title>
+<link rel="icon" href="../assets/phi-mark-ink.svg" type="image/svg+xml">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Inside the Joint">
+<meta property="og:description" content="How robots turn electricity into motion, told as one walk down the gear-ratio ladder: the servo in our SO-101, harmonic and cycloidal drives, the motors in the YAM arms, quasi-direct drive, then screws, springs, oil and cables.">
+<meta property="og:image" content="https://physical-hardware-intelligence.github.io/assets/phi-og.png">
+<meta property="og:url" content="https://physical-hardware-intelligence.github.io/blog/inside-the-joint.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Yashvardhan Gupta">
+<meta name="description" content="Inside the Joint: robot actuators explained for students, from the Feetech STS3215 servo to harmonic and cycloidal drives, Damiao joint motors, quasi-direct drive, roller screws and series elastic actuators, with live 3D models, plain definitions and every number checked.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a long reading column on the left, a pinned 3D bench on the right that changes with each section
+   (inspired by Humanity's Last Machine). Paper, ink, and the three materials every actuator is made of. */
+:root {
+  --paper: #f2efe7;
+  --paper-2: #e9e4d8;
+  --ink: #1b1a17;
+  --ink-2: #474540;
+  --muted: #7a766c;
+  --rule: #d6cfbf;
+  --copper: #a2532c;
+  --copper-soft: #e8cdb9;
+  --m-steel: #8a9196;
+  --m-dark: #45484d;
+  --m-alu: #b9bbb8;
+  --m-copper: #b5652f;
+  --m-magn: #6f3a36;
+  --m-mags: #3c4b5e;
+  --m-pcb: #4f6b55;
+  --m-glass: #c9d3d6;
+  --m-oil: #c08a3e;
+  --grain-opacity: .22;
+  --serif: "Cormorant Garamond", "Cormorant", Garamond, Georgia, serif;
+  --sans: "Geist", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #171613; --paper-2: #201e1a; --ink: #ece7dc; --ink-2: #c6c0b3; --muted: #8f897d; --rule: #37332c;
+    --copper: #d98a5c; --copper-soft: #4a3326;
+    --m-steel: #a9b0b5; --m-dark: #5d6168; --m-alu: #b9bbb8; --m-copper: #c9763f; --m-magn: #8a4a44; --m-mags: #50637a;
+    --m-pcb: #5d7c63; --m-glass: #8aa0a6; --m-oil: #c8924a; --grain-opacity: .10; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #171613; --paper-2: #201e1a; --ink: #ece7dc; --ink-2: #c6c0b3; --muted: #8f897d; --rule: #37332c;
+  --copper: #d98a5c; --copper-soft: #4a3326;
+  --m-steel: #a9b0b5; --m-dark: #5d6168; --m-alu: #b9bbb8; --m-copper: #c9763f; --m-magn: #8a4a44; --m-mags: #50637a;
+  --m-pcb: #5d7c63; --m-glass: #8aa0a6; --m-oil: #c8924a; --grain-opacity: .10; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper); color: var(--ink-2);
+  font-family: var(--serif); font-size: 21px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+body::after { /* paper grain */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50; opacity: var(--grain-opacity); mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.32 0 0 0 0 0.27 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--paper); }
+a { color: var(--ink); text-decoration-color: var(--copper); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+h1, h2, h3 { font-family: var(--serif); color: var(--ink); text-wrap: balance; font-weight: 600; }
+strong { color: var(--ink); font-weight: 600; }
+.mono { font-family: var(--mono); }
+
+/* top progress bar */
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-left, 0px)) 8px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--rule); }
+.bar ol { list-style: none; margin: 0 auto; padding: 0; display: flex; gap: 0; max-width: 1400px; overflow-x: auto; scrollbar-width: none; }
+.bar ol::-webkit-scrollbar { display: none; }
+.bar li { flex: 1 0 auto; min-width: 74px; }
+.bar a { display: grid; justify-items: center; gap: 5px; text-decoration: none; font-family: var(--sans); font-size: 11px; letter-spacing: .02em; color: var(--muted); padding: 0 4px; }
+.bar a::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--muted); background: var(--paper); transition: background .2s, border-color .2s, transform .2s; }
+.bar a.on { color: var(--ink); }
+.bar a.on::before { background: var(--ink); border-color: var(--ink); transform: scale(1.25); }
+.bar a.done::before { background: var(--ink); border-color: var(--ink); }
+
+/* hero */
+.hero { max-width: 1100px; margin: 0 auto; padding-block: 64px 36px; text-align: center; }
+.hero .kicker { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--copper); margin: 0 0 18px; }
+.hero h1 { font-size: clamp(48px, 8.4vw, 104px); line-height: .95; margin: 0; letter-spacing: -.01em; }
+.hero .sub { font-size: clamp(21px, 2.4vw, 27px); color: var(--ink-2); max-width: 34ch; margin: 18px auto 0; line-height: 1.35; }
+.hero .how { font-family: var(--sans); font-size: 13px; color: var(--muted); margin-top: 22px; }
+.chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 26px auto 0; max-width: 820px; }
+.chips a { font-family: var(--sans); font-size: 13px; padding: 7px 12px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; background: transparent; transition: background .15s, color .15s; }
+.chips a:hover { background: var(--ink); color: var(--paper); }
+
+/* main layout */
+.layout { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 1fr); gap: clamp(28px, 4vw, 64px); align-items: start; }
+.stage-col { grid-column: 2; grid-row: 1; position: sticky; top: 64px; align-self: start; height: min(calc(100vh - 84px), 860px); height: min(calc(100svh - 84px), 860px); }
+article { grid-column: 1; grid-row: 1; min-width: 0; padding-bottom: 80px; }
+
+/* stage */
+.stage { position: relative; height: 100%; border: 1px solid var(--rule); background: radial-gradient(120% 90% at 50% 42%, var(--paper) 0%, var(--paper-2) 100%); overflow: hidden; touch-action: pan-y; cursor: grab; }
+.stage.dragging { cursor: grabbing; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity .22s ease; }
+.stage.swap canvas, .stage.swap .labels { opacity: 0; }
+.labels { position: absolute; inset: 0; pointer-events: none; transition: opacity .22s ease; }
+.lbl { position: absolute; transform: translate(-4px, -50%); display: flex; align-items: center; gap: 7px; white-space: nowrap; font-family: var(--mono); font-size: 11px; color: var(--ink); letter-spacing: .02em; }
+.lbl::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--copper); box-shadow: 0 0 0 3px color-mix(in srgb, var(--paper) 80%, transparent); flex: none; }
+.lbl span { background: color-mix(in srgb, var(--paper) 82%, transparent); padding: 2px 6px; border: 1px solid var(--rule); }
+.lbl.left { flex-direction: row-reverse; transform: translate(calc(-100% + 4px), -50%); }
+.stage-top { position: absolute; left: 14px; right: 14px; top: 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; pointer-events: none; }
+.stage-title { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.stage-title b { display: block; font-family: var(--serif); font-size: 22px; letter-spacing: 0; text-transform: none; color: var(--ink); font-weight: 600; margin-top: 2px; }
+.stage-ctrl { pointer-events: auto; display: flex; gap: 6px; }
+.stage-ctrl button { font-family: var(--sans); font-size: 12px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 5px 10px; cursor: pointer; }
+.stage-ctrl button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.stage-cap { position: absolute; left: 14px; right: 14px; bottom: 12px; font-family: var(--sans); font-size: 12.5px; line-height: 1.45; color: var(--ink-2); pointer-events: none; }
+.stage-cap .hint { color: var(--muted); }
+.no-gl .stage-cap::after { content: " The 3D models need WebGL, which this browser has turned off. The text and figures still work."; color: var(--copper); }
+
+/* chapters */
+.ch { padding-block: 56px 28px; border-top: 1px solid var(--rule); scroll-margin-top: 70px; }
+.ch:first-child { border-top: 0; padding-top: 12px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--copper); margin: 0 0 10px; }
+.ch h2 { font-size: clamp(32px, 4vw, 44px); line-height: 1.05; margin: 0 0 20px; }
+.ch h3 { font-size: 25px; margin: 30px 0 8px; }
+.ch p { margin: 0 0 16px; max-width: 62ch; }
+.ch ul { margin: 0 0 16px; padding-left: 1.1em; max-width: 60ch; }
+.ch li { margin-bottom: 6px; }
+.lead { font-size: 23px; color: var(--ink); }
+.num { font-family: var(--mono); font-size: .78em; color: var(--ink); letter-spacing: -.01em; white-space: nowrap; }
+.src { font-family: var(--sans); font-size: 12px; color: var(--muted); vertical-align: super; text-decoration: none; margin-left: 2px; }
+.src:hover { color: var(--copper); }
+
+/* key fact strip */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--rule); margin: 24px 0 22px; }
+.fact { padding: 12px 12px 12px 0; }
+.fact + .fact { padding-left: 14px; border-left: 1px solid var(--rule); }
+.fact b { display: block; font-family: var(--mono); font-weight: 500; font-size: 22px; color: var(--ink); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.fact span { font-family: var(--sans); font-size: 12px; color: var(--muted); line-height: 1.35; display: block; margin-top: 3px; }
+
+.part { font-family: var(--sans); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); margin: 56px 0 0; padding: 10px 0 0; border-top: 2px solid var(--ink); }
+.part:first-child { margin-top: 0; }
+.part + .ch { border-top: 0; padding-top: 22px; }
+.ladder { margin: 14px 0 22px; overflow-x: auto; }
+.ladder svg { width: 100%; min-width: 560px; height: auto; display: block; }
+.ladder figcaption { font-family: var(--sans); font-size: 12px; color: var(--muted); margin-top: 4px; }
+.ladder .axis { stroke: var(--ink); stroke-width: 1.2; }
+.ladder .tick { stroke: var(--rule); stroke-width: 1; }
+.ladder .band { fill: var(--copper-soft); }
+.ladder .stem { stroke: var(--muted); stroke-width: .8; }
+.ladder .dot { fill: var(--ink); }
+.ladder .dot.cu { fill: var(--copper); }
+.ladder .lab { font-family: var(--mono); font-size: 10.5px; fill: var(--ink); }
+.ladder .sub { font-family: var(--sans); font-size: 9.5px; fill: var(--muted); }
+.ladder .ax { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
+
+dl.terms { display: grid; grid-template-columns: minmax(110px, max-content) minmax(0, 1fr); gap: 6px 16px; margin: 4px 0 14px; font-family: var(--sans); font-size: 13.5px; line-height: 1.45; }
+dl.terms dt { font-weight: 600; color: var(--ink); }
+dl.terms dd { margin: 0; color: var(--ink-2); }
+.intuit { font-style: italic; color: var(--ink); margin-bottom: 4px !important; }
+.sym { font-family: var(--sans); font-size: 13px !important; color: var(--muted); line-height: 1.5; }
+@media (max-width: 560px) { dl.terms { grid-template-columns: minmax(0, 1fr); gap: 2px; } dl.terms dd { margin-bottom: 8px; } }
+
+/* folded layers */
+details.layer { border-top: 1px solid var(--rule); margin: 0; max-width: 62ch; }
+details.layer:last-of-type { border-bottom: 1px solid var(--rule); margin-bottom: 8px; }
+details.layer summary { list-style: none; cursor: pointer; padding: 11px 0; display: flex; align-items: center; gap: 10px; font-family: var(--sans); font-size: 13px; font-weight: 500; color: var(--ink); }
+details.layer summary::-webkit-details-marker { display: none; }
+details.layer summary::before { content: "+"; font-family: var(--mono); width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid var(--ink); font-size: 13px; line-height: 1; }
+details.layer[open] summary::before { content: "−"; }
+details.layer summary em { font-style: normal; color: var(--muted); font-weight: 400; }
+details.layer .body { padding: 2px 0 16px; font-size: 19px; }
+details.layer .body p { font-size: 19px; }
+mjx-container { color: var(--ink); }
+pre.code { font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--ink); background: var(--paper-2); border: 1px solid var(--rule); padding: 12px 14px; overflow-x: auto; margin: 6px 0 10px; }
+pre.code .c { color: var(--muted); }
+.answer { background: var(--paper-2); border-left: 2px solid var(--copper); padding: 10px 14px; font-size: 18.5px; }
+
+/* gear-ratio explorer */
+.explorer { border: 1px solid var(--ink); padding: 18px 18px 14px; margin: 26px 0 26px; background: color-mix(in srgb, var(--paper-2) 50%, var(--paper)); }
+.explorer-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.explorer-head h3 { margin: 0; font-size: 24px; }
+.ratio-read { font-family: var(--mono); font-size: 30px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.ratio-read small { font-size: 13px; color: var(--muted); }
+.slider { width: 100%; margin: 14px 0 6px; accent-color: var(--copper); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.presets button { font-family: var(--sans); font-size: 12px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); padding: 5px 9px; cursor: pointer; }
+.presets button.on { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+.meter { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; margin-bottom: 10px; }
+.meter .name { font-family: var(--sans); font-size: 13px; color: var(--ink); }
+.meter .val { font-family: var(--mono); font-size: 13px; color: var(--ink); text-align: right; font-variant-numeric: tabular-nums; }
+.meter .track { grid-column: 1 / -1; height: 8px; background: var(--rule); position: relative; overflow: hidden; }
+.meter .fill { position: absolute; inset: 0 auto 0 0; background: var(--ink); transition: width .15s; }
+.meter.hot .fill { background: var(--copper); }
+.explorer .say { font-size: 18.5px; margin: 8px 0 0; color: var(--ink); min-height: 2.6em; }
+.explorer .foot { font-family: var(--sans); font-size: 11.5px; color: var(--muted); margin-top: 8px; }
+
+/* tables */
+.tablewrap { overflow-x: auto; margin: 18px 0 18px; border-top: 1px solid var(--ink); }
+table { border-collapse: collapse; width: 100%; font-family: var(--sans); font-size: 13px; color: var(--ink); }
+th, td { text-align: left; padding: 9px 10px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; }
+td.n { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.pass { font-family: var(--mono); color: var(--copper); }
+.tnote { font-family: var(--sans); font-size: 12px; color: var(--muted); max-width: 70ch; }
+
+/* small inline diagrams */
+.mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 18px 0 22px; }
+.mini figure { margin: 0; border-top: 1px solid var(--ink); padding-top: 10px; }
+.mini svg { width: 100%; height: auto; display: block; }
+.mini figcaption { font-family: var(--sans); font-size: 12px; color: var(--muted); line-height: 1.4; margin-top: 6px; }
+.mini figcaption b { color: var(--ink); font-weight: 500; display: block; font-size: 13px; }
+svg .ink { stroke: var(--ink); fill: none; stroke-width: 1.6; }
+svg .inkf { fill: var(--ink); }
+svg .cu { fill: var(--copper); }
+svg .cus { stroke: var(--copper); fill: none; stroke-width: 2; }
+svg .pap { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; }
+svg .soft { fill: var(--copper-soft); stroke: var(--ink); stroke-width: 1.2; }
+svg text { font-family: var(--mono); font-size: 10px; fill: var(--muted); }
+
+.sources ol { font-family: var(--sans); font-size: 13px; line-height: 1.5; color: var(--ink-2); padding-left: 1.4em; max-width: 80ch; }
+.sources li { margin-bottom: 6px; }
+.sources li:target { background: var(--copper-soft); }
+footer { max-width: 1400px; margin: 0 auto; padding-block: 28px 48px; border-top: 1px solid var(--rule); font-family: var(--sans); font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+@media (max-width: 1080px) {
+  body { font-size: 19.5px; }
+  .layout { display: block; }
+  .stage-col { top: 48px; height: 44vh; height: 44svh; z-index: 5; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); }
+  .stage { border-left: 0; border-right: 0; }
+  .stage-title b { font-size: 18px; }
+  .stage-cap { font-size: 11.5px; }
+  #stage-cap { display: none; }
+  .stage-cap { text-align: right; }
+  .ch { scroll-margin-top: calc(44svh + 60px); }
+  .mini { grid-template-columns: minmax(0, 1fr); }
+  .hero { padding-block: 40px 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .stage canvas, .labels { transition: none; }
+}
+
+:root { --f-mono: var(--mono); --f-body: var(--serif); }
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+[hidden] { display: none !important; }
+.phi-bar { margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); }
+</style>
+</head>
+<body>
+<header class="phi-bar" style="position:relative;z-index:60;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 18px;padding:10px clamp(16px,4vw,32px);border-bottom:1px solid var(--rule);background:var(--paper);font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.05em">
+  <a href="../index.html" style="color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:9px"><span style="font-family:var(--f-body),Georgia,serif;font-size:20px;line-height:1">&Phi;</span><span>Physical Hardware Intelligence</span></a>
+  <nav aria-label="Phi" style="display:flex;gap:16px">
+    <a href="../learn.html" style="color:var(--muted);text-decoration:none">Learn</a>
+    <a href="../research.html" style="color:var(--muted);text-decoration:none">Research</a>
+    <a href="index.html" style="color:var(--muted);text-decoration:none">Writing</a>
+  </nav>
+</header>
+<nav class="bar" aria-label="Sections"><ol id="bar"></ol></nav>
+
+<header class="hero">
+  <p class="kicker">Deep dive · actuators · 25 November 2026</p>
+  <h1>Inside the Joint</h1>
+  <p class="sub">How robots turn electricity into motion, from the $14 servo in our SO-101 arm, through the motors in the YAM arms our lab is getting next, to the gearboxes inside today's humanoids.</p>
+  <p class="how">Scroll to read; drag the model to turn it. Open "Go deeper" for plain definitions and the maths.</p>
+  <nav class="chips" id="chips" aria-label="Jump to"></nav>
+</header>
+
+<div class="layout">
+<aside class="stage-col" aria-label="3D model">
+  <div class="stage" id="stage">
+    <canvas id="stage-gl" aria-hidden="true"></canvas>
+    <div class="labels" id="stage-labels"></div>
+    <div class="stage-top">
+      <div class="stage-title"><span id="stage-kicker">Model</span><b id="stage-name">A robot joint</b></div>
+      <div class="stage-ctrl"><button type="button" id="btn-play" aria-pressed="false">Pause</button></div>
+    </div>
+    <p class="stage-cap"><span id="stage-cap"></span> <span class="hint">Drag to turn.</span></p>
+  </div>
+</aside>
+<article id="story">
+<p class="part">Part 1 · The basics</p>
+<section class="ch" id="anatomy" data-scene="anatomy" data-short="Anatomy">
+  <p class="eyebrow">01 · Anatomy</p>
+  <h2>What is inside a robot joint?</h2>
+  <p class="lead">Almost every electric robot joint is four parts in a row.</p>
+  <p>A <strong>motor</strong> makes torque. A <strong>reducer</strong>, or gearbox, trades the motor's speed for more torque. A <strong>sensor</strong> measures the joint's angle. A <strong>driver board</strong> sets the motor current to reach the angle it was asked for.</p>
+  <p>Every design on this page answers one question: how much do you gear down, and with what? We cover the basics, then walk down that ladder, from our SO-101's servo to joints with almost no gears, then look at other ways to move.</p>
+  <details class="layer"><summary>Go deeper <em>terms</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Torque</dt><dd>Turning force: force times its distance from the axis, in newton-metres (N·m). 1 N·m is about holding a 1 kg bag 10 cm from a pivot (0.98 N·m).</dd>
+      <dt>Reducer</dt><dd>Gears that make the output turn slower and stronger than the motor.</dd>
+      <dt>Encoder</dt><dd>The angle sensor. Often a magnet on the shaft, read by a chip.</dd>
+      <dt>Control loop</dt><dd>Measure, compare with the target, correct, many times a second.</dd>
+    </dl>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>Which part would you change to make a joint that can tell how hard it is pushing?</p>
+    <div class="answer">Usually the reducer. The motor's current already tells its torque, but a high-ratio gearbox hides it behind friction. Gear down less, add a spring you can measure, or add a torque sensor.</div>
+  </div></details>
+</section>
+
+<section class="ch" id="motor" data-scene="motor" data-short="Motor">
+  <p class="eyebrow">02 · The motor</p>
+  <h2>Why can't a motor just turn the joint?</h2>
+  <p>A motor is a ring of magnets and a ring of copper coils. Switch the coils on in turn and the magnets are always pulled forward, so the rotor spins; in the model the coils glow as they switch. More current means more torque.</p>
+  <p>But motors work best spinning fast with little torque, and joints need the opposite. MIT's Cheetah team found that a motor strong enough to drive their leg with no gears would have been <span class="num">76.2 cm</span> across.<a class="src" href="#s-wensing">[W]</a> So nearly every robot puts gears after the motor.</p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Brushed, brushless</dt><dd>Brushed motors switch their coils with sliding contacts; brushless motors switch them with a chip.</dd>
+      <dt>FOC</dt><dd>Field-oriented control: a way of driving a brushless motor that keeps the magnetic pull pointing the most useful way.</dd>
+      <dt>Stall torque</dt><dd>The most torque a motor makes, at zero speed. It overheats if held there.</dd>
+      <dt>Rated torque</dt><dd>What it can give all day without overheating.</dd>
+    </dl>
+    <p class="intuit">Each amp of current adds the same amount of torque:</p>
+    <p>\[ \tau = K_t\, I \]</p>
+    <p class="sym">\(\tau\) torque · \(I\) current · \(K_t\) the motor's torque constant, in N·m per amp.</p>
+    <p>The STS3215's sheet lists \(K_t\) = 8 kg·cm/A at its output, and its stall torque divided by its stall current agrees: <span class="num">0.785 vs 0.765 N·m/A (2.5% apart)</span>.<a class="src" href="#s-feetech">[F]</a></p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>You double the current through a motor held still. What happens to its torque, and what's the catch?</p>
+    <div class="answer">The torque doubles. The heat quadruples (it grows with current squared), which is why rated torque is far below stall torque.</div>
+  </div></details>
+</section>
+
+<section class="ch" id="trade" data-scene="pair" data-short="Gear ratio">
+  <p class="eyebrow">03 · The trade</p>
+  <h2>What does a gearbox trade?</h2>
+  <p>A small gear driving one with four times the teeth turns four times slower and pushes four times harder, like a bike's lowest gear. That multiplier is the <strong>gear ratio</strong>, \(N\). The model shows 4:1.</p>
+  <p>The hidden cost: from the output, the motor's spinning rotor feels <strong>\(N^2\) times heavier</strong>.<a class="src" href="#s-wensing">[W]</a> So a high-ratio joint is strong and cheap but stiff: push it and it barely moves; hit something and the gear teeth take the blow. A low-ratio joint is weaker per motor, but you can push it, and it can feel you push.</p>
+
+  <div class="explorer" id="explorer">
+    <div class="explorer-head"><h3>Try a ratio</h3><div class="ratio-read"><span id="ratio-val">345</span><small> : 1</small></div></div>
+    <input class="slider" id="ratio" type="range" min="0" max="1000" step="1" value="1000" aria-label="Gear ratio">
+    <div class="presets" id="presets">
+      <button type="button" data-n="1">Direct drive · 1</button>
+      <button type="button" data-n="6">Mini Cheetah · 6</button>
+      <button type="button" data-n="10">YAM wrist · 10</button>
+      <button type="button" data-n="40">YAM shoulder · 40</button>
+      <button type="button" data-n="100">Harmonic · 100</button>
+      <button type="button" data-n="147">SO-101 leader wrist · 147</button>
+      <button type="button" data-n="345">SO-101 follower · 345</button>
+    </div>
+    <div class="meter"><span class="name">Torque at the output</span><span class="val" id="m-torque"></span><div class="track"><div class="fill" id="f-torque"></div></div></div>
+    <div class="meter"><span class="name">Speed at the output</span><span class="val" id="m-speed"></span><div class="track"><div class="fill" id="f-speed"></div></div></div>
+    <div class="meter hot"><span class="name">How heavy the rotor feels from the output</span><span class="val" id="m-inertia"></span><div class="track"><div class="fill" id="f-inertia"></div></div></div>
+    <p class="say" id="ratio-say"></p>
+    <p class="foot">Relative to the bare motor; log scales; ideal gears.</p>
+  </div>
+
+  <h3>The ladder this page walks down</h3>
+  <figure class="ladder"><svg viewBox="0 0 640 160" role="img" aria-label="Gear ratios of the joints on this page, on a log scale from 1 to 400"><rect class="band" x="358.7" y="73" width="159.8" height="14"/><text class="sub" x="456.6" y="68" text-anchor="middle">harmonic drives, 30–160</text><line class="axis" x1="34" y1="80" x2="606" y2="80"/><line class="tick" x1="34.0" y1="76" x2="34.0" y2="84"/><line class="tick" x1="100.2" y1="76" x2="100.2" y2="84"/><line class="tick" x1="187.7" y1="76" x2="187.7" y2="84"/><line class="tick" x1="253.8" y1="76" x2="253.8" y2="84"/><line class="tick" x1="320.0" y1="76" x2="320.0" y2="84"/><line class="tick" x1="407.5" y1="76" x2="407.5" y2="84"/><line class="tick" x1="473.7" y1="76" x2="473.7" y2="84"/><line class="tick" x1="539.8" y1="76" x2="539.8" y2="84"/><line class="tick" x1="606.0" y1="76" x2="606.0" y2="84"/><text class="ax" x="34.0" y="98" text-anchor="start">1:1</text><text class="ax" x="253.8" y="98" text-anchor="middle">10:1</text><text class="ax" x="473.7" y="98" text-anchor="middle">100:1</text><text class="ax" x="606.0" y="98" text-anchor="end">400:1</text><line class="stem" x1="34.0" y1="80" x2="34.0" y2="58.0"/><circle class="dot" cx="34.0" cy="80" r="4.5"/><text class="lab" x="34.0" y="42.0" text-anchor="start">Direct drive · 1</text><text class="sub" x="34.0" y="54.0" text-anchor="start">Minitaur</text><line class="stem" x1="205.1" y1="80" x2="205.1" y2="96.0"/><circle class="dot" cx="205.1" cy="80" r="4.5"/><text class="lab" x="205.1" y="110.0" text-anchor="middle">Mini Cheetah · 6</text><text class="sub" x="205.1" y="122.0" text-anchor="middle">QDD</text><line class="stem" x1="243.8" y1="80" x2="243.8" y2="30.0"/><circle class="dot" cx="243.8" cy="80" r="4.5"/><text class="lab" x="243.8" y="14.0" text-anchor="middle">AK80-9 · 9</text><text class="sub" x="243.8" y="26.0" text-anchor="middle">QDD module</text><line class="stem" x1="253.8" y1="80" x2="253.8" y2="124.0"/><circle class="dot cu" cx="253.8" cy="80" r="4.5"/><text class="lab" x="253.8" y="138.0" text-anchor="middle">DM4310 · 10</text><text class="sub" x="253.8" y="150.0" text-anchor="middle">YAM wrist</text><line class="stem" x1="386.2" y1="80" x2="386.2" y2="58.0"/><circle class="dot cu" cx="386.2" cy="80" r="4.5"/><text class="lab" x="386.2" y="42.0" text-anchor="middle">DM4340 · 40</text><text class="sub" x="386.2" y="54.0" text-anchor="middle">YAM shoulder</text><line class="stem" x1="510.4" y1="80" x2="510.4" y2="124.0"/><circle class="dot cu" cx="510.4" cy="80" r="4.5"/><text class="lab" x="510.4" y="138.0" text-anchor="middle">1/147 servo · 147</text><text class="sub" x="510.4" y="150.0" text-anchor="middle">SO-101 leader wrist</text><line class="stem" x1="591.9" y1="80" x2="591.9" y2="30.0"/><circle class="dot cu" cx="591.9" cy="80" r="4.5"/><text class="lab" x="591.9" y="14.0" text-anchor="end">STS3215 · 345</text><text class="sub" x="591.9" y="26.0" text-anchor="end">SO-101 follower</text></svg><figcaption>Every joint on this page, placed by gear ratio (log scale). Copper dots are our hardware.</figcaption></figure>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Gear ratio, \(N\)</dt><dd>How many motor turns make one output turn.</dd>
+      <dt>Inertia</dt><dd>How hard something is to spin up or stop.</dd>
+      <dt>Backdrivable</dt><dd>You can turn the motor by pushing on the output.</dd>
+      <dt>Efficiency, \(\eta\)</dt><dd>The share of torque that survives the gears' friction (0.9 = 90%).</dd>
+    </dl>
+    <p class="intuit">Torque goes up by \(N\), speed goes down by \(N\):</p>
+    <p>\[ \tau_{out} = \eta\,N\,\tau_m, \qquad \omega_{out} = \omega_m / N \]</p>
+    <p class="intuit">Why the felt mass grows with \(N^2\): to move the output, the rotor must spin \(N\) times faster, and spinning energy grows with speed squared.</p>
+    <p>\[ J_{felt} = N^2 J_m \]</p>
+    <p class="sym">\(\omega\) speed · \(J\) inertia · \(m\) motor side, \(out\) output side. At 345:1, \(N^2\) = <span class="num">119,025</span>. (Wensing et al. 2017, eq. 43.)</p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>Our SO-101 leader uses 1/147 servos at the wrist, the follower 1/345.<a class="src" href="#s-lerobot">[L]</a> How much heavier does the follower's wrist feel to push?</p>
+    <div class="answer">\((345/147)^2 \approx\) <span class="num">5.5</span> times. That's why the arm a person moves uses lower-ratio servos.</div>
+  </div></details>
+</section>
+
+<p class="part">Part 2 · Down the gear-ratio ladder, from 345:1 to 6:1</p>
+<section class="ch" id="servo" data-scene="servo" data-short="Our servo">
+  <p class="eyebrow">04 · Our servo · 345:1</p>
+  <h2>What is inside the servo that moves our SO-101?</h2>
+  <p>The top of the ladder. The Feetech <strong>STS3215</strong> packs a whole joint into 55 g: a small DC motor, a chain of small gears (345:1), a magnet on the output read by a 12-bit sensor, and a board that holds a position.<a class="src" href="#s-feetech">[F]</a></p>
+  <div class="facts">
+    <div class="fact"><b>1.91 N·m</b><span>stall torque, 7.4 V</span></div>
+    <div class="fact"><b>0.49 N·m</b><span>rated torque</span></div>
+    <div class="fact"><b>52 rpm</b><span>top speed, no load</span></div>
+    <div class="fact"><b>0.088°</b><span>one sensor step</span></div>
+  </div>
+  <p>You can only send it a position: it has no current loop, so you can't ask for a force.<a class="src" href="#s-servogap">[Φ]</a> Its rotor feels <span class="num">119,025</span> times heavier from the output, one reason the arm is hard to move by hand even with the power off. Its gears allow up to 0.5° of slack, about <span class="num">0.87 mm</span> at a point 10 cm out. The model's gears are drawn at about 230:1, since Feetech doesn't publish the real tooth counts.</p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Backlash</dt><dd>Slack between gear teeth: the output can wiggle a little without the motor moving.</dd>
+      <dt>12-bit sensor</dt><dd>Counts \(2^{12}\) = 4096 steps per turn.</dd>
+      <dt>Position loop, P gain</dt><dd>The servo pushes in proportion to how far it is from the target; the P gain sets how hard.</dd>
+      <dt>Current loop</dt><dd>A controller that regulates current, and so torque. The STS3215 doesn't have one.</dd>
+    </dl>
+    <p class="intuit">One sensor step is a full turn split 4096 ways: \(360°/4096 =\) <span class="num">0.088°</span>. Slack at a distance is distance times angle: \(0.1\,\text{m} \times \tan 0.5° =\) <span class="num">0.87 mm</span>.</p>
+  </div></details>
+  <details class="layer"><summary>The code <em>what LeRobot writes into every servo</em></summary><div class="body">
+    <p><span class="mono">lerobot/robots/so_follower/so_follower.py</span>, lines 163–173, LeRobot 0.6.0 (trimmed):</p>
+<pre class="code">self.bus.write("Operating_Mode", motor, OperatingMode.POSITION.value)
+self.bus.write("P_Coefficient", motor, 16)
+self.bus.write("I_Coefficient", motor, 0)
+self.bus.write("D_Coefficient", motor, 32)
+if motor == "gripper":
+    self.bus.write("Max_Torque_Limit", motor, 500)  <span class="c"># 50% of max torque</span>
+    self.bus.write("Protection_Current", motor, 250)  <span class="c"># 50% of max current</span></pre>
+    <p>A loop with only a P gain needs an error to push, so a loaded joint settles slightly short of its target. We measured 16.43 mm of sag on our arm.<a class="src" href="#s-robomimic">[Φ]</a></p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>Listings say the STS3215 makes "30 kg·cm". Why doesn't our SO-101 get that?</p>
+    <div class="answer">That's the 12 V version at stall (<span class="num">2.94 N·m</span>).<a class="src" href="#s-dfrobot">[D]</a> The SO-101 uses the 7.4 V version: 19.5 kg·cm at stall, 5 kg·cm rated.<a class="src" href="#s-feetech">[F]</a></div>
+  </div></details>
+</section>
+
+<section class="ch" id="harmonic" data-scene="harmonic" data-short="Harmonic">
+  <p class="eyebrow">05 · Harmonic drive · 30–160:1</p>
+  <h2>How do you get 100:1 in one thin stage?</h2>
+  <p>Our servo needs four gear stages for 345:1, and each adds slack. A <strong>harmonic drive</strong> gets a high ratio in one stage with almost none. An oval cam spins inside a thin steel cup with teeth on the outside. The cup bends into an oval and meshes with a rigid ring only at the oval's two ends. The ring has two more teeth, so each cam turn the cup slips back two teeth.<a class="src" href="#s-hd">[H]</a></p>
+  <p>A 200-tooth cup in a 202-tooth ring gives <span class="num">100:1</span>; the model uses bigger teeth (20:1) so you can see the bend. The catch: the joint can't feel contact through its motor, so arms that need feel add torque sensors, as Franka does in all seven joints.<a class="src" href="#s-franka">[Fr]</a></p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Wave generator</dt><dd>The oval cam; the input.</dd>
+      <dt>Flexspline</dt><dd>The thin flexible cup; the output.</dd>
+      <dt>Circular spline</dt><dd>The rigid ring; fixed.</dd>
+      <dt>Strain wave</dt><dd>The other name: the gear works by bending (straining) the cup in a travelling wave.</dd>
+    </dl>
+    <p class="intuit">Each cam turn, the cup moves back \(Z_c - Z_f\) teeth out of its \(Z_f\). So a full cup turn takes \(Z_f / (Z_c - Z_f)\) cam turns:</p>
+    <p>\[ N = \frac{Z_f}{Z_c - Z_f} \]</p>
+    <p class="sym">\(Z_f\) cup teeth · \(Z_c\) ring teeth. The output turns opposite to the input. Typical ratios run 30:1 to 160:1 (320:1 on the maker's German site).<a class="src" href="#s-hd">[H]</a></p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>A 102-tooth ring and a 100-tooth cup: what ratio?</p>
+    <div class="answer"><span class="num">50:1</span>, turning opposite to the input.</div>
+  </div></details>
+</section>
+
+<section class="ch" id="cycloid" data-scene="cycloid" data-short="Cycloidal">
+  <p class="eyebrow">06 · Cycloidal drive</p>
+  <h2>Which reducer can you 3D-print and trust?</h2>
+  <p>A harmonic drive's thin cup is delicate and hard to make. A <strong>cycloidal drive</strong> uses a chunky disc instead. An off-centre cam makes a lobed disc wobble inside a ring of pins. The disc has one lobe fewer than there are pins, so each wobble walks it back one lobe, and pins through holes in the disc carry that slow turn to the output. The model has 11 lobes and 12 pins: <span class="num">11:1</span>.</p>
+  <p>Many lobes touch pins at once, sharing the load. That's why Berkeley Humanoid Lite prints its gearboxes this way: shared load suits plastic, and rounded lobes forgive a desktop printer's limited detail. Its 22-actuator robot costs <span class="num">$4,312</span> in US parts.<a class="src" href="#s-bhl">[B]</a></p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Eccentric cam</dt><dd>A disc mounted off-centre on the input shaft, so it makes the cycloidal disc wobble.</dd>
+      <dt>Lobe</dt><dd>One rounded bump on the disc's edge.</dd>
+      <dt>Two discs</dt><dd>Real drives usually stack two discs half a turn apart, so their wobbles cancel.</dd>
+    </dl>
+    <p class="intuit">Each wobble moves the disc back \(P - L\) lobes. A full turn of the disc is \(L\) lobes, so it takes \(L/(P-L)\) wobbles:</p>
+    <p>\[ N = \frac{L}{P - L} \]</p>
+    <p class="sym">\(L\) lobes · \(P\) pins.</p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>20 pins and 19 lobes: what ratio?</p>
+    <div class="answer"><span class="num">19:1</span>.</div>
+  </div></details>
+</section>
+
+<section class="ch" id="yam" data-scene="yam" data-short="YAM motors">
+  <p class="eyebrow">07 · The YAM's motors · 40:1 and 10:1</p>
+  <h2>What moves the YAM arms we're getting next?</h2>
+  <p>Our lab's next setup, the i2RT ABC Research Kit, is two YAM arms.<a class="src" href="#s-kit">[KIT]</a> Every joint is a <strong>Damiao</strong> motor: the four parts from section 01 sealed in a 57 mm can, with its own driver board and two encoders.<a class="src" href="#s-openarm">[OA]</a></p>
+  <div class="facts">
+    <div class="fact"><b>DM4340 ×3</b><span>base, shoulder, elbow · 40:1 · 27 N·m peak · 362 g</span></div>
+    <div class="fact"><b>DM4310 ×3</b><span>wrist · 10:1 · 7 N·m peak · 300 g</span></div>
+    <div class="fact"><b>DM4310 ×1</b><span>standard gripper</span></div>
+  </div>
+  <p>The DM4340 matches our servo's top speed (52 rpm) with <span class="num">14</span>× its torque, and its rotor feels <span class="num">1,600</span>× heavier instead of <span class="num">119,025</span>×. The 10:1 DM4310 is in quasi-direct-drive territory; OpenArm's docs say the 40:1 DM4340 is not.<a class="src" href="#s-openarm">[OA]</a></p>
+  <p>The real change is control. Instead of a position, the software sends each motor a target, two gains and an extra torque every 4 ms, and the motor turns that into current. It also cancels gravity and friction, so the arms start out floating: you teach a YAM by moving it by hand. If commands stop for 400 ms, the motors switch to damping and the arm sinks gently.<a class="src" href="#s-i2rt">[I]</a></p>
+  <p>Standard and Pro tiers list the same motors in the software; Ultra 2 adds a DM4340 at joint 4; BIG YAM uses DM6248 shoulders.<a class="src" href="#s-i2rtdoc">[ID]</a> A standard two-arm kit has <span class="num">6</span> DM4340s and <span class="num">8</span> DM4310s.</p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>CAN bus</dt><dd>The shared wire the motors and the computer talk over.</dd>
+      <dt>Gain</dt><dd>How strongly a controller reacts.</dd>
+      <dt>Gravity compensation</dt><dd>Adding exactly the torque that cancels the arm's weight.</dd>
+      <dt>Coulomb friction</dt><dd>The roughly constant drag a joint has whenever it moves.</dd>
+      <dt>Damping mode</dt><dd>The motor resists motion in proportion to speed, like moving through honey.</dd>
+    </dl>
+    <p class="intuit">Each motor acts like a virtual spring plus a shock absorber, plus an extra push:</p>
+    <p>\[ \tau = k_p\,(q_{target} - q) + k_d\,(\dot q_{target} - \dot q) + \tau_{ff} \]</p>
+    <p class="sym">\(q\) angle · \(\dot q\) speed · \(k_p\) the spring, pulling toward the target · \(k_d\) the shock absorber, resisting speed · \(\tau_{ff}\) the push the software adds for gravity and friction. YAM defaults: \(k_p\) 80, \(k_d\) 5 on the 40:1 joints; 10 and 1.5 at the wrist. Set \(k_p = k_d = 0\) and only \(\tau_{ff}\) is left: the arm floats.</p>
+  </div></details>
+  <details class="layer"><summary>The code <em>how the SDK sets up a YAM arm</em></summary><div class="body">
+    <p><span class="mono">i2rt/robots/config/yam_v1.yml</span>, lines 1–18, i2rt at commit fe78bae (trimmed):</p>
+<pre class="code">motor_list:
+  - [0x01, "DM4340"]
+  - [0x02, "DM4340"]
+  - [0x03, "DM4340"]
+  - [0x04, "DM4310"]
+  - [0x05, "DM4310"]
+  - [0x06, "DM4310"]
+kp: [80.0, 80.0, 80.0, 10.0, 10.0, 10.0]
+kd: [5.0, 5.0, 5.0, 1.5, 1.5, 1.5]
+coulomb_friction: [0.3, 0.3, 0.3, 0.06, 0.06, 0.06]</pre>
+    <p>At start-up the SDK reads each motor's gear-ratio register and refuses to run if a joint holds the wrong motor.</p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>Powered on, you can push a YAM arm by hand but not our SO-101 follower. Why?</p>
+    <div class="answer">The YAM's motors run torque control with gravity compensation at 40:1 and 10:1, so they can yield. The STS3215 holds a stiff position behind 345:1, with no torque mode.</div>
+  </div></details>
+</section>
+
+<section class="ch" id="qdd" data-scene="qdd" data-short="QDD">
+  <p class="eyebrow">08 · Quasi-direct drive · 6–10:1</p>
+  <h2>What if the motor could feel what the joint touches?</h2>
+  <p>Lower still is <strong>quasi-direct drive</strong> (QDD): a wide, flat motor with one planetary stage of about 6–10:1. The model shows 6:1: a sun gear in the middle, three planets, a fixed ring.</p>
+  <p>With so little gearing, force flows both ways: push the output and the motor turns, so motor current measures force. MIT's Cheetah (5.8:1) controlled its foot forces this way with no springs or force sensors, and absorbed landings by letting its legs give.<a class="src" href="#s-wensing">[W]</a></p>
+  <div class="facts">
+    <div class="fact"><b>17 N·m</b><span>Mini Cheetah joint peak; 40 rad/s top<a class="src" href="#s-kim">[K]</a></span></div>
+    <div class="fact"><b>22 N·m</b><span>CubeMars AK80-9 peak, 9:1, 490 g<a class="src" href="#s-cubemars">[C]</a></span></div>
+    <div class="fact"><b>250 W</b><span>Mini Cheetah actuator peak power<a class="src" href="#s-kim">[K]</a></span></div>
+  </div>
+  <p>A surprise: per kilogram, our servo's stall torque (<span class="num">35 N·m/kg</span>) is close to a QDD module's (<span class="num">45</span>). What it lacks is speed and feel: roughly <span class="num">2.6 W</span> of peak power, about <span class="num">96</span>× less than a Mini Cheetah joint. QDD's costs are bigger motors, current spent just holding loads, and a higher price.</p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Planetary gear</dt><dd>A central sun gear drives planet gears that roll inside a ring; the frame holding the planets is the output.</dd>
+      <dt>Quasi-direct</dt><dd>"Almost direct": so little gearing that the motor still feels the load.</dd>
+      <dt>Proprioceptive</dt><dd>Sensing force through the motor itself, with no separate force sensor.</dd>
+      <dt>Peak power</dt><dd>The most work per second the actuator can do.</dd>
+    </dl>
+    <p class="intuit">Current reads as joint torque only if little is lost in the gears; friction is multiplied by \(N\) too, so at high ratios it drowns the signal:</p>
+    <p>\[ \tau_{joint} \approx \eta\,N\,K_t\,I \]</p>
+    <p class="intuit">Peak power, assuming torque falls in a straight line from stall to top speed: power peaks at half of each, and half times half is a quarter.</p>
+    <p>\[ P_{max} \approx \tfrac14\,\tau_{stall}\,\omega_0 \]</p>
+    <p class="sym">For our servo: <span class="num">1.91 × 5.45 / 4 ≈ 2.6 W</span> (an estimate, not a measurement).</p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>Why does a QDD leg survive landing from a jump better than one with a 100:1 gearbox?</p>
+    <div class="answer">At 100:1 the rotor feels <span class="num">10,000</span>× heavier, so the leg can't give and the gear teeth take the impact. At 6:1 it feels <span class="num">36</span>× heavier, so the impact turns the motor back and the controller absorbs it.</div>
+  </div></details>
+</section>
+
+<p class="part">Part 3 · Other ways to move a joint</p>
+<section class="ch" id="screw" data-scene="screw" data-short="Screws">
+  <p class="eyebrow">09 · Screws</p>
+  <h2>How can a small motor lift a piano?</h2>
+  <p>Sometimes a robot needs a straight push, like a muscle. A screw makes one: each turn moves the nut one <em>lead</em>, a few millimetres. A motor making 1 N·m on a 4 mm lead pushes with about <span class="num">1,414 N</span>.</p>
+  <p>Ball screws roll balls between screw and nut. <strong>Planetary roller screws</strong>, in the model, use threaded rollers, which carry more load and shock in the same size.<a class="src" href="#s-roller">[R]</a> At AI Day 2022, Tesla showed an Optimus actuator lifting a half-ton piano.<a class="src" href="#s-tesla">[T]</a> Outsiders infer a roller screw inside; Tesla hasn't said.<a class="src" href="#s-firgelli">[Fi]</a></p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Lead</dt><dd>How far the nut travels per screw turn.</dd>
+      <dt>Ball screw</dt><dd>Steel balls roll in the thread, so there is little friction.</dd>
+      <dt>Roller screw</dt><dd>Threaded rollers replace the balls, with more contact for more load.</dd>
+    </dl>
+    <p class="intuit">Work in equals work out. One turn puts in \(2\pi\) times the torque and moves the nut one lead:</p>
+    <p>\[ F\,\ell = 2\pi\,\eta\,\tau \;\Rightarrow\; F = \frac{2\pi\,\eta\,\tau}{\ell} \]</p>
+    <p class="sym">\(F\) push · \(\ell\) lead · \(\eta\) efficiency. With 1 N·m, 4 mm and 90%: <span class="num">1,414 N</span> (example numbers).</p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>You halve the lead. What happens to force and speed?</p>
+    <div class="answer">Force doubles and speed halves, exactly like doubling a gear ratio.</div>
+  </div></details>
+</section>
+
+<section class="ch" id="sea" data-scene="sea" data-short="Springs">
+  <p class="eyebrow">10 · Series elastic</p>
+  <h2>Why put a spring in a joint on purpose?</h2>
+  <p>Another way to make a stiff joint feel: put a spring between gearbox and load. How much it squeezes tells you the force, and it takes shocks before the gear teeth do.</p>
+  <p>Pratt and Williamson introduced the idea in 1995 for MIT's Cog robot.<a class="src" href="#s-pratt">[P]</a> Rethink's Baxter had one in every joint;<a class="src" href="#s-baxter">[Ba]</a> its successor Sawyer moved to titanium springs.<a class="src" href="#s-sawyer">[S]</a> ANYbotics' ANYdrive gives 40 N·m peak in 0.9 kg.<a class="src" href="#s-anydrive">[A]</a> The cost: a springy joint positions more slowly and less precisely.</p>
+  <details class="layer"><summary>Go deeper <em>terms and maths</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Stiffness, \(k\)</dt><dd>How much torque it takes to twist the spring by a given angle.</dd>
+      <dt>Deflection</dt><dd>How far the spring is twisted or squeezed.</dd>
+    </dl>
+    <p class="intuit">A spring is a scale: torque equals stiffness times twist.</p>
+    <p>\[ \tau = k\,\Delta\theta \]</p>
+    <p class="sym">Stiffer springs measure and position better, but take shocks worse.</p>
+  </div></details>
+  <details class="layer"><summary>Check yourself <em>one question</em></summary><div class="body">
+    <p>A 300 N·m/rad spring twisted 0.05 rad: what torque?</p>
+    <div class="answer"><span class="num">15 N·m</span> (example numbers).</div>
+  </div></details>
+</section>
+
+<section class="ch" id="family" data-scene="family" data-short="Others">
+  <p class="eyebrow">11 · The rest of the family</p>
+  <h2>What else moves robots?</h2>
+  <div class="mini">
+    <figure>
+      <svg viewBox="0 0 160 110" role="img" aria-label="Hydraulic cylinder">
+        <rect x="18" y="38" width="86" height="34" class="pap"/><rect x="20" y="40" width="46" height="30" class="soft"/>
+        <rect x="64" y="40" width="6" height="30" class="inkf"/><line x1="70" y1="55" x2="146" y2="55" class="ink" style="stroke-width:5"/>
+        <path d="M30 38 V22 H8" class="cus"/><text x="8" y="16">oil in</text><text x="96" y="92">rod pushes</text>
+      </svg>
+      <figcaption><b>Hydraulic</b>Oil under pressure pushes a piston: huge force for its size, but pumps, hoses and leaks. Boston Dynamics retired its hydraulic Atlas in April 2024.<a class="src" href="#s-bd">[BD]</a></figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 160 110" role="img" aria-label="Direct-drive motor">
+        <circle cx="62" cy="58" r="40" class="pap"/><circle cx="62" cy="58" r="28" class="soft"/><circle cx="62" cy="58" r="5" class="inkf"/>
+        <line x1="62" y1="58" x2="150" y2="22" class="ink" style="stroke-width:6"/><text x="98" y="96">no gears</text>
+      </svg>
+      <figcaption><b>Direct drive</b>No gears at all: perfect feel and speed, but a large motor for the torque. Ghost Robotics' Minitaur legs work this way.<a class="src" href="#s-minitaur">[M]</a></figcaption>
+    </figure>
+    <figure>
+      <svg viewBox="0 0 160 110" role="img" aria-label="Tendon drive">
+        <circle cx="30" cy="80" r="16" class="pap"/><circle cx="118" cy="30" r="16" class="pap"/>
+        <line x1="24" y1="65" x2="112" y2="15" class="cus"/><line x1="36" y1="95" x2="124" y2="45" class="cus"/>
+        <line x1="118" y1="30" x2="150" y2="62" class="ink" style="stroke-width:6"/><text x="4" y="108">motor</text><text x="100" y="74">finger</text>
+      </svg>
+      <figcaption><b>Tendons</b>Motors in the forearm pull cables to the fingers, keeping the hand light. Tesla's Optimus hand prototype: 6 actuators for 11 joints.<a class="src" href="#s-tesla">[T]</a></figcaption>
+    </figure>
+  </div>
+  <p>Boston Dynamics' product Atlas, shown in January 2026, is all-electric, with 56 degrees of freedom, and lifts 50 kg.<a class="src" href="#s-bd">[BD]</a></p>
+  <details class="layer"><summary>Go deeper <em>terms</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Degrees of freedom</dt><dd>The number of independent ways a robot can move, roughly its number of joints.</dd>
+      <dt>Tendon</dt><dd>A cable that transmits pull from a distant motor, like the tendons in your forearm.</dd>
+    </dl>
+  </div></details>
+</section>
+
+<p class="part">Part 4 · Putting it together</p>
+<section class="ch" id="whole" data-scene="anatomy" data-short="The whole">
+  <p class="eyebrow">12 · The whole picture</p>
+  <h2>So which one should a robot use?</h2>
+  <p>Each design buys something by giving something up.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Design</th><th>Pick it when</th><th>It gives up</th><th>Seen in</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Geared servo</strong></td><td>Cost matters most; position control is enough</td><td>Speed, feel, force control</td><td>SO-101, Dynamixel arms</td></tr>
+      <tr><td><strong>Harmonic drive</strong></td><td>High ratio and precision in a compact joint</td><td>Feel (needs torque sensors)</td><td>Compact arm joints</td></tr>
+      <tr><td><strong>Cycloidal drive</strong></td><td>Load shared over many lobes; printable builds</td><td>Some wobble vibration</td><td>Berkeley Humanoid Lite</td></tr>
+      <tr><td><strong>Integrated geared brushless</strong></td><td>Torque control at moderate cost</td><td>Some feel at 40:1</td><td>YAM (Damiao)</td></tr>
+      <tr><td><strong>Quasi-direct drive</strong></td><td>The joint must feel contact and survive impacts</td><td>Torque per motor</td><td>MIT Mini Cheetah</td></tr>
+      <tr><td><strong>Roller screw</strong></td><td>A very strong straight push</td><td>Speed</td><td>Optimus (inferred)</td></tr>
+      <tr><td><strong>Series elastic</strong></td><td>Accurate force, safety near people</td><td>Positioning speed</td><td>Baxter, Sawyer, ANYdrive</td></tr>
+      <tr><td><strong>Hydraulic</strong></td><td>Extreme power in a small joint</td><td>Pumps, leaks, noise</td><td>Atlas until 2024</td></tr>
+      <tr><td><strong>Direct drive</strong></td><td>Perfect feel and speed</td><td>Size for the torque</td><td>Minitaur</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Actuator</th><th>Ratio</th><th>Peak torque</th><th>Mass</th><th>N·m per kg</th><th>Rotor feels</th><th>Price</th></tr></thead>
+    <tbody>
+      <tr><td>Feetech STS3215, 7.4 V<a class="src" href="#s-feetech">[F]</a></td><td class="n">345</td><td class="n">1.91 (stall)</td><td class="n">55 g</td><td class="n">35</td><td class="n">×119,025</td><td class="n">$14</td></tr>
+      <tr><td>Dynamixel XM430-W350<a class="src" href="#s-robotis">[Ro]</a></td><td class="n">353.5</td><td class="n">4.1 (stall)</td><td class="n">82 g</td><td class="n">50</td><td class="n">×124,962</td><td class="n">$310</td></tr>
+      <tr><td>Damiao DM4340 (YAM)<a class="src" href="#s-openarm">[OA]</a></td><td class="n">40</td><td class="n">27</td><td class="n">362 g</td><td class="n">75</td><td class="n">×1,600</td><td class="n">not listed</td></tr>
+      <tr><td>Damiao DM4310 (YAM)<a class="src" href="#s-openarm">[OA]</a></td><td class="n">10</td><td class="n">7</td><td class="n">300 g</td><td class="n">23</td><td class="n">×100</td><td class="n">not listed</td></tr>
+      <tr><td>MIT Mini Cheetah<a class="src" href="#s-kim">[K]</a></td><td class="n">6*</td><td class="n">17</td><td class="n">480 g*</td><td class="n">35</td><td class="n">×36</td><td class="n">~$300*</td></tr>
+      <tr><td>CubeMars AK80-9<a class="src" href="#s-cubemars">[C]</a></td><td class="n">9</td><td class="n">22</td><td class="n">490 g</td><td class="n">45</td><td class="n">×81</td><td class="n">not listed</td></tr>
+      <tr><td>ANYbotics ANYdrive<a class="src" href="#s-anydrive">[A]</a></td><td class="n">not given</td><td class="n">40</td><td class="n">900 g</td><td class="n">44</td><td class="n">not given</td><td class="n">not listed</td></tr>
+    </tbody>
+  </table></div>
+  <p class="tnote">Torque in N·m. "Rotor feels" is \(N^2\). * Secondary source <a href="#s-hg">[HG]</a>. Servo torques are stall values; the others are peak.</p>
+  <details class="layer"><summary>Go deeper <em>terms</em></summary><div class="body">
+    <dl class="terms">
+      <dt>Torque per kg</dt><dd>Peak torque divided by the actuator's mass: how strong it is for its weight.</dd>
+      <dt>Peak, stall</dt><dd>Peak is the most torque the driver allows for short bursts; stall is the most at zero speed. Both are well above what an actuator can hold continuously.</dd>
+    </dl>
+  </div></details>
+</section>
+
+<section class="ch" id="ours" data-scene="yam" data-short="Our arms">
+  <p class="eyebrow">13 · Back to our arms</p>
+  <h2>What does this mean for our arms?</h2>
+  <ul>
+    <li><strong>The SO-101 is a position arm.</strong> Fine for cheap imitation learning; not for force control.</li>
+    <li><strong>Its leader is easy to move because of \(N^2\):</strong> the 1/147 wrist feels about 5.5× lighter than the follower's 1/345.</li>
+    <li><strong>The YAM can be taught by hand and made soft on contact,</strong> and its motor currents give a rough sense of force. None of that is possible on the STS3215.</li>
+    <li><strong>The YAM isn't a QDD arm.</strong> At the 40:1 shoulder the SDK compensates 0.3 N·m of friction, five times the wrist's 0.06, so force estimates should be cleaner at the wrist.</li>
+  </ul>
+</section>
+
+<section class="ch sources" id="checked" data-scene="anatomy" data-short="Checks">
+  <p class="eyebrow">How this page was checked</p>
+  <h2>Every number, recomputed</h2>
+  <p>A script recomputes every derived number, tests the 3D models' gear geometry, and reads the YAM's motor layout straight from the i2rt code. The page won't build if a check fails. Today: <strong>54 of 54 checks pass</strong>.</p>
+  <details class="layer"><summary>Show all checks <em>54 of 54 checks pass</em></summary><div class="body">
+    <div class="tablewrap"><table>
+      <thead><tr><th>Check</th><th>Result</th><th></th></tr></thead>
+      <tbody><tr><td>A 1 kg bag held 10 cm from a pivot: 1 × 9.81 × 0.1</td><td class="n">0.98</td><td class="pass">PASS</td></tr><tr><td>Encoder step: 360 deg / 4096</td><td class="n">0.088°</td><td class="pass">PASS</td></tr><tr><td>STS3215 7.4 V stall torque: 19.5 kg.cm in N.m</td><td class="n">1.91</td><td class="pass">PASS</td></tr><tr><td>STS3215 7.4 V rated torque: 5 kg.cm in N.m</td><td class="n">0.49</td><td class="pass">PASS</td></tr><tr><td>STS3215 12 V stall torque: 30 kg.cm in N.m</td><td class="n">2.94</td><td class="pass">PASS</td></tr><tr><td>Datasheet Kt (8 kg.cm/A) vs stall torque / stall current</td><td class="n">0.785 vs 0.765 N·m/A (2.5% apart)</td><td class="pass">PASS</td></tr><tr><td>No-load speed from 0.192 s per 60 deg</td><td class="n">52</td><td class="pass">PASS</td></tr><tr><td>No-load speed in rad/s</td><td class="n">5.45</td><td class="pass">PASS</td></tr><tr><td>Peak mechanical power estimate, straight-line torque-speed curve (tau_stall * w0 / 4)</td><td class="n">2.6</td><td class="pass">PASS</td></tr><tr><td>0.5 deg of backlash seen 10 cm from the joint</td><td class="n">0.87</td><td class="pass">PASS</td></tr><tr><td>STS3215 stall torque per kg</td><td class="n">35</td><td class="pass">PASS</td></tr><tr><td>Reflected rotor inertia multiplier at 345:1 (N^2)</td><td class="n">119,025</td><td class="pass">PASS</td></tr><tr><td>Follower (1/345) vs leader (1/147) wrist, felt inertia ratio</td><td class="n">5.5</td><td class="pass">PASS</td></tr><tr><td>Reflected rotor inertia multiplier at 9:1</td><td class="n">81</td><td class="pass">PASS</td></tr><tr><td>Servo vs 9:1 QDD, felt rotor inertia per unit rotor inertia</td><td class="n">1,469</td><td class="pass">PASS</td></tr><tr><td>Reflected rotor inertia multiplier at 6:1</td><td class="n">36</td><td class="pass">PASS</td></tr><tr><td>Reflected rotor inertia multiplier at 100:1</td><td class="n">10,000</td><td class="pass">PASS</td></tr><tr><td>XM430-W350 stall torque per kg (4.1 / 0.082)</td><td class="n">50</td><td class="pass">PASS</td></tr><tr><td>Mini Cheetah torque per kg (17 / 0.48, mass from a secondary source)</td><td class="n">35</td><td class="pass">PASS</td></tr><tr><td>AK80-9 peak torque per kg (22 / 0.49)</td><td class="n">45</td><td class="pass">PASS</td></tr><tr><td>ANYdrive peak torque per kg (40 / 0.9)</td><td class="n">44</td><td class="pass">PASS</td></tr><tr><td>XM430 reflected inertia multiplier (353.5^2)</td><td class="n">124,962</td><td class="pass">PASS</td></tr><tr><td>Mini Cheetah max power (250 W) vs STS3215 estimate</td><td class="n">96</td><td class="pass">PASS</td></tr><tr><td>Harmonic ratio, 200-tooth flexspline in a 202-tooth ring: 200/(202-200)</td><td class="n">100</td><td class="pass">PASS</td></tr><tr><td>Harmonic ratio in the model: 40/(42-40)</td><td class="n">20</td><td class="pass">PASS</td></tr><tr><td>Check yourself: 100/(102-100)</td><td class="n">50</td><td class="pass">PASS</td></tr><tr><td>Cycloid ratio in the model: 11 lobes, 12 pins, 11/(12-11)</td><td class="n">11</td><td class="pass">PASS</td></tr><tr><td>Check yourself: 19 lobes, 20 pins</td><td class="n">19</td><td class="pass">PASS</td></tr><tr><td>Planetary ratio in the QDD model: 1 + 60/12</td><td class="n">6</td><td class="pass">PASS</td></tr><tr><td>Planetary ratio in the anatomy model: 1 + 48/12</td><td class="n">5</td><td class="pass">PASS</td></tr><tr><td>QDD planetary: Zr = Zs + 2Zp and (Zs+Zr)/3 is whole (3 planets fit)</td><td class="n">12+2×24=60, (12+60)/3=24</td><td class="pass">PASS</td></tr><tr><td>anatomy planetary: Zr = Zs + 2Zp and (Zs+Zr)/3 is whole (3 planets fit)</td><td class="n">12+2×18=48, (12+48)/3=20</td><td class="pass">PASS</td></tr><tr><td>Gear train in the servo model: 40/10 × 40/10 × 36/10 × 48/12</td><td class="n">230</td><td class="pass">PASS</td></tr><tr><td>Gear pair in the trade model: 48/12</td><td class="n">4</td><td class="pass">PASS</td></tr><tr><td>Screw push: 2*pi*eta*tau/lead with tau = 1 N.m, lead = 4 mm, eta = 0.9</td><td class="n">1,414</td><td class="pass">PASS</td></tr><tr><td>Rotary spring: 300 N.m/rad × 0.05 rad</td><td class="n">15</td><td class="pass">PASS</td></tr><tr><td>i2rt yam_v1.yml: joints 1-3 are DM4340, joints 4-6 DM4310</td><td class="n">DM4340 DM4340 DM4340 DM4310 DM4310 DM4310</td><td class="pass">PASS</td></tr><tr><td>i2rt yam_v1.yml: friction compensation, 40:1 joints vs wrist (N.m)</td><td class="n">0.3,0.3,0.3,0.06,0.06,0.06</td><td class="pass">PASS</td></tr><tr><td>i2rt yam_v1.yml: default kp / kd</td><td class="n">80.0,80.0,80.0,10.0,10.0,10.0/5.0,5.0,5.0,1.5,1.5,1.5</td><td class="pass">PASS</td></tr><tr><td>i2rt utils.py gear-ratio table: DM4310, DM4340, DM6248</td><td class="n">10.0 / 40.0 / 48.0</td><td class="pass">PASS</td></tr><tr><td>i2rt dm_driver.py control loop rate (Hz) and period</td><td class="n">250 Hz, 4 ms</td><td class="pass">PASS</td></tr><tr><td>DM4340 felt rotor mass multiplier (40^2)</td><td class="n">1,600</td><td class="pass">PASS</td></tr><tr><td>DM4310 felt rotor mass multiplier (10^2)</td><td class="n">100</td><td class="pass">PASS</td></tr><tr><td>DM4340 peak torque per kg (27 / 0.362)</td><td class="n">75</td><td class="pass">PASS</td></tr><tr><td>DM4310 peak torque per kg (7 / 0.300)</td><td class="n">23</td><td class="pass">PASS</td></tr><tr><td>DM4340 peak torque vs STS3215 stall torque (27 / 1.91)</td><td class="n">14</td><td class="pass">PASS</td></tr><tr><td>Peak power estimate, DM4340 (27 N.m × 52 rpm / 4) and DM4310 (7 N.m × 200 rpm / 4)</td><td class="n">37</td><td class="pass">PASS</td></tr><tr><td>Damiao peak power estimate vs STS3215 estimate</td><td class="n">14</td><td class="pass">PASS</td></tr><tr><td>SDK friction compensation, shoulder vs wrist (0.3 / 0.06)</td><td class="n">5</td><td class="pass">PASS</td></tr><tr><td>DM4340s in a two-arm kit (3 per arm)</td><td class="n">6</td><td class="pass">PASS</td></tr><tr><td>DM4310s in a two-arm kit (3 wrist + 1 gripper per arm)</td><td class="n">8</td><td class="pass">PASS</td></tr><tr><td>Cycloid model: closest disc-to-pin gap over a full input turn (0 = touching, &lt; 0 = cutting in)</td><td class="n">-0.0000 (touching, never cutting in)</td><td class="pass">PASS</td></tr><tr><td>Harmonic model: flexspline-vs-ring tooth phase at the major axis, spread over two turns</td><td class="n">1.4e-14 teeth (offset -0.50 = tooth in gap)</td><td class="pass">PASS</td></tr><tr><td>Servo model: smallest gap between any shaft and a gear it does not carry</td><td class="n">0.200 units</td><td class="pass">PASS</td></tr></tbody>
+    </table></div>
+  </div></details>
+  <h3>Corrections to common claims</h3>
+  <ul>
+    <li>"30 kg·cm" is the 12 V STS3215 at stall. The SO-101's 7.4 V version stalls at 19.5 kg·cm and is rated 5 kg·cm.</li>
+    <li>Sources disagree on whether the STS3215's motor is iron-core or coreless, and none says brushed.</li>
+    <li>Tesla hasn't published Optimus's actuator internals; "roller screw" is an outside inference.</li>
+    <li>Not every Damiao joint motor is QDD: OpenArm says the 40:1 DM4340 isn't.</li>
+    <li>The torque limits in the i2rt driver (28 and 10 N·m) are the CAN command's scaling range, not ratings; the datasheet peaks are 27 and 7.</li>
+  </ul>
+  <h3>Sources</h3>
+  <ol>
+    <li id="s-feetech">[F] Feetech STS3215 spec sheet (translated, hosted by Core Electronics). <a href="https://core-electronics.com.au/attachments/uploads/sts3215-smart-servo-datasheet-translated.pdf" target="_blank" rel="noopener">core-electronics.com.au</a></li>
+    <li id="s-dfrobot">[D] DFRobot, ST3215 12 V servo listing. <a href="https://www.dfrobot.com/product-2962.html" target="_blank" rel="noopener">dfrobot.com</a></li>
+    <li id="s-lerobot">[L] LeRobot SO-101 documentation: follower 1/345; leader 1/191, 1/345 and 1/147. <a href="https://huggingface.co/docs/lerobot/so101" target="_blank" rel="noopener">huggingface.co/docs/lerobot/so101</a></li>
+    <li id="s-bom">[BOM] SO-ARM100 bill of materials (servo price). <a href="https://github.com/TheRobotStudio/SO-ARM100" target="_blank" rel="noopener">github.com/TheRobotStudio/SO-ARM100</a></li>
+    <li id="s-servogap">[Φ] Our own bring-up notes on the STS3215: position loop only, no current loop, no FOC.</li>
+    <li id="s-robomimic">[Φ] Our own measurement: 16.43 mm of gravity sag under the stock gains (robo_mimic, phase 7).</li>
+    <li id="s-robotis">[Ro] Robotis XM430-W350 e-manual. <a href="https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/" target="_blank" rel="noopener">emanual.robotis.com</a>; price from <a href="https://robotis.us/dynamixel-xm430-w350-t/" target="_blank" rel="noopener">robotis.us</a></li>
+    <li id="s-wensing">[W] Wensing et al. Proprioceptive actuator design in the MIT Cheetah. IEEE T-RO, 2017 (eq. 43; 5.8:1; the 76.2 cm figure). <a href="https://fab.cba.mit.edu/classes/865.18/motion/papers/mit-cheetah-actuator.pdf" target="_blank" rel="noopener">author's copy</a></li>
+    <li id="s-kim">[K] Kim et al., 2019 (Mini Cheetah: 17 N·m, 40 rad/s, 250 W). <a href="https://arxiv.org/pdf/1909.06586" target="_blank" rel="noopener">arXiv:1909.06586</a></li>
+    <li id="s-hg">[HG] humanoid.guide on quasi-direct-drive actuators (Mini Cheetah 6:1, 480 g, ~$300). <a href="https://humanoid.guide/quasi-direct-drive-actuators-humanoid-robots/" target="_blank" rel="noopener">humanoid.guide</a></li>
+    <li id="s-cubemars">[C] CubeMars AK80-9 product page. <a href="https://www.cubemars.com/goods-1031-AK80-9.html" target="_blank" rel="noopener">cubemars.com</a></li>
+    <li id="s-hd">[H] Harmonic Drive: how it works; products (30:1 to 160:1); German site (to 320:1). <a href="https://www.harmonicdrive.net/technology/harmonicdrive" target="_blank" rel="noopener">harmonicdrive.net</a>, <a href="https://legacy.harmonicdrive.net/products/" target="_blank" rel="noopener">products</a>, <a href="https://harmonicdrive.de/en/technology/harmonic-drive-strain-wave-gears" target="_blank" rel="noopener">harmonicdrive.de</a></li>
+    <li id="s-franka">[Fr] Franka Research 3 datasheet: torque sensors in all 7 axes. <a href="https://franka.de/hubfs/Datasheet%20Franka%20Research%203_R02212_2.4_EN.pdf" target="_blank" rel="noopener">franka.de</a></li>
+    <li id="s-bhl">[B] Chi et al. Berkeley Humanoid Lite, 2025. <a href="https://arxiv.org/html/2504.17249" target="_blank" rel="noopener">arXiv:2504.17249</a></li>
+    <li id="s-i2rt">[I] i2rt SDK at commit fe78bae: <span class="mono">robots/config/yam_v1.yml</span> lines 1–18; <span class="mono">motor_drivers/utils.py</span> lines 253–258; <span class="mono">dm_driver.py</span> line 33 (250 Hz); <span class="mono">motor_chain_robot.py</span> line 111 (zero-gravity default); README (400 ms timeout). <a href="https://github.com/i2rt-robotics/i2rt" target="_blank" rel="noopener">github.com/i2rt-robotics/i2rt</a></li>
+    <li id="s-openarm">[OA] OpenArm 2.0 docs, motor page: Damiao DM-J4310-2EC V1.1 and DM-J4340-2EC specs. <a href="https://abetomo.github.io/openarm/hardware/openarm-2.0/motor" target="_blank" rel="noopener">OpenArm docs</a></li>
+    <li id="s-kit">[KIT] Robotics Center, i2RT ABC Research Kit. <a href="https://roboticscenter.ai/store/product/i2rt-abc-research-kit" target="_blank" rel="noopener">roboticscenter.ai</a></li>
+    <li id="s-i2rtdoc">[ID] I2RT docs, YAM arm series. <a href="https://doc.i2rt.com/products/yam.html" target="_blank" rel="noopener">doc.i2rt.com</a></li>
+    <li id="s-roller">[R] Machine Design on roller vs ball screws (manufacturer-written). <a href="https://www.machinedesign.com/archive/mechanical-drives-combine-efficiency-and-reliability" target="_blank" rel="noopener">machinedesign.com</a></li>
+    <li id="s-tesla">[T] Robotics 24/7 on Tesla AI Day 2022. <a href="https://www.robotics247.com/article/tesla_ai_day_2022_optimus_robot" target="_blank" rel="noopener">robotics247.com</a></li>
+    <li id="s-firgelli">[Fi] Firgelli on Tesla Bot actuators (an inference). <a href="https://www.firgelliauto.com/blogs/actuators/how-do-tesla-bot-actuators-actually-work" target="_blank" rel="noopener">firgelliauto.com</a></li>
+    <li id="s-pratt">[P] Pratt and Williamson. Series Elastic Actuators, 1995. <a href="https://apps.dtic.mil/sti/tr/pdf/ADA299658.pdf" target="_blank" rel="noopener">DTIC</a></li>
+    <li id="s-baxter">[Ba] National Academies chapter on Baxter's series elastic actuators. <a href="https://www.nap.edu/read/18985/chapter/5" target="_blank" rel="noopener">nap.edu</a></li>
+    <li id="s-sawyer">[S] IEEE Spectrum on Sawyer's springs. <a href="https://spectrum.ieee.org/sawyer-rethink-robotics-new-robot" target="_blank" rel="noopener">spectrum.ieee.org</a></li>
+    <li id="s-anydrive">[A] ECHORD++ D3.3, ANYdrive. <a href="https://echord.eu/public/wp-content/uploads/2018/01/D3.3-Integrated-Electronics-MODUL.pdf" target="_blank" rel="noopener">echord.eu</a></li>
+    <li id="s-bd">[BD] Boston Dynamics on electric Atlas (April 2024) and the Atlas product page. <a href="https://bostondynamics.com/blog/electric-new-era-for-atlas/" target="_blank" rel="noopener">bostondynamics.com</a>, <a href="https://bostondynamics.com/products/atlas/" target="_blank" rel="noopener">product</a></li>
+    <li id="s-minitaur">[M] Kenneally, De, Koditschek. Direct-drive legged robots. IEEE RA-L, 2016. <a href="https://kodlab.seas.upenn.edu/design-principles-for-a-family-of-direct-drive-legged-robots/" target="_blank" rel="noopener">kodlab.seas.upenn.edu</a></li>
+  </ol>
+</section>
+
+</article>
+
+
+</div>
+
+<footer class="phi-foot" style="border-top:1px solid var(--rule);margin-top:48px;padding:22px 0 36px;font-family:var(--f-mono),ui-monospace,monospace;font-size:12px;letter-spacing:.04em;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:space-between;max-width:1400px;margin-left:auto;margin-right:auto">
+  <span>Written by Yashvardhan Gupta &middot; &Phi; Physical Hardware Intelligence, Northeastern University Silicon Valley</span>
+  <span>Layout inspired by <a href="https://www.humanityslastmachine.com" target="_blank" rel="noopener" style="color:var(--muted)">Humanity's Last Machine</a> &middot; <a href="index.html#deep" style="color:var(--muted)">More deep dives</a></span>
+</footer>
+
+<script>
+window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]], displayMath: [["\\[", "\\]"]] }, svg: { fontCache: "global" } };
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* servo gear layout from checks.py */
+window.SERVO_LAYOUT = [[0.0, 0.0], [1.2074, 0.3235], [2.5064, -0.4265], [2.5064, -2.0365], [0.4064, -2.0365]];
+</script>
+<script>
+(() => {
+'use strict';
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sections = [...document.querySelectorAll('.ch[data-scene]')];
+
+/* ---------------- progress bar, chips ---------------- */
+const bar = document.getElementById('bar');
+const chips = document.getElementById('chips');
+sections.forEach(s => {
+  const li = document.createElement('li');
+  const a = document.createElement('a'); a.href = '#' + s.id; a.textContent = s.dataset.short; li.appendChild(a); bar.appendChild(li);
+  if (s.id !== 'checked') { const c = document.createElement('a'); c.href = '#' + s.id; c.textContent = s.dataset.short; chips.appendChild(c); }
+});
+const barLinks = [...bar.querySelectorAll('a')];
+
+/* ---------------- gear-ratio explorer ---------------- */
+const NMAX = 400, slider = document.getElementById('ratio');
+const fmt = x => x >= 100 ? Math.round(x).toLocaleString('en-US') : x >= 10 ? x.toFixed(0) : x.toFixed(x < 1 ? 3 : 1);
+function setRatio(N, fromSlider) {
+  N = Math.max(1, Math.min(NMAX, N));
+  if (!fromSlider) slider.value = Math.round(1000 * Math.log(N) / Math.log(NMAX));
+  const Nr = N >= 10 ? Math.round(N) : Math.round(N * 10) / 10;
+  document.getElementById('ratio-val').textContent = fmt(Nr);
+  const L = v => Math.log(v) / Math.log(NMAX);
+  const rows = [['torque', '×' + fmt(Nr), L(Math.max(Nr, 1))], ['speed', '×' + (1 / Nr < 0.01 ? (1 / Nr).toFixed(4) : (1 / Nr).toFixed(3)), 1 - L(Math.max(Nr, 1))],
+                ['inertia', '×' + fmt(Nr * Nr), Math.log(Nr * Nr) / Math.log(NMAX * NMAX)]];
+  for (const [k, txt, f] of rows) {
+    document.getElementById('m-' + k).textContent = txt;
+    document.getElementById('f-' + k).style.width = (Math.max(0.012, Math.min(1, f)) * 100).toFixed(1) + '%';
+  }
+  let say;
+  if (Nr <= 1.5) say = 'No gears. You can push the joint as easily as the bare rotor, and the motor feels every touch, but it needs a very large motor for useful torque.';
+  else if (Nr <= 12) say = `Quasi-direct drive territory. The rotor feels ${fmt(Nr * Nr)} times heavier from the output: light enough to push by hand, and to read force from the motor current.`;
+  else if (Nr <= 60) say = `A middle ratio. ${fmt(Nr)} times the torque, but the rotor already feels ${fmt(Nr * Nr)} times heavier. Most joints in this range can still be backdriven with effort.`;
+  else if (Nr <= 200) say = `Harmonic-drive territory. Strong and precise, but the rotor feels ${fmt(Nr * Nr)} times heavier: the joint can't feel contact through its motor.`;
+  else say = `Hobby-servo territory, like our SO-101. The rotor feels ${fmt(Nr * Nr)} times heavier from the output: the joint is stiff to push and can only be told where to go.`;
+  document.getElementById('ratio-say').textContent = say;
+  document.querySelectorAll('#presets button').forEach(b => b.classList.toggle('on', Math.abs(+b.dataset.n - Nr) < 0.01));
+}
+slider.addEventListener('input', () => { const N = Math.exp(slider.value / 1000 * Math.log(NMAX)); setRatio(N, true); });
+document.getElementById('presets').addEventListener('click', e => { const b = e.target.closest('button'); if (b) setRatio(+b.dataset.n, false); });
+setRatio(345, false);
+
+/* ---------------- 3D ---------------- */
+const stage = document.getElementById('stage');
+const canvas = document.getElementById('stage-gl');
+const labelLayer = document.getElementById('stage-labels');
+const nameEl = document.getElementById('stage-name'), kickEl = document.getElementById('stage-kicker'), capEl = document.getElementById('stage-cap');
+const playBtn = document.getElementById('btn-play');
+let activeKey = null;
+
+function trackSections(onScene) {
+  const vis = new Map();
+  const io = new IntersectionObserver(entries => {
+    for (const e of entries) vis.set(e.target, e.isIntersecting ? e.intersectionRect.height : 0);
+    let best = null, bh = 0;
+    for (const [el, h] of vis) if (h > bh) { bh = h; best = el; }
+    if (!best) return;
+    const i = sections.indexOf(best);
+    barLinks.forEach((a, j) => { a.classList.toggle('on', j === i); a.classList.toggle('done', j < i); });
+    onScene(best.dataset.scene);
+  }, { threshold: [0, .1, .25, .5, .75, 1], rootMargin: matchMedia('(max-width: 1080px)').matches ? '-52% 0px -20% 0px' : '-15% 0px -35% 0px' });
+  sections.forEach(s => io.observe(s));
+}
+
+const T = window.THREE;
+let renderer = null;
+if (T) { try { renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true }); } catch (err) { renderer = null; } }
+if (!renderer) {
+  stage.classList.add('no-gl');
+  trackSections(() => {});
+  return;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputEncoding = T.sRGBEncoding;
+renderer.toneMapping = T.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.9;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
+renderer.setClearColor(0x000000, 0);
+const scene = new T.Scene();
+const camera = new T.PerspectiveCamera(30, 1, 0.1, 200);
+/* a soft photo-studio environment, so metal reflects something: a warm sky, a dark floor, three softboxes */
+(function studio() {
+  const pm = new T.PMREMGenerator(renderer), env = new T.Scene();
+  const g = new T.SphereGeometry(20, 32, 16), pos = g.attributes.position, col = [];
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i) / 20, top = new T.Color(0.72, 0.7, 0.66), mid = new T.Color(0.36, 0.35, 0.33), low = new T.Color(0.07, 0.07, 0.065);
+    const c = y > 0 ? mid.clone().lerp(top, y) : mid.clone().lerp(low, -y); col.push(c.r, c.g, c.b);
+  }
+  g.setAttribute('color', new T.Float32BufferAttribute(col, 3));
+  env.add(new T.Mesh(g, new T.MeshBasicMaterial({ side: T.BackSide, vertexColors: true })));
+  const panel = (w, h, x, y, z, k) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ color: new T.Color(k, k, k), side: T.DoubleSide })); m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m); };
+  panel(16, 6, 0, 13, 6, 2.4); panel(6, 12, -15, 3, 5, 1.1); panel(7, 9, 13, 2, -9, 0.9);
+  scene.environment = pm.fromScene(env, 0.04).texture; pm.dispose();
+})();
+scene.add(new T.HemisphereLight(0xffffff, 0x5a5348, 0.22));
+const key = new T.DirectionalLight(0xffffff, 1.3); key.position.set(4, 11, 7); scene.add(key);
+key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.025;
+Object.assign(key.shadow.camera, { left: -8, right: 8, top: 8, bottom: -8, near: 1, far: 40 });
+const rim = new T.DirectionalLight(0xfff1e0, 0.5); rim.position.set(-7, 2, -6); scene.add(rim);
+const ground = new T.Mesh(new T.PlaneGeometry(80, 80), new T.ShadowMaterial({ opacity: 0.16 }));
+ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const spinner = new T.Group(); scene.add(spinner);
+
+/* materials follow the page's colour tokens, so the models switch with light and dark */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#888888';
+const isDark = () => { const a = document.documentElement.getAttribute('data-theme'); return a ? a === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; };
+const registry = [];
+function mk(token, opts) { const m = new T.MeshStandardMaterial(opts || {}); registry.push([m, token]); m.color.set(css(token)); return m; }
+const MAT = {
+  steel: mk('--m-steel', { metalness: .75, roughness: .3 }),
+  dark: mk('--m-dark', { metalness: .45, roughness: .48 }),
+  alu: mk('--m-alu', { metalness: .55, roughness: .36 }),
+  copper: mk('--m-copper', { metalness: .85, roughness: .28 }),
+  shell: mk('--m-alu', { metalness: .55, roughness: .4, side: T.DoubleSide }),
+  smoke: mk('--m-dark', { metalness: 0, roughness: .9, transparent: true, opacity: .07, depthWrite: false }),
+  magN: mk('--m-magn', { metalness: .2, roughness: .55 }),
+  magS: mk('--m-mags', { metalness: .2, roughness: .55 }),
+  pcb: mk('--m-pcb', { metalness: .1, roughness: .75 }),
+  glass: mk('--m-glass', { metalness: 0, roughness: .2, transparent: true, opacity: .16, depthWrite: false }),
+  oil: mk('--m-oil', { metalness: .1, roughness: .4, transparent: true, opacity: .6 }),
+  mark: mk('--copper', { metalness: .2, roughness: .4 }),
+};
+const LINE = new T.LineBasicMaterial({ transparent: true, opacity: .3 });
+function paint() {
+  for (const [m, t] of registry) m.color.set(css(t));
+  LINE.color.set(css('--ink')); LINE.opacity = isDark() ? .12 : .17; ground.material.opacity = isDark() ? .32 : .16;
+}
+paint();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+new MutationObserver(paint).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+/* ---------- geometry helpers ---------- */
+const TAU = Math.PI * 2;
+function edged(mesh, ang) { mesh.add(new T.LineSegments(new T.EdgesGeometry(mesh.geometry, ang || 30), LINE)); return mesh; }
+function toothed(Z, m, internal, phase) {
+  const rp = m * Z / 2, rTip = internal ? rp - m : rp + m, rRoot = internal ? rp + 1.25 * m : rp - 1.25 * m;
+  const prof = [[-.5, rRoot], [-.3, rRoot], [-.24, rp], [-.17, rTip], [0, rTip], [.17, rTip], [.24, rp], [.3, rRoot]];
+  const pts = [], step = TAU / Z;
+  for (let i = 0; i < Z; i++) { const c = (phase || 0) + i * step; for (const [f, r] of prof) { const a = c + f * step; pts.push(new T.Vector2(r * Math.cos(a), r * Math.sin(a))); } }
+  return pts;
+}
+function circle(r, n) { const p = []; for (let i = 0; i < n; i++) { const a = i / n * TAU; p.push(new T.Vector2(r * Math.cos(a), r * Math.sin(a))); } return p; }
+function extrude(shape, depth) { const g = new T.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 24 }); g.translate(0, 0, -depth / 2); return g; }
+function gear(Z, m, depth, mat, hole) {
+  const s = new T.Shape(toothed(Z, m, false));
+  if (hole) s.holes.push(new T.Path(circle(hole, 32)));
+  const g = edged(new T.Mesh(extrude(s, depth), mat), 40);
+  g.userData = { Z, m, rp: m * Z / 2 };
+  return g;
+}
+function ringGear(Z, m, depth, outer, mat) {
+  const s = new T.Shape(circle(outer, 96)); s.holes.push(new T.Path(toothed(Z, m, true)));
+  return edged(new T.Mesh(extrude(s, depth), mat), 40);
+}
+function annulus(rOut, rIn, depth, mat, seg) { const s = new T.Shape(circle(rOut, seg || 72)); s.holes.push(new T.Path(circle(rIn, seg || 72))); return edged(new T.Mesh(extrude(s, depth), mat), 40); }
+function disc(r, depth, mat, seg) { return edged(new T.Mesh(new T.CylinderGeometry(r, r, depth, seg || 48).rotateX(Math.PI / 2), mat), 40); }
+function rod(r, len, mat, axis) { const g = new T.CylinderGeometry(r, r, len, 20); if (axis === 'x') g.rotateZ(Math.PI / 2); if (axis === 'z') g.rotateX(Math.PI / 2); return new T.Mesh(g, mat); }
+function cutShell(r, h, mat) {
+  const g = new T.Group(), a0 = Math.PI * 0.3, span = Math.PI * 1.45;
+  g.add(new T.Mesh(new T.CylinderGeometry(r, r, h, 72, 1, true, a0, span).rotateX(Math.PI / 2), mat));
+  g.add(new T.Mesh(new T.CylinderGeometry(r - 0.08, r - 0.08, h, 72, 1, true, a0, span).rotateX(Math.PI / 2), mat));
+  for (const z of [-h / 2, h / 2]) { const ring = new T.Mesh(new T.RingGeometry(r - 0.08, r, 72, 1, a0 - Math.PI / 2, span), mat); ring.position.z = z; g.add(ring); }
+  return g;
+}
+function arcArrow(R, thick, mat, span) {
+  const g = new T.Group();
+  g.add(new T.Mesh(new T.TorusGeometry(R, thick, 10, 64, span), mat));
+  const head = new T.Mesh(new T.ConeGeometry(thick * 2.6, thick * 6, 20), mat);
+  head.position.set(R * Math.cos(span), R * Math.sin(span), 0); head.rotation.z = span; g.add(head);
+  return g;
+}
+function anchor(parent, x, y, z) { const o = new T.Object3D(); o.position.set(x, y, z); parent.add(o); return o; }
+function box(w, h, d, mat) { return edged(new T.Mesh(new T.BoxGeometry(w, h, d), mat), 30); }
+class Helix extends T.Curve {
+  constructor(r, pitch, len, axis) { super(); this.r = r; this.pitch = pitch; this.len = len; this.axis = axis || 'x'; }
+  getPoint(t, target) { const p = target || new T.Vector3(); const s = t * this.len, a = s / this.pitch * TAU; return this.axis === 'x' ? p.set(s, this.r * Math.cos(a), this.r * Math.sin(a)) : p.set(this.r * Math.cos(a), this.r * Math.sin(a), s); }
+}
+/* driven gear phase so its teeth sit in the driver's gaps at contact direction beta (radians, from driver) */
+function meshPhase(Zd, phaseD, Zn, beta) { const u = (beta - phaseD) / (TAU / Zd); return beta + Math.PI - (TAU / Zn) * (0.5 - u); }
+
+/* ---------- reusable parts ---------- */
+function makeMotor(opts) {
+  const o = Object.assign({ slots: 12, poles: 14, rIn: 0.5, rSt: 1.02, rMag: 1.08, rRot: 1.36, depth: 0.55 }, opts || {});
+  const g = new T.Group(), stator = new T.Group(), rotor = new T.Group(), coils = [];
+  stator.add(disc(o.rIn, o.depth, MAT.dark));
+  for (let k = 0; k < o.slots; k++) {
+    const a = k / o.slots * TAU, piv = new T.Group(); piv.rotation.z = a;
+    const tooth = box(o.rSt - o.rIn, 0.16, o.depth, MAT.dark); tooth.position.x = (o.rSt + o.rIn) / 2; piv.add(tooth);
+    const tip = box(0.08, 0.42, o.depth, MAT.dark); tip.position.x = o.rSt - 0.04; piv.add(tip);
+    const cm = mk('--m-copper', { metalness: .6, roughness: .32, emissive: new T.Color(css('--m-copper')), emissiveIntensity: 0 });
+    const coil = edged(new T.Mesh(new T.BoxGeometry(0.3, 0.32, o.depth + 0.12), cm), 30); coil.position.x = (o.rSt + o.rIn) / 2 - 0.02; piv.add(coil);
+    coils.push({ mat: cm, a }); stator.add(piv);
+  }
+  rotor.add(annulus(o.rRot, o.rRot - 0.12, o.depth + 0.1, MAT.steel, 96));
+  const span = TAU / o.poles * 0.84;
+  for (let k = 0; k < o.poles; k++) {
+    const a0 = k / o.poles * TAU - span / 2, n = 10;
+    const pts = [];
+    for (let i = 0; i <= n; i++) { const a = a0 + span * i / n; pts.push(new T.Vector2((o.rRot - 0.12) * Math.cos(a), (o.rRot - 0.12) * Math.sin(a))); }
+    for (let i = n; i >= 0; i--) { const a = a0 + span * i / n; pts.push(new T.Vector2(o.rMag * Math.cos(a), o.rMag * Math.sin(a))); }
+    rotor.add(edged(new T.Mesh(extrude(new T.Shape(pts), o.depth), k % 2 ? MAT.magS : MAT.magN), 40));
+  }
+  g.add(stator, rotor);
+  g.userData = {
+    rotor, stator, poles: o.poles,
+    update(a) {
+      rotor.rotation.z = a;
+      const pp = o.poles / 2;
+      for (const c of coils) { const v = 0.5 + 0.5 * Math.sin(pp * (a - c.a) * 1 + Math.PI / 2); c.mat.emissiveIntensity = 0.55 * v * v; }
+    },
+  };
+  return g;
+}
+function makePlanetary(Zs, Zp, Zr, m, depth, carrierMat) {
+  const g = new T.Group();
+  const sun = gear(Zs, m, depth, MAT.steel, m * 2); const ring = ringGear(Zr, m, depth, m * Zr / 2 + 1.25 * m + 0.14, MAT.dark);
+  const carrier = new T.Group(), plate = disc(m * (Zs + Zp) / 2 + m * Zp / 2 * 0.9, 0.1, carrierMat || MAT.alu); plate.position.z = -depth / 2 - 0.08; carrier.add(plate);
+  const planets = [], dist = m * (Zs + Zp) / 2;
+  for (let k = 0; k < 3; k++) {
+    const alpha = k / 3 * TAU, p = gear(Zp, m, depth, MAT.steel, m * 1.6);
+    planets.push({ mesh: p, alpha, phase0: meshPhase(Zs, 0, Zp, alpha) });
+    const pin = rod(m * 1.4, depth + 0.16, MAT.dark, 'z'); pin.position.set(dist * Math.cos(alpha), dist * Math.sin(alpha), -0.06); carrier.add(pin);
+    g.add(p);
+  }
+  g.add(sun, ring, carrier);
+  g.userData = {
+    sun, ring, carrier, ratio: 1 + Zr / Zs,
+    update(aS) {
+      const aC = aS * Zs / (Zs + Zr);
+      sun.rotation.z = aS; carrier.rotation.z = aC;
+      for (const p of planets) {
+        const ang = p.alpha + aC; p.mesh.position.set(dist * Math.cos(ang), dist * Math.sin(ang), 0);
+        p.mesh.rotation.z = p.phase0 + aC - (aS - aC) * Zs / Zp;
+      }
+      return aC;
+    },
+  };
+  return g;
+}
+function encoder() {
+  const g = new T.Group();
+  const mag = disc(0.32, 0.12, MAT.magN);
+  const half = new T.Mesh(new T.CylinderGeometry(0.321, 0.321, 0.126, 32, 1, false, 0, Math.PI).rotateX(Math.PI / 2), MAT.magS);
+  mag.add(half);
+  const pcb = box(1.5, 1.1, 0.06, MAT.pcb); pcb.position.z = -0.32;
+  const chip = box(0.32, 0.32, 0.08, MAT.dark); chip.position.z = -0.25;
+  g.add(mag, pcb, chip);
+  g.userData = { magnet: mag, pcb, chip };
+  return g;
+}
+
+/* ---------- scenes ---------- */
+const S = {};
+S.anatomy = () => {
+  const root = new T.Group();
+  const motor = makeMotor(); const plan = makePlanetary(12, 18, 48, 0.034, 0.42); const enc = encoder();
+  const flange = new T.Group(); const f = disc(1.05, 0.16, MAT.alu, 64); flange.add(f);
+  for (let k = 0; k < 6; k++) { const b = rod(0.07, 0.2, MAT.dark, 'z'); b.position.set(0.78 * Math.cos(k / 6 * TAU), 0.78 * Math.sin(k / 6 * TAU), 0.02); flange.add(b); }
+  const shell = cutShell(1.62, 0.9, MAT.shell);
+  root.add(motor, plan, enc, flange, shell);
+  root.rotation.set(-0.42, 0.78, 0.18);
+  const base = { motor: 0, plan: 0.75, flange: 1.25, enc: -0.62 };
+  const flA = anchor(root, 0.75, 0.75, 1.3);
+  return {
+    root, name: 'A robot joint', kicker: 'Anatomy', cap: 'Motor (in a cut-away housing), planetary reducer, magnetic encoder and output flange, pulling apart and closing again.',
+    cam: [0, 0.4, 11], look: [0, 0, 0],
+    labels: [['Motor: copper coils, magnet ring', motor, [0, 1.5, 0]], ['Reducer: 5:1 planetary', plan, [0, -1.4, 0]], ['Output flange', flA, [0, 0, 0]], ['Encoder: magnet + sensor chip', enc, [0.8, -0.4, -0.3]]],
+    update(t) {
+      const e = reduceMotion ? 0.6 : 0.5 - 0.5 * Math.cos(t * 0.45);
+      const sp = 1 + e * 1.35;
+      motor.position.z = base.motor; plan.position.z = base.plan * sp; flange.position.z = base.flange * sp + 0.12 * e; enc.position.z = base.enc * sp; flA.position.z = flange.position.z + 0.05;
+      const a = t * 2.2; motor.userData.update(a); const aC = plan.userData.update(a); flange.rotation.z = aC; enc.userData.magnet.rotation.z = aC;
+    },
+  };
+};
+S.motor = () => {
+  const root = new T.Group(); const motor = makeMotor(); root.add(motor);
+  const shaft = rod(0.12, 1.6, MAT.steel, 'z'); root.add(shaft);
+  root.rotation.set(-0.5, 0.42, 0.1);
+  return {
+    root, name: 'Brushless motor', kicker: 'The motor', cap: '12 coils, 14 magnets (an outrunner layout). The coils light in sequence, so the magnets are always pulled forward.',
+    cam: [0, 0.3, 8.2], look: [0, 0, 0],
+    labels: [['Rotor: 14 permanent magnets', motor, [0.95, 1.0, 0.3]], ['Stator: 12 copper coils', motor, [-0.55, -0.45, 0.35]], ['Shaft', motor, [0, 0, 0.85]]],
+    update(t) { const a = t * 1.1; motor.userData.update(a); shaft.rotation.z = a; },
+  };
+};
+S.pair = () => {
+  const root = new T.Group(), m = 0.105;
+  const small = gear(12, m, 0.4, MAT.copper, 0.12), big = gear(48, m, 0.4, MAT.steel, 0.3);
+  const d = m * 60 / 2; small.position.x = -d / 2 - 0.6; big.position.x = small.position.x + d;
+  const ph = meshPhase(12, 0, 48, 0);
+  const dotS = disc(0.07, 0.42, MAT.dark); dotS.position.set(0.42, 0, 0.02); small.add(dotS);
+  const dotB = disc(0.1, 0.42, MAT.mark); dotB.position.set(2.0, 0, 0.02); big.add(dotB);
+  const sh1 = rod(0.1, 1.2, MAT.dark, 'z'), sh2 = rod(0.24, 1.2, MAT.dark, 'z'); sh1.position.copy(small.position); sh2.position.copy(big.position);
+  const aS = arcArrow(0.98, 0.03, MAT.mark, Math.PI * 1.1); aS.position.set(small.position.x, 0, 0.42); aS.rotation.z = 0.5;
+  const aB = arcArrow(2.95, 0.12, MAT.mark, Math.PI * 0.55); aB.position.set(big.position.x, 0, 0.42); aB.rotation.set(0, Math.PI, 0.55);
+  root.add(small, big, sh1, sh2, aS, aB); root.rotation.set(-0.55, 0.1, 0);
+  return {
+    root, name: 'A 4 : 1 gear pair', kicker: 'The trade', cap: '12 teeth drive 48: the output turns 4 times slower and pushes 4 times harder. Arrow thickness shows torque (1 and 4).',
+    cam: [0.45, 0.2, 15], look: [0.45, 0, 0],
+    labels: [['Motor side: 12 teeth, fast, weak', root, [small.position.x, 0.85, 0.3]], ['Output: 48 teeth, ¼ speed, 4× torque', root, [big.position.x + 1.2, 2.5, 0.3]]],
+    update(t) { const a = t * 1.6; small.rotation.z = a; big.rotation.z = ph - a * 12 / 48; },
+  };
+};
+S.servo = () => {
+  const root = new T.Group();
+  const L = (window.SERVO_LAYOUT || [[0, 0], [1.207, .324], [2.506, -.426], [2.506, -2.036], [.406, -2.036]]);
+  const cx = L.reduce((s, p) => s + p[0], 0) / L.length, cy = L.reduce((s, p) => s + p[1], 0) / L.length;
+  const P = L.map(p => [p[0] - cx, p[1] - cy]);
+  const stages = [[10, 40, 0.05], [10, 40, 0.06], [10, 36, 0.07], [12, 48, 0.07]];
+  const dz = 0.26, gears = [];
+  let a0 = 0;                                   // each pinion's angle when the motor is at 0
+  for (let i = 0; i < stages.length; i++) {
+    const [zp, zg, m] = stages[i];
+    const pin = gear(zp, m, 0.2, i === 0 ? MAT.copper : MAT.steel, 0.03); pin.position.set(P[i][0], P[i][1], i * dz);
+    const beta = Math.atan2(P[i + 1][1] - P[i][1], P[i + 1][0] - P[i][0]);
+    const ph = meshPhase(zp, a0, zg, beta);
+    const big = gear(zg, m, 0.12, i % 2 ? MAT.alu : MAT.steel, 0.05); big.position.set(P[i + 1][0], P[i + 1][1], i * dz);
+    gears.push({ pin, big, zp, zg, ph, a0, i, rp: m * zg / 2 + m, rq: m * zp / 2 + m });
+    a0 = ph;
+    root.add(pin, big);
+  }
+  for (let j = 1; j < P.length; j++) { const sh = rod(0.05, j === P.length - 1 ? 1.9 : 1.2, MAT.dark, 'z'); sh.position.set(P[j][0], P[j][1], j === P.length - 1 ? 0.9 : 0.45); root.add(sh); }
+  const out = P[P.length - 1];
+  const spline = gear(24, 0.025, 0.3, MAT.alu, 0.04); spline.position.set(out[0], out[1], 1.75); root.add(spline);
+  const can = edged(new T.Mesh(new T.CylinderGeometry(0.62, 0.62, 1.7, 40).rotateX(Math.PI / 2), MAT.dark), 40); can.position.set(P[0][0], P[0][1], -1.05); root.add(can);
+  const enc = encoder(); enc.position.set(out[0], out[1], -0.45); root.add(enc);
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  for (const g of gears) for (const [c, r] of [[g.pin.position, g.rq], [g.big.position, g.rp]]) { x0 = Math.min(x0, c.x - r); x1 = Math.max(x1, c.x + r); y0 = Math.min(y0, c.y - r); y1 = Math.max(y1, c.y + r); }
+  const hw = x1 - x0 + 0.3, hh = y1 - y0 + 0.3, hx = (x0 + x1) / 2, hy = (y0 + y1) / 2;
+  const housing = new T.Mesh(new T.BoxGeometry(hw, hh, 3.9), MAT.smoke); housing.position.set(hx, hy, -0.15); root.add(housing);
+  housing.add(new T.LineSegments(new T.EdgesGeometry(housing.geometry), LINE));
+  for (const sx of [-1, 1]) { const ear = box(0.36, Math.min(1.1, hh * 0.3), 0.1, MAT.dark); ear.position.set(hx + sx * (hw / 2 + 0.18), hy, 1.4); root.add(ear); }
+  const horn = new T.Group(); horn.add(disc(0.62, 0.1, MAT.alu, 48));
+  for (let k = 0; k < 4; k++) { const hole = rod(0.05, 0.12, MAT.dark, 'z'); hole.position.set(0.42 * Math.cos(k / 4 * TAU), 0.42 * Math.sin(k / 4 * TAU), 0.01); horn.add(hole); }
+  horn.position.set(out[0], out[1], 1.98); root.add(horn);
+  root.rotation.set(-1.05, 0.05, 0.5);
+  return {
+    root, name: 'Feetech STS3215', kicker: 'Our servo', cap: 'DC motor, four gear stages (drawn ≈230:1; the real one is 345:1), output spline, magnet and 12-bit sensor under the output shaft, control board.',
+    cam: [0, 0.2, 11.5], look: [0, 0, 0.2],
+    labels: [['DC motor', can, [0.55, -0.3, -0.5]], ['Gear train', root, [gears[1].big.position.x, gears[1].big.position.y + 1.0, 0.3]], ['Output horn', root, [spline.position.x + 0.55, spline.position.y, 2.0]], ['Magnet + 12-bit sensor', enc, [0.4, 0.2, -0.1]]],
+    update(t) {
+      let a = t * 7.0;
+      for (const g of gears) {
+        g.pin.rotation.z = a;
+        const ab = g.ph - (a - g.a0) * g.zp / g.zg; g.big.rotation.z = ab;
+        a = ab;
+      }
+      spline.rotation.z = a; enc.userData.magnet.rotation.z = a; horn.rotation.z = a;
+    },
+  };
+};
+S.qdd = () => {
+  const root = new T.Group();
+  const motor = makeMotor({ rIn: 0.62, rSt: 1.2, rMag: 1.26, rRot: 1.55, depth: 0.42 });
+  const plan = makePlanetary(12, 24, 60, 0.042, 0.36); plan.position.z = 0.58;
+  const flange = disc(0.42, 0.12, MAT.alu, 48); flange.position.z = 0.84;
+  const arm = box(0.32, 2.6, 0.14, MAT.alu); arm.position.set(0, 1.25, 0); flange.add(arm);
+  const qshell = cutShell(1.78, 1.25, MAT.shell); qshell.position.z = 0.22;
+  root.add(motor, plan, flange, qshell); root.rotation.set(-0.5, 0.78, 0.1);
+  return {
+    root, name: 'Quasi-direct drive', kicker: 'QDD', cap: 'A wide motor and one 6:1 planetary stage. The joint swings both ways; push the output and the motor turns, so current reads as force.',
+    cam: [0, 0.6, 11], look: [0, 0.4, 0],
+    labels: [['Wide, flat motor', motor, [-1.4, -0.6, 0]], ['One planetary stage, 6:1', plan, [0.3, -1.25, 0.2]], ['Output: push it and the motor turns', root, [0, 1.6, 0.9]]],
+    update(t) {
+      const aS = reduceMotion ? 1.2 : 5.5 * Math.sin(t * 0.9) + 1.2 * Math.sin(t * 2.3);
+      motor.userData.update(aS); const aC = plan.userData.update(aS); flange.rotation.z = aC;
+    },
+  };
+};
+S.harmonic = () => {
+  const root = new T.Group(), m = 0.085, Zf = 40, Zc = 42;
+  const ring = ringGear(Zc, m, 0.42, m * Zc / 2 + 1.25 * m + 0.2, MAT.dark);
+  const rin = m * Zf / 2 - 1.25 * m - 0.07;
+  const fsShape = new T.Shape(toothed(Zf, m, false)); fsShape.holes.push(new T.Path(circle(rin, 120)));
+  const fsGeo = extrude(fsShape, 0.4); const base = fsGeo.attributes.position.array.slice();
+  const fs = new T.Mesh(fsGeo, MAT.alu);
+  const cupGeo = new T.CylinderGeometry(rin + 0.035, rin + 0.035, 1.2, 96, 8, true).rotateX(Math.PI / 2); cupGeo.translate(0, 0, -0.8);
+  const cupBase = cupGeo.attributes.position.array.slice(); const cup = new T.Mesh(cupGeo, mk('--m-alu', { metalness: .3, roughness: .5, side: T.DoubleSide }));
+  const outPlate = disc(rin + 0.035, 0.08, MAT.alu, 64); outPlate.position.z = -1.42;
+  const wgShape = new T.Shape(); const wa = rin + m - 0.13, wb = rin - m - 0.13;
+  wgShape.absellipse(0, 0, wa, wb, 0, TAU, false, 0); const inner = new T.Path(); inner.absellipse(0, 0, wa - 0.2, wb - 0.2, 0, TAU, true, 0); wgShape.holes.push(inner);
+  const wg = new T.Group(); wg.add(edged(new T.Mesh(extrude(wgShape, 0.3), MAT.copper), 40));
+  const hub = new T.Shape(); hub.absellipse(0, 0, 0.32, 0.32, 0, TAU, false, 0); wg.add(edged(new T.Mesh(extrude(hub, 0.3), MAT.copper), 40));
+  const spoke = box(2 * (wa - 0.1), 0.16, 0.2, MAT.copper); wg.add(spoke);
+  const balls = []; const ballGeo = new T.SphereGeometry(0.05, 16, 12);
+  for (let k = 0; k < 28; k++) { const b = new T.Mesh(ballGeo, MAT.steel); wg.add(b); balls.push(k / 28 * TAU); }
+  const marker = disc(0.06, 0.44, MAT.mark);
+  root.add(ring, fs, cup, outPlate, wg, marker); root.rotation.set(-0.35, 0.55, 0);
+  const theta0 = Math.PI / Zf;
+  function deform(geo, src, phi, rotF, amp) {
+    const p = geo.attributes.position.array;
+    for (let i = 0; i < p.length; i += 3) {
+      const x = src[i], y = src[i + 1], r = Math.hypot(x, y), a = Math.atan2(y, x) + rotF;
+      const rr = r + amp * Math.cos(2 * (a - phi));
+      p[i] = rr * Math.cos(a); p[i + 1] = rr * Math.sin(a);
+    }
+    geo.attributes.position.needsUpdate = true; geo.computeVertexNormals();
+  }
+  return {
+    root, name: 'Harmonic drive', kicker: 'Strain-wave gear', cap: 'The oval cam and its ball bearing flex the thin cup. Ring 42 teeth, cup 40: the cup creeps back 2 teeth per cam turn, 20:1 here. Follow the copper dot.',
+    cam: [0, 0.2, 10.5], look: [0, 0, -0.3],
+    labels: [['Wave generator: oval cam, input', root, [0.2, 0.25, 0.3]], ['Flexspline: thin cup, 40 teeth', cup, [-1.0, -0.95, -0.4]], ['Circular spline: rigid, 42 teeth', ring, [1.95, 1.1, 0]]],
+    update(t) {
+      const phi = t * 0.9, rotF = theta0 - phi * (Zc - Zf) / Zf;
+      wg.rotation.z = phi;
+      for (let k = 0; k < balls.length; k++) { const th = balls[k] - phi * 0.5; wg.children[3 + k].position.set((wa + 0.075) * Math.cos(th), (wb + 0.075) * Math.sin(th), 0); }
+      deform(fsGeo, base, phi, rotF, m);
+      deform(cupGeo, cupBase, phi, rotF, m * 0.85);
+      outPlate.rotation.z = rotF;
+      const r = m * Zf / 2 + m + 0.02 + m * Math.cos(2 * (rotF - phi));
+      marker.position.set(r * Math.cos(rotF), r * Math.sin(rotF), 0);
+    },
+  };
+};
+S.cycloid = () => {
+  const root = new T.Group(), R = 1.9, r = 0.17, N = 12, e = 0.1;
+  const pts = []; const n = 900;
+  for (let i = 0; i < n; i++) {
+    const t = i / n * TAU, psi = Math.atan2(Math.sin((1 - N) * t), R / (e * N) - Math.cos((1 - N) * t));
+    pts.push(new T.Vector2(R * Math.cos(t) - r * Math.cos(t + psi) - e * Math.cos(N * t), -R * Math.sin(t) + r * Math.sin(t + psi) + e * Math.sin(N * t)));
+  }
+  const ds = new T.Shape(pts); ds.holes.push(new T.Path(circle(0.44, 48)));
+  const holes = 6, hr = 1.0, opr = 0.16;
+  for (let k = 0; k < holes; k++) { const a = k / holes * TAU; const c = circle(opr + e, 40).map(v => new T.Vector2(v.x + hr * Math.cos(a), v.y + hr * Math.sin(a))); ds.holes.push(new T.Path(c)); }
+  const dGeo = extrude(ds, 0.34);
+  const discM = edged(new T.Mesh(dGeo, MAT.copper), 40); const disc2 = edged(new T.Mesh(dGeo, MAT.steel), 40);
+  const housing = new T.Group(); housing.add(annulus(2.42, R + r * 0.45, 0.8, MAT.dark, 120));
+  for (let k = 0; k < N; k++) { const p = rod(r, 0.84, MAT.steel, 'z'); p.position.set(R * Math.cos(k / N * TAU), R * Math.sin(k / N * TAU), 0); housing.add(p); }
+  const output = new T.Group(); const plate = disc(1.45, 0.1, MAT.alu, 64); plate.position.z = -0.5; output.add(plate);
+  for (let k = 0; k < holes; k++) { const p = rod(opr, 1.0, MAT.steel, 'z'); p.position.set(hr * Math.cos(k / holes * TAU), hr * Math.sin(k / holes * TAU), -0.05); output.add(p); }
+  const cam = disc(0.4, 0.34, MAT.dark), cam2 = disc(0.4, 0.34, MAT.dark); const shaft = rod(0.12, 1.9, MAT.steel, 'z'); shaft.position.z = 0.35;
+  root.add(housing, output, discM, disc2, cam, cam2, shaft); root.rotation.set(-0.4, 0.5, 0);
+  return {
+    root, name: 'Cycloidal drive', kicker: 'Cycloidal reducer', cap: 'Off-centre cams make two 11-lobe discs wobble inside 12 fixed pins, half a turn apart so their wobbles cancel. Each wobble walks a disc back one lobe: 11:1.',
+    cam: [0, 0.2, 10.5], look: [0, 0, 0],
+    labels: [['Input: off-centre cam', shaft, [0, 0, 0.75]], ['Two discs, 11 lobes each', root, [1.2, -1.0, 0.45]], ['12 fixed pins', housing, [-1.9, 1.15, 0.2]], ['Output pins', root, [-0.75, -0.9, 0.35]]],
+    update(t) {
+      const phi = t * 1.6;
+      discM.position.set(e * Math.cos(phi), e * Math.sin(phi), 0.19); discM.rotation.z = -phi / (N - 1);
+      disc2.position.set(-e * Math.cos(phi), -e * Math.sin(phi), -0.19); disc2.rotation.z = -(phi + Math.PI) / (N - 1);
+      cam.position.set(e * Math.cos(phi), e * Math.sin(phi), 0.19); cam2.position.set(-e * Math.cos(phi), -e * Math.sin(phi), -0.19);
+      cam.rotation.z = phi; cam2.rotation.z = phi; shaft.rotation.z = phi;
+      output.rotation.z = -phi / (N - 1);
+    },
+  };
+};
+S.yam = () => {
+  const root = new T.Group();
+  /* one Damiao can, axis along local z; the copper ring marks a 40:1 DM4340, the steel ring a 10:1 DM4310 */
+  function can(big) {
+    const g = new T.Group(), h = big ? 0.42 : 0.36, r = 0.23;
+    g.add(edged(new T.Mesh(new T.CylinderGeometry(r, r, h, 40).rotateX(Math.PI / 2), MAT.dark), 40));
+    const ring = annulus(r + 0.012, r - 0.06, 0.07, big ? MAT.copper : MAT.steel, 48); ring.position.z = h / 2; g.add(ring);
+    const face = disc(r - 0.07, 0.03, MAT.alu, 40); face.position.z = h / 2 + 0.01; g.add(face);
+    return g;
+  }
+  function link(len, w) {
+    const r = (w || 0.2) / 2 + 0.02, g = new T.Group();
+    const c = new T.Mesh(new T.CylinderGeometry(r, r, len, 28), MAT.alu); c.position.y = len / 2; g.add(c);
+    for (const y of [0, len]) { const sph = new T.Mesh(new T.SphereGeometry(r, 24, 16), MAT.alu); sph.position.y = y; g.add(sph); }
+    return g;
+  }
+  function arm(side) {
+    const base = new T.Group(); base.position.x = side * 1.05;
+    const plate = disc(0.4, 0.06, MAT.dark, 40); plate.rotation.x = Math.PI / 2; base.add(plate);
+    const pedestal = edged(new T.Mesh(new T.CylinderGeometry(0.2, 0.26, 0.4, 32), MAT.alu), 40); pedestal.position.y = 0.2; base.add(pedestal);
+    const j1 = new T.Group(); j1.position.y = 0.42; base.add(j1);
+    const c1 = can(true); c1.rotation.x = -Math.PI / 2; j1.add(c1);
+    const j2 = new T.Group(); j2.position.y = 0.42; j1.add(j2);
+    const c2 = can(true); c2.rotation.y = side * Math.PI / 2; j2.add(c2);
+    j2.add(link(1.1));
+    const j3 = new T.Group(); j3.position.y = 1.1; j2.add(j3);
+    const c3 = can(true); c3.rotation.y = side * Math.PI / 2; j3.add(c3);
+    j3.add(link(1.0, 0.17));
+    const j4 = new T.Group(); j4.position.y = 1.0; j3.add(j4);
+    const c4 = can(false); c4.rotation.y = side * Math.PI / 2; j4.add(c4);
+    j4.add(link(0.32, 0.15));
+    const j5 = new T.Group(); j5.position.y = 0.32; j4.add(j5);
+    const c5 = can(false); j5.add(c5);
+    const j6 = new T.Group(); j6.position.y = 0.3; j5.add(j6);
+    const c6 = can(false); c6.rotation.x = -Math.PI / 2; j6.add(c6);
+    const grip = new T.Group(); grip.position.y = 0.26; j6.add(grip);
+    const gc = can(false); gc.scale.set(0.8, 0.8, 0.8); gc.rotation.y = Math.PI / 2; grip.add(gc);
+    const f1 = box(0.06, 0.34, 0.14, MAT.alu), f2 = box(0.06, 0.34, 0.14, MAT.alu); f1.position.y = f2.position.y = 0.3; grip.add(f1, f2);
+    root.add(base);
+    const ph = side > 0 ? 0 : 0.8;
+    return {
+      c2, c4, gc,
+      update(t) {
+        j1.rotation.y = side * (-0.35 + 0.35 * Math.sin(0.4 * t + ph));
+        j2.rotation.x = 0.35 + 0.18 * Math.sin(0.5 * t + ph);
+        j3.rotation.x = 1.15 + 0.25 * Math.sin(0.5 * t + 1 + ph);
+        j4.rotation.x = 0.35 + 0.35 * Math.sin(0.7 * t + ph);
+        j5.rotation.z = 0.3 * Math.sin(0.6 * t + ph);
+        j6.rotation.y = 0.8 * Math.sin(0.45 * t + ph);
+        const g = 0.07 + 0.05 * Math.sin(1.3 * t + ph); f1.position.x = g; f2.position.x = -g;
+      },
+    };
+  }
+  const R = arm(1), L = arm(-1);
+  root.rotation.set(0.05, -0.62, 0);
+  return {
+    root, name: 'Two YAM arms', kicker: 'The research kit', cap: 'Copper rings mark the 40:1 DM4340s (base, shoulder, elbow); steel rings the 10:1 DM4310s (wrist and gripper). Schematic: proportions are approximate.',
+    cam: [0.6, 2.4, 8.8], look: [0, 1.15, 0.4],
+    labels: [['DM4340 · 40:1 · shoulder', R.c2, [0.3, 0.1, 0]], ['DM4310 · 10:1 · wrist', R.c4, [0.3, 0.1, 0]], ['DM4310 · gripper', R.gc, [0.25, 0, 0]]],
+    update(t) { R.update(t); L.update(t); },
+  };
+};
+S.screw = () => {
+  const root = new T.Group(), len = 6.4, lead = 0.22, rs = 0.3;
+  const screw = new T.Group();
+  screw.add(rod(rs, len, MAT.steel, 'x'));
+  const th = new T.Mesh(new T.TubeGeometry(new Helix(rs + 0.03, lead, len, 'x'), 900, 0.045, 6, false), MAT.steel); th.position.x = -len / 2; screw.add(th);
+  const motor = edged(new T.Mesh(new T.CylinderGeometry(0.75, 0.75, 1.3, 40).rotateZ(Math.PI / 2), MAT.dark), 40); motor.position.x = -len / 2 - 0.65;
+  const nut = new T.Group(); const shell = new T.Mesh(new T.CylinderGeometry(0.82, 0.82, 1.5, 48, 1, true).rotateZ(Math.PI / 2), MAT.glass); nut.add(shell);
+  nut.add(annulus(0.82, 0.62, 0.12, MAT.alu).rotateY(Math.PI / 2).translateZ(0.75)); nut.add(annulus(0.82, 0.62, 0.12, MAT.alu).rotateY(Math.PI / 2).translateZ(-0.75));
+  const rodOut = rod(0.13, 2.2, MAT.alu, 'x'); rodOut.position.set(1.4, 0.95, 0); nut.add(rodOut);
+  const bracket = box(0.25, 0.5, 0.3, MAT.alu); bracket.position.set(0.4, 0.7, 0); nut.add(bracket);
+  const rollers = new T.Group(); const rr = 0.13, orbit = rs + rr + 0.04;
+  const rlist = [];
+  for (let k = 0; k < 6; k++) {
+    const rg = new T.Group(); rg.add(rod(rr * 0.75, 1.3, MAT.copper, 'x'));
+    for (let j = -5; j <= 5; j++) { const ringM = new T.Mesh(new T.TorusGeometry(rr * 0.8, 0.028, 6, 20).rotateY(Math.PI / 2), MAT.copper); ringM.position.x = j * 0.115; rg.add(ringM); }
+    rollers.add(rg); rlist.push({ g: rg, a: k / 6 * TAU });
+  }
+  nut.add(rollers);
+  root.add(screw, motor, nut); root.rotation.set(0.32, -0.55, 0.05);
+  return {
+    root, name: 'Planetary roller screw', kicker: 'Linear actuator', cap: 'The motor spins the screw; threaded rollers carry the load into the nut, which slides one lead per turn. Thread drawn coarse to be visible.',
+    cam: [0, 0.5, 12], look: [0, 0.3, 0],
+    labels: [['Motor', motor, [0, 0.85, 0]], ['Screw (spins)', root, [2.8, -0.38, 0]], ['Threaded rollers', rollers, [0.2, -0.55, 0.1]], ['Nut + rod (push)', rodOut, [1.1, 0.12, 0]]],
+    update(t) {
+      const s = reduceMotion ? 0 : 52 * Math.sin(t * 0.38);
+      screw.rotation.x = s;
+      nut.position.x = 0.3 + (s / TAU) * lead;
+      const c = s * rs / (rs + orbit + rr);
+      for (const r of rlist) { const a = r.a + c; r.g.position.set(0, orbit * Math.cos(a), orbit * Math.sin(a)); r.g.rotation.x = -(s - c) * rs / rr; }
+    },
+  };
+};
+S.sea = () => {
+  const root = new T.Group();
+  const motor = edged(new T.Mesh(new T.CylinderGeometry(0.62, 0.62, 1.2, 40).rotateZ(Math.PI / 2), MAT.dark), 40); motor.position.x = -3.3;
+  const gbox = box(0.7, 1.2, 1.2, MAT.steel); gbox.position.x = -2.35;
+  const pushRod = rod(0.12, 1, MAT.steel, 'x'); pushRod.position.x = -1.9;
+  const p1 = box(0.12, 1.3, 1.3, MAT.alu);
+  const L0 = 2.0; const spring = new T.Mesh(new T.TubeGeometry(new Helix(0.45, 0.25, L0, 'x'), 400, 0.06, 8, false), mk('--m-steel', { metalness: .65, roughness: .3 }));
+  const springG = new T.Group(); springG.add(spring);
+  const out = new T.Group(); const p2 = box(0.12, 1.3, 1.3, MAT.alu); out.add(p2); const link = box(1.2, 0.26, 0.26, MAT.alu); link.position.x = 0.65; out.add(link);
+  const load = box(0.8, 1.0, 1.0, MAT.copper); load.position.x = 1.65; out.add(load);
+  const outX = 0.5; out.position.x = outX;
+  const wall = box(0.18, 2.2, 1.6, MAT.dark); wall.position.x = outX + 1.65 + 0.4 + 0.09;
+  const tick = new T.Group(); for (let k = 0; k <= 10; k++) { const tk = box(0.02, k % 5 ? 0.12 : 0.24, 0.02, MAT.dark); tk.position.set(-1.62 + k * 0.08, -0.95, 0.66); tick.add(tk); }
+  const ptr = box(0.04, 0.32, 0.04, MAT.mark); ptr.position.set(0, -0.82, 0.66); p1.add(ptr);
+  root.add(motor, gbox, pushRod, p1, springG, out, wall, tick); root.rotation.set(0.25, -0.45, 0);
+  const p1Base = outX - 0.06 - L0 - 0.06;
+  return {
+    root, name: 'Series elastic actuator', kicker: 'Springs on purpose', cap: 'The gearbox pushes; the load is stopped by the wall, so the spring squeezes. The squeeze, read on the scale, tells you the force: force = k × squeeze.',
+    cam: [0, 0.6, 11.5], look: [-0.4, 0, 0],
+    labels: [['Motor + gearbox', gbox, [0, 0.75, 0]], ['Spring: force = k × squeeze', springG, [1.0, 0.65, 0]], ['Load, stopped by the wall', load, [0, 0.65, 0]]],
+    update(t) {
+      const d = reduceMotion ? 0.35 : 0.7 * Math.pow(0.5 - 0.5 * Math.cos(t * 0.9), 1.5);
+      const x1 = p1Base + d; p1.position.x = x1;
+      const rodStart = gbox.position.x + 0.35; pushRod.scale.x = Math.max(0.05, x1 - rodStart); pushRod.position.x = (rodStart + x1) / 2;
+      const L = outX - 0.06 - (x1 + 0.06); springG.position.x = x1 + 0.06; springG.scale.x = L / L0;
+    },
+  };
+};
+S.family = () => {
+  const root = new T.Group();
+  const hyd = new T.Group(); hyd.position.x = -3.1;
+  const barrel = new T.Mesh(new T.CylinderGeometry(0.45, 0.45, 2.4, 40, 1, true), MAT.glass); hyd.add(barrel);
+  const capB = disc(0.47, 0.08, MAT.dark).rotateX(Math.PI / 2); capB.position.y = -1.2; hyd.add(capB);
+  const oil = new T.Mesh(new T.CylinderGeometry(0.42, 0.42, 1, 32), MAT.oil); hyd.add(oil);
+  const piston = edged(new T.Mesh(new T.CylinderGeometry(0.43, 0.43, 0.18, 32), MAT.dark), 40); hyd.add(piston);
+  const prod = rod(0.12, 2.2, MAT.steel); hyd.add(prod);
+  const dd = new T.Group();
+  const pancake = edged(new T.Mesh(new T.CylinderGeometry(1.0, 1.0, 0.36, 64).rotateX(Math.PI / 2), MAT.dark), 40); dd.add(pancake);
+  const ddRing = annulus(1.06, 0.82, 0.4, MAT.steel, 96); dd.add(ddRing);
+  const legG = new T.Group(); const leg = box(0.26, 2.3, 0.2, MAT.alu); leg.position.y = -1.15; legG.add(leg); legG.position.z = 0.32; dd.add(legG);
+  const ten = new T.Group(); ten.position.x = 3.1;
+  const pA = disc(0.42, 0.3, MAT.steel); pA.position.set(0, -1.4, 0); const pB = disc(0.42, 0.3, MAT.steel); pB.position.set(0, 1.3, 0);
+  const finger = new T.Group(); const fl = box(0.22, 1.5, 0.2, MAT.alu); fl.position.set(0, 0.75, 0); finger.add(fl); finger.position.set(0, 1.3, 0.22);
+  const cable = new T.Group();
+  const lineMat = mk('--copper', { metalness: .3, roughness: .5 });
+  const c1 = rod(0.03, 2.7, lineMat); c1.position.set(0.43, -0.05, 0); const c2 = rod(0.03, 2.7, lineMat); c2.position.set(-0.43, -0.05, 0); cable.add(c1, c2);
+  const beads = []; for (let k = 0; k < 4; k++) { const b = new T.Mesh(new T.SphereGeometry(0.07, 12, 8), MAT.mark); cable.add(b); beads.push(b); }
+  ten.add(pA, pB, finger, cable);
+  root.add(hyd, dd, ten); root.rotation.set(-0.12, 0.35, 0);
+  return {
+    root, name: 'Hydraulic, direct drive, tendons', kicker: 'The rest of the family', cap: 'Left: oil pushes a piston. Middle: a large flat motor turns the leg with no gears. Right: a cable carries the motor\'s pull to a finger joint.',
+    cam: [0, 0.2, 13], look: [0, 0, 0],
+    labels: [['Hydraulic piston', hyd, [0.5, 1.4, 0]], ['Direct drive', pancake, [0.6, 0.85, 0]], ['Tendon + pulley', ten, [0.45, 1.8, 0]]],
+    update(t) {
+      const y = reduceMotion ? 0 : 0.55 * Math.sin(t * 1.1);
+      piston.position.y = y; prod.position.y = y + 1.1; oil.scale.y = (y + 1.18) / 1; oil.position.y = (y - 1.18) / 2;
+      const s = reduceMotion ? 0.3 : 0.75 * Math.sin(t * 1.7); legG.rotation.z = s; ddRing.rotation.z = s;
+      const f = reduceMotion ? 0.2 : 0.6 * Math.sin(t * 1.2); pA.rotation.z = f * 1.8; pB.rotation.z = f * 1.8; finger.rotation.z = f;
+      beads.forEach((b, k) => { const side = k % 2 ? 1 : -1; const u = (((k / 4 + side * f * 0.6) % 1) + 1) % 1; b.position.set(0.43 * side, -1.4 + u * 2.7, 0); });
+    },
+  };
+};
+
+/* ---------- labels ---------- */
+let current = null, labelEls = [];
+const v3 = new T.Vector3();
+function buildLabels(spec) {
+  labelLayer.textContent = '';
+  labelEls = spec.labels.map(([text, obj, at]) => { const el = document.createElement('div'); el.className = 'lbl'; const sp = document.createElement('span'); sp.textContent = text; el.appendChild(sp); labelLayer.appendChild(el); return { el, obj, at: new T.Vector3(at[0], at[1], at[2]) }; });
+}
+function placeLabels(w, h) {
+  const narrow = w < 520, placed = [];
+  labelEls.forEach((l, i) => {
+    if (narrow && i > 2) { l.el.hidden = true; return; }
+    v3.copy(l.at); l.obj.localToWorld(v3); v3.project(camera);
+    if (v3.z > 1) { l.el.hidden = true; return; }
+    l.el.hidden = false;
+    const x = (v3.x * 0.5 + 0.5) * w, y = (-v3.y * 0.5 + 0.5) * h;
+    const lw = l.el.offsetWidth || 160;
+    let left = x > w * 0.62 || x + lw > w - 10;
+    if (left && x - lw < 10) left = false;
+    const cx = left ? Math.max(lw + 8, x) : Math.min(x, w - lw - 8);
+    let top = Math.max(64, Math.min(h - 56, y));
+    const x0 = left ? cx - lw : cx, x1 = left ? cx : cx + lw;
+    for (let k = 0; k < 6; k++) {
+      const hit = placed.find(p => x0 < p.x1 && x1 > p.x0 && Math.abs(top - p.top) < 22);
+      if (!hit) break;
+      top = hit.top + (top >= hit.top ? 24 : -24);
+    }
+    placed.push({ x0, x1, top });
+    l.el.style.left = cx.toFixed(1) + 'px'; l.el.style.top = top.toFixed(1) + 'px';
+    l.el.classList.toggle('left', left);
+  });
+}
+
+/* ---------- scene switching ---------- */
+const built = {};
+let camPos = new T.Vector3(0, 0, 10), camLook = new T.Vector3();
+function show(keyName) {
+  if (keyName === activeKey || !S[keyName]) return;
+  activeKey = keyName;
+  stage.classList.add('swap');
+  setTimeout(() => {
+    if (activeKey !== keyName) return;
+    if (current) spinner.remove(current.root);
+    current = built[keyName] || (built[keyName] = S[keyName]());
+    spinner.add(current.root);
+    yaw = 0; pitch = 0; spinner.rotation.set(0, 0, 0);
+    current.root.traverse(o => { if (o.isMesh) { const glassy = o.material && o.material.transparent; o.castShadow = !glassy; o.receiveShadow = !glassy; } });
+    current.update(0); spinner.updateMatrixWorld(true);
+    ground.position.y = new T.Box3().setFromObject(current.root).min.y - 0.12;
+    camPos.set(...current.cam); camLook.set(...current.look);
+    fitCamera();
+    nameEl.textContent = current.name; kickEl.textContent = current.kicker; capEl.textContent = current.cap;
+    buildLabels(current);
+    stage.classList.remove('swap');
+  }, current ? 200 : 0);
+}
+function fitCamera() {
+  const w = stage.clientWidth, h = stage.clientHeight; if (!w || !h) return;
+  camera.aspect = w / h;
+  const k = camera.aspect < 1.1 ? 1.1 / camera.aspect : 1;
+  camera.position.copy(camPos).sub(camLook).multiplyScalar(k).add(camLook); camera.lookAt(camLook);
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(() => { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); fitCamera(); }).observe(stage);
+
+/* ---------- drag to turn ---------- */
+let yaw = 0, pitch = 0, dragging = false, lastX = 0, lastY = 0, idle = 0;
+stage.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; dragging = true; lastX = e.clientX; lastY = e.clientY; stage.classList.add('dragging'); stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointermove', e => { if (!dragging) return; yaw += (e.clientX - lastX) * 0.008; pitch += (e.clientY - lastY) * 0.006; pitch = Math.max(-1.1, Math.min(1.1, pitch)); lastX = e.clientX; lastY = e.clientY; idle = 0; });
+const endDrag = () => { dragging = false; stage.classList.remove('dragging'); };
+stage.addEventListener('pointerup', endDrag); stage.addEventListener('pointercancel', endDrag);
+
+/* ---------- play / pause ---------- */
+let playing = !reduceMotion;
+function syncBtn() { playBtn.textContent = playing ? 'Pause' : 'Play'; playBtn.setAttribute('aria-pressed', String(!playing)); }
+playBtn.addEventListener('click', () => { playing = !playing; syncBtn(); });
+syncBtn();
+
+/* ---------- loop ---------- */
+let t = 0, last = performance.now(), onScreen = true;
+new IntersectionObserver(es => { onScreen = es[0].isIntersecting; }).observe(stage);
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (!onScreen || document.hidden || !current) return;
+  if (playing) t += dt;
+  idle += dt;
+  if (!dragging && idle > 4 && !reduceMotion && playing) yaw += dt * 0.06;
+  spinner.rotation.y = yaw; spinner.rotation.x = pitch;
+  current.update(reduceMotion && !playing ? 2.0 : t);
+  renderer.render(scene, camera);
+  placeLabels(stage.clientWidth, stage.clientHeight);
+}
+trackSections(show);
+show('anatomy');
+requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
