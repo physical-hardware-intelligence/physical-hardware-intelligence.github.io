@@ -1301,7 +1301,7 @@ mask_list.append(and_masks(noise2noise_mask, block_self_mask))                 <
     const S = sketch(svg), K = fpKit(S), IM = CV && CV.inputs ? CV.inputs : null;
     const cols = [
       { x: 30, side: 100, f: 4, name: "4 frames, one camera", shape: "[3, 4, 128, 128]", n: ["pixels from −1 to 1"], imgs: IM, c: R },
-      { x: 225, side: 72, f: 4, name: "patchify", shape: "[12, 4, 64, 64]", n: ["each 2 × 2 block of pixels", "stacked: 12 numbers, no learning"], c: M },
+      { x: 247, side: 72, f: 4, name: "patchify", shape: "[12, 4, 64, 64]", n: ["each 2 × 2 block of pixels", "stacked, no learning"], c: M },
       { x: 420, side: 72, f: 4, name: "first convolution", shape: "[160, 4, 64, 64]", n: ["160 filters, 3 × 3 in space,", "3 frames deep"] },
       { x: 610, side: 52, f: 4, name: "stage 0", shape: "[160, 4, 32, 32]", n: ["2 residual blocks,", "stride-2 convolution"] },
     ];
@@ -1322,7 +1322,8 @@ mask_list.append(and_masks(noise2noise_mask, block_self_mask))                 <
     const tag = (x, y, s, c) => S.text(x, y, s, { anchor: "middle", size: 13, color: c, bold: true });
     const A1 = draw(cols, 128, 36, 70);
     const arr = (a, b, y, tags) => { S.arrow([[a + 8, y], [b - 8, y]], { stroke: M, sw: 1.2 }); tags.forEach(([s, c], i) => tag((a + b) / 2, y - 10 - i * 16, s, c)); };
-    arr(A1[0].r, cols[1].x, 128, [["space ÷2", V]]);
+    arr(A1[0].r, cols[1].x, 128, []);
+    [["2 × 2 blocks", V], ["→ 12 channels", M]].forEach(([s, c], i) => S.text((A1[0].r + cols[1].x) / 2, 102 + i * 15, s, { anchor: "middle", size: 12, color: c, bold: true }));
     arr(A1[1].r, cols[2].x, 128, [["12 → 160", M]]);
     arr(A1[2].r, cols[3].x, 128, [["space ÷2", V]]);
     const B = draw(rowB, 340, 300, 40);
